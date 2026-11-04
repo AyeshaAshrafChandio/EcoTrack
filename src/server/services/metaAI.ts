@@ -150,11 +150,11 @@ export class MetaAIService {
 
     if (req.context?.telemetry) {
       const t = req.context.telemetry;
-      primaryVector = t.dominantPollutant;
-      const blh = t.weather.boundaryLayerHeight;
-      const wind = t.weather.windSpeed;
+      primaryVector = t.dominantPollutant || 'PM2.5';
+      const blh = t.weather?.boundaryLayerHeight ?? 850;
+      const wind = t.weather?.windSpeed ?? 3.5;
 
-      if (blh < 400 || (wind < 1.5 && t.overallAqi > 100)) {
+      if (blh < 400 || (wind < 1.5 && (t.overallAqi ?? 50) > 100)) {
         invRisk = 'Severe';
         ventFactor = `Severe planetary boundary cap at ${blh}m with low horizontal advection (${wind} m/s).`;
       } else if (blh < 800 || wind < 2.5) {
@@ -165,28 +165,28 @@ export class MetaAIService {
         ventFactor = `Unrestricted convective boundary layer (${blh}m) and ${wind} m/s wind.`;
       }
 
-      const pm25 = t.pollutants['PM2.5']?.value ?? 0;
-      guidelineComparison = `PM2.5 at ${pm25} µg/m³ is ${Math.round((pm25 / 15) * 100)}% of the WHO 2021 24h benchmark (15 µg/m³). Overall EPA AQI is ${t.overallAqi} (${t.aqiCategory}).`;
+      const pm25 = t.pollutants?.['PM2.5']?.value ?? 0;
+      guidelineComparison = `PM2.5 at ${pm25} µg/m³ is ${Math.round((pm25 / 15) * 100)}% of the WHO 2021 24h benchmark (15 µg/m³). Overall EPA AQI is ${t.overallAqi ?? 'N/A'} (${t.aqiCategory ?? 'Standard'}).`;
 
       groundingContext = `
-LOCATION: ${t.location.name} (Lat: ${t.location.latitude}, Lon: ${t.location.longitude})
-CURRENT OVERALL EPA AQI: ${t.overallAqi} (${t.aqiCategory})
-DOMINANT POLLUTANT: ${t.dominantPollutant}
+LOCATION: ${t.location?.name || 'Local Station'} (Lat: ${t.location?.latitude ?? 'N/A'}, Lon: ${t.location?.longitude ?? 'N/A'})
+CURRENT OVERALL EPA AQI: ${t.overallAqi ?? 'N/A'} (${t.aqiCategory ?? 'Standard'})
+DOMINANT POLLUTANT: ${t.dominantPollutant ?? 'PM2.5'}
 POLLUTANTS:
-- PM2.5: ${t.pollutants['PM2.5']?.value} µg/m³ (WHO: 15 µg/m³, AQI sub-index: ${t.pollutants['PM2.5']?.aqiSubIndex})
-- PM10: ${t.pollutants['PM10']?.value} µg/m³ (WHO: 45 µg/m³, AQI sub-index: ${t.pollutants['PM10']?.aqiSubIndex})
-- NO2: ${t.pollutants['NO2']?.value} µg/m³ (WHO: 25 µg/m³, AQI sub-index: ${t.pollutants['NO2']?.aqiSubIndex})
-- O3: ${t.pollutants['O3']?.value} µg/m³ (WHO: 100 µg/m³, AQI sub-index: ${t.pollutants['O3']?.aqiSubIndex})
-- SO2: ${t.pollutants['SO2']?.value} µg/m³ (WHO: 40 µg/m³, AQI sub-index: ${t.pollutants['SO2']?.aqiSubIndex})
-- CO: ${t.pollutants['CO']?.value} mg/m³
+- PM2.5: ${t.pollutants?.['PM2.5']?.value ?? 'N/A'} µg/m³ (WHO: 15 µg/m³, AQI sub-index: ${t.pollutants?.['PM2.5']?.aqiSubIndex ?? 'N/A'})
+- PM10: ${t.pollutants?.['PM10']?.value ?? 'N/A'} µg/m³ (WHO: 45 µg/m³, AQI sub-index: ${t.pollutants?.['PM10']?.aqiSubIndex ?? 'N/A'})
+- NO2: ${t.pollutants?.['NO2']?.value ?? 'N/A'} µg/m³ (WHO: 25 µg/m³, AQI sub-index: ${t.pollutants?.['NO2']?.aqiSubIndex ?? 'N/A'})
+- O3: ${t.pollutants?.['O3']?.value ?? 'N/A'} µg/m³ (WHO: 100 µg/m³, AQI sub-index: ${t.pollutants?.['O3']?.aqiSubIndex ?? 'N/A'})
+- SO2: ${t.pollutants?.['SO2']?.value ?? 'N/A'} µg/m³ (WHO: 40 µg/m³, AQI sub-index: ${t.pollutants?.['SO2']?.aqiSubIndex ?? 'N/A'})
+- CO: ${t.pollutants?.['CO']?.value ?? 'N/A'} mg/m³
 METEOROLOGY:
-- Temperature: ${t.weather.temperature} °C
-- Relative Humidity: ${t.weather.humidity} %
-- Wind: ${t.weather.windSpeed} m/s from ${t.weather.windDirectionCompass} (${t.weather.windDirection}°)
-- Surface Pressure: ${t.weather.surfacePressure} hPa
-- Planetary Boundary Layer Height (Inversion Cap): ${t.weather.boundaryLayerHeight} meters
-- Weather Condition: ${t.weather.weatherDescription}
-BIOMETRIC ADVISORY: ${t.biometricAdvisory.headline} — ${t.biometricAdvisory.description}
+- Temperature: ${t.weather?.temperature ?? 'N/A'} °C
+- Relative Humidity: ${t.weather?.humidity ?? 'N/A'} %
+- Wind: ${t.weather?.windSpeed ?? 'N/A'} m/s from ${t.weather?.windDirectionCompass ?? 'N/A'} (${t.weather?.windDirection ?? 'N/A'}°)
+- Surface Pressure: ${t.weather?.surfacePressure ?? 'N/A'} hPa
+- Planetary Boundary Layer Height (Inversion Cap): ${t.weather?.boundaryLayerHeight ?? 'N/A'} meters
+- Weather Condition: ${t.weather?.weatherDescription ?? 'Standard Atmospheric State'}
+BIOMETRIC ADVISORY: ${t.biometricAdvisory?.headline ?? 'Normal Precautions'} — ${t.biometricAdvisory?.description ?? 'Standard outdoor exposure guidelines apply.'}
 PROVENANCE: Calibrated WMO GAW physical sensors & Open-Meteo ECMWF/CAMS telemetry.
       `.trim();
     }

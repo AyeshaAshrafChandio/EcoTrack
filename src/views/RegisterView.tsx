@@ -151,7 +151,7 @@ export const RegisterView: React.FC = () => {
             {/* Feature Matrix */}
             <div className="space-y-3 pt-2">
               {[
-                { title: 'Zero-Speculation Physical Telemetry', desc: 'Direct ingestion from 18,420 WMO GAW calibrated ground stations and Copernicus Sentinel satellites.' },
+                { title: 'Zero-Speculation Physical Telemetry', desc: 'Direct ingestion from verified WMO GAW calibrated ground stations and Copernicus Sentinel satellites.' },
                 { title: 'Meta AI & Vision Transformer Copilot', desc: 'Reasoning against planetary boundary layer inversions, particulate speciation, and optical haze attenuation.' },
                 { title: 'Automated Threshold Exceedance Alarms', desc: 'Real-time alert dispatching across WHO 2021 air quality targets and EPA 40 CFR 58 standards.' },
               ].map((feat, i) => (

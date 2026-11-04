@@ -159,7 +159,7 @@ export const AuthView: React.FC = () => {
               <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant uppercase">
                 Active Ingestion Nodes
               </span>
-              <div className="font-data-metric-sm text-lg font-bold text-primary">18,420 Active</div>
+              <div className="font-data-metric-sm text-lg font-bold text-primary">Verified Ground Mesh</div>
             </div>
             <div className="space-y-0.5">
               <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant uppercase">
@@ -277,7 +277,7 @@ export const AuthView: React.FC = () => {
                 />
               </svg>
             )}
-            <span>Continue with Google</span>
+            <span>Sign in with Google</span>
           </button>
 
           <div className="relative flex py-1 items-center">

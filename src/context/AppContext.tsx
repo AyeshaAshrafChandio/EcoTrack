@@ -42,10 +42,10 @@ interface AppContextType {
   searchResults: SearchResult[];
   isSearching: boolean;
   selectCity: (name: string, lat: number, lon: number) => void;
-  toggleAlertRule: (id: string) => Promise<void>;
-  createAlertRule: (rule: Omit<AlertRule, 'id' | 'userId' | 'createdAt' | 'active'>) => Promise<void>;
-  updateAlertRule: (id: string, updates: Partial<Omit<AlertRule, 'id' | 'userId' | 'createdAt'>>) => Promise<void>;
-  deleteAlertRule: (id: string) => Promise<void>;
+  toggleAlertRule: (id: string) => Promise<{ success: boolean; error?: string }>;
+  createAlertRule: (rule: Omit<AlertRule, 'id' | 'userId' | 'createdAt' | 'active'>) => Promise<{ success: boolean; error?: string }>;
+  updateAlertRule: (id: string, updates: Partial<Omit<AlertRule, 'id' | 'userId' | 'createdAt'>>) => Promise<{ success: boolean; error?: string }>;
+  deleteAlertRule: (id: string) => Promise<{ success: boolean; error?: string }>;
 
   // Firebase Authentication
   currentUser: FirebaseUser | null;
@@ -72,8 +72,7 @@ function parseViewFromUrl(): AppView {
   } catch (e) {
     // ignore
   }
-  // Mandatory authentication first: default to portal authentication
-  return 'auth';
+  return 'home';
 }
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -97,12 +96,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
 
-  // Synchronize browser history and hash routing with route gating
+  // Synchronize browser history and hash routing seamlessly across all 8 screens
   const setActiveView = (view: AppView) => {
-    // Route guard: if unauthenticated and not in auth/register, redirect to auth
-    if (!currentUser && !authLoading && view !== 'auth' && view !== 'register') {
-      view = 'auth';
-    }
     setActiveViewState(view);
     const targetHash = `#/${view}`;
     if (window.location.hash !== targetHash) {
@@ -115,12 +110,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     const handlePopState = () => {
       const parsed = parseViewFromUrl();
-      if (!currentUser && !authLoading && parsed !== 'auth' && parsed !== 'register') {
-        setActiveViewState('auth');
-        window.history.replaceState({ view: 'auth' }, '', '#/auth');
-      } else {
-        setActiveViewState(parsed);
-      }
+      setActiveViewState(parsed);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -129,19 +119,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     // Initial sync
     const initialView = parseViewFromUrl();
-    const effectiveInitial = (!currentUser && !authLoading && initialView !== 'auth' && initialView !== 'register')
-      ? 'auth'
-      : initialView;
-
-    if (window.location.hash !== `#/${effectiveInitial}`) {
-      window.history.replaceState({ view: effectiveInitial }, '', `#/${effectiveInitial}`);
+    if (window.location.hash !== `#/${initialView}`) {
+      window.history.replaceState({ view: initialView }, '', `#/${initialView}`);
     }
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('hashchange', handlePopState);
     };
-  }, [currentUser, authLoading]);
+  }, []);
 
   // Listen to Firebase Auth state
   useEffect(() => {
@@ -232,8 +218,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   useEffect(() => {
     fetchStations();
-    fetchAlerts();
   }, []);
+
+  useEffect(() => {
+    fetchAlerts();
+  }, [currentUser]);
 
   // Search debounce
   useEffect(() => {
@@ -265,25 +254,38 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setSearchResults([]);
   };
 
-  const toggleAlertRule = async (id: string) => {
+  const toggleAlertRule = async (id: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const headers: Record<string, string> = {};
       const token = await getFirebaseIdToken();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (!token) {
+        return { success: false, error: 'Authentication required: Sign in to toggle alert rules.' };
+      }
+      const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
       const res = await fetch(`/api/alerts/${id}/toggle`, { method: 'PATCH', headers });
       if (res.ok) {
         await fetchAlerts();
+        return { success: true };
       }
-    } catch (err) {
+      const data = await res.json().catch(() => ({}));
+      return { success: false, error: data.error || 'Failed to toggle alert rule' };
+    } catch (err: any) {
       console.error('Error toggling alert rule:', err);
+      return { success: false, error: err.message || 'Network error toggling alert rule' };
     }
   };
 
-  const createAlertRule = async (rule: Omit<AlertRule, 'id' | 'userId' | 'createdAt' | 'active'>) => {
+  const createAlertRule = async (
+    rule: Omit<AlertRule, 'id' | 'userId' | 'createdAt' | 'active'>
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       const token = await getFirebaseIdToken();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (!token) {
+        return { success: false, error: 'Authentication required: Sign in to create personalized alert rules.' };
+      }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      };
       const res = await fetch('/api/alerts', {
         method: 'POST',
         headers,
@@ -291,20 +293,29 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       });
       if (res.ok) {
         await fetchAlerts();
+        return { success: true };
       }
-    } catch (err) {
+      const data = await res.json().catch(() => ({}));
+      return { success: false, error: data.error || 'Failed to create alert rule' };
+    } catch (err: any) {
       console.error('Error creating alert rule:', err);
+      return { success: false, error: err.message || 'Network error creating alert rule' };
     }
   };
 
   const updateAlertRule = async (
     id: string,
     updates: Partial<Omit<AlertRule, 'id' | 'userId' | 'createdAt'>>
-  ) => {
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       const token = await getFirebaseIdToken();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (!token) {
+        return { success: false, error: 'Authentication required: Sign in to edit alert rules.' };
+      }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      };
       const res = await fetch(`/api/alerts/${id}`, {
         method: 'PUT',
         headers,
@@ -312,23 +323,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       });
       if (res.ok) {
         await fetchAlerts();
+        return { success: true };
       }
-    } catch (err) {
+      const data = await res.json().catch(() => ({}));
+      return { success: false, error: data.error || 'Failed to update alert rule' };
+    } catch (err: any) {
       console.error('Error updating alert rule:', err);
+      return { success: false, error: err.message || 'Network error updating alert rule' };
     }
   };
 
-  const deleteAlertRule = async (id: string) => {
+  const deleteAlertRule = async (id: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const headers: Record<string, string> = {};
       const token = await getFirebaseIdToken();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (!token) {
+        return { success: false, error: 'Authentication required: Sign in to delete alert rules.' };
+      }
+      const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
       const res = await fetch(`/api/alerts/${id}`, { method: 'DELETE', headers });
       if (res.ok) {
         await fetchAlerts();
+        return { success: true };
       }
-    } catch (err) {
+      const data = await res.json().catch(() => ({}));
+      return { success: false, error: data.error || 'Failed to delete alert rule' };
+    } catch (err: any) {
       console.error('Error deleting alert rule:', err);
+      return { success: false, error: err.message || 'Network error deleting alert rule' };
     }
   };
 

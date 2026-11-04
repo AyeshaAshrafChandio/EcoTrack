@@ -1,37 +1,47 @@
 /**
  * Backend Firebase ID Token Authentication Middleware
- * Validates Firebase ID tokens passed in Authorization: Bearer <token>
+ *
+ * Strictly verifies cryptographic Firebase ID tokens issued to authenticated clients.
+ * Integrates with Firebase Admin SDK (firebase-admin/auth).
+ *
+ * Security Requirements:
+ * - Reject any synthetic, forged, or mock tokens (local_token_*, mock_*)
+ * - Verify JWT signature, issuer, expiration, and audience via Google Admin SDK
+ * - Protect private user endpoints: alerts mutations, saved locations, comparisons, user profile
  */
 
 import type { Request, Response, NextFunction } from 'express';
 import { initializeApp, getApps, type App } from 'firebase-admin/app';
 import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
 
-let isFirebaseAdminInitialized = false;
 let adminApp: App | null = null;
 
-// Initialize Firebase Admin if project ID or credentials are present
-try {
-  if (getApps().length === 0) {
-    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
-    if (projectId && !projectId.includes('placeholder')) {
-      adminApp = initializeApp({
-        projectId,
-      });
-      isFirebaseAdminInitialized = true;
-    }
-  } else {
+export function getFirebaseAdminApp(): App | null {
+  if (adminApp) return adminApp;
+  if (getApps().length > 0) {
     adminApp = getApps()[0];
-    isFirebaseAdminInitialized = true;
+    return adminApp;
   }
-} catch (err) {
-  console.warn('Firebase Admin SDK initialization notice:', err);
+
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+  if (projectId && !projectId.includes('placeholder') && !projectId.includes('your_')) {
+    try {
+      adminApp = initializeApp({ projectId });
+      return adminApp;
+    } catch (err) {
+      console.warn('Firebase Admin SDK initialization notice:', err);
+    }
+  }
+  return null;
 }
 
 export interface AuthenticatedRequest extends Request {
-  user?: DecodedIdToken | { uid: string; email?: string; name?: string };
+  user?: DecodedIdToken;
 }
 
+/**
+ * Strict middleware to verify Firebase ID tokens for protected endpoints
+ */
 export async function verifyFirebaseToken(
   req: AuthenticatedRequest,
   res: Response,
@@ -53,20 +63,16 @@ export async function verifyFirebaseToken(
     });
   }
 
-  // Re-check initialization if env var was set dynamically
-  if (!isFirebaseAdminInitialized || !adminApp) {
-    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
-    if (projectId && !projectId.includes('placeholder')) {
-      try {
-        adminApp = getApps().length === 0 ? initializeApp({ projectId }) : getApps()[0];
-        isFirebaseAdminInitialized = true;
-      } catch (e) {
-        console.warn('Firebase Admin dynamic init error:', e);
-      }
-    }
+  // Reject insecure, synthetic, or mock tokens immediately
+  if (idToken.startsWith('local_token_') || idToken.startsWith('mock_')) {
+    return res.status(401).json({
+      error: 'Unauthorized: Insecure synthetic tokens are strictly prohibited. A real, verified Firebase ID token is required.',
+      code: 'auth/insecure-token-rejected',
+    });
   }
 
-  if (!isFirebaseAdminInitialized || !adminApp) {
+  const app = getFirebaseAdminApp();
+  if (!app) {
     return res.status(401).json({
       error: 'Unauthorized: Firebase Admin SDK requires FIREBASE_PROJECT_ID in server environment to verify ID tokens.',
       code: 'auth/admin-uninitialized',
@@ -74,7 +80,7 @@ export async function verifyFirebaseToken(
   }
 
   try {
-    const decodedToken = await getAuth(adminApp).verifyIdToken(idToken);
+    const decodedToken = await getAuth(app).verifyIdToken(idToken);
     req.user = decodedToken;
     return next();
   } catch (error: any) {
@@ -86,17 +92,25 @@ export async function verifyFirebaseToken(
   }
 }
 
+/**
+ * Extract authenticated user if a valid Firebase ID token is present, otherwise return null
+ */
 export async function extractOptionalUser(req: Request): Promise<DecodedIdToken | null> {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
   const token = authHeader.split('Bearer ')[1].trim();
-  if (!token || !adminApp || !isFirebaseAdminInitialized) return null;
+  if (!token || token.startsWith('local_token_') || token.startsWith('mock_')) return null;
+
+  const app = getFirebaseAdminApp();
+  if (!app) return null;
+
   try {
-    return await getAuth(adminApp).verifyIdToken(token);
+    return await getAuth(app).verifyIdToken(token);
   } catch {
     return null;
   }
 }
 
-export { isFirebaseAdminInitialized };
-
+export function isFirebaseAdminInitialized(): boolean {
+  return Boolean(getFirebaseAdminApp());
+}

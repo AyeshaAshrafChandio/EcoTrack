@@ -102,7 +102,7 @@ export const Header: React.FC = () => {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
               <span className="font-label-mono-sm text-label-mono-sm text-on-surface">
-                18,420 Active Global Ground Sensors
+                Global Telemetry Mesh Active
               </span>
             </div>
           </div>

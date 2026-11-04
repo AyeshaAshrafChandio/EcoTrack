@@ -32,7 +32,7 @@ apiRouter.get('/status', async (_req, res) => {
       copernicusAtmosphere: 'OPERATIONAL',
       openaqV3: process.env.OPENAQ_API_KEY ? 'AUTHENTICATED' : 'PUBLIC_OPEN_ACCESS',
       metaAI: (process.env.META_API_KEY || process.env.GROQ_API_KEY) ? 'AUTHENTICATED' : 'BLOCKED_NO_API_KEY',
-      firebaseAuth: isFirebaseAdminInitialized ? 'ACTIVE' : 'READY_AWAITING_PROJECT_ID',
+      firebaseAuth: isFirebaseAdminInitialized() ? 'ACTIVE' : 'READY_AWAITING_PROJECT_ID',
       database: 'LOCAL_JSON_PERSISTENCE (PostgreSQL not connected)',
     },
     verifiedStationNodes: stations.length,
@@ -252,7 +252,7 @@ apiRouter.post('/vision/segment', async (req, res) => {
   }
 });
 
-// Alert Rules
+// Alert Rules: Public read of default system rules + user-specific rules if authenticated
 apiRouter.get('/alerts', async (req, res) => {
   const user = await extractOptionalUser(req);
   res.json({
@@ -261,16 +261,17 @@ apiRouter.get('/alerts', async (req, res) => {
   });
 });
 
-apiRouter.post('/alerts', async (req, res) => {
+// Mutating alert rules requires strict Firebase ID token verification
+apiRouter.post('/alerts', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await extractOptionalUser(req);
+    const user = req.user!;
     const { locationName, lat, lon, pollutant, operator, threshold, unit, severity, notificationChannel } = req.body;
     if (!locationName || lat === undefined || lon === undefined || !pollutant || threshold === undefined) {
       return res.status(400).json({ error: 'Missing required alert rule parameters' });
     }
 
     const newRule = db.addAlertRule({
-      userId: user?.uid || 'system',
+      userId: user.uid,
       locationName,
       lat: parseFloat(lat),
       lon: parseFloat(lon),
@@ -289,9 +290,9 @@ apiRouter.post('/alerts', async (req, res) => {
   }
 });
 
-apiRouter.put('/alerts/:id', async (req, res) => {
+apiRouter.put('/alerts/:id', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await extractOptionalUser(req);
+    const user = req.user!;
     const { pollutant, operator, threshold, unit, severity, notificationChannel, active, locationName, lat, lon } = req.body;
     const updates: any = {};
     if (pollutant !== undefined) updates.pollutant = pollutant;
@@ -305,7 +306,7 @@ apiRouter.put('/alerts/:id', async (req, res) => {
     if (lat !== undefined) updates.lat = parseFloat(lat);
     if (lon !== undefined) updates.lon = parseFloat(lon);
 
-    const updated = db.updateAlertRule(req.params.id, user?.uid, updates);
+    const updated = db.updateAlertRule(req.params.id, user.uid, updates);
     if (!updated) {
       return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
     }
@@ -315,39 +316,39 @@ apiRouter.put('/alerts/:id', async (req, res) => {
   }
 });
 
-apiRouter.patch('/alerts/:id/toggle', async (req, res) => {
-  const user = await extractOptionalUser(req);
-  const updated = db.toggleAlertRule(req.params.id, user?.uid);
-  if (!updated) return res.status(404).json({ error: 'Alert rule not found' });
+apiRouter.patch('/alerts/:id/toggle', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+  const user = req.user!;
+  const updated = db.toggleAlertRule(req.params.id, user.uid);
+  if (!updated) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
   res.json(updated);
 });
 
-apiRouter.delete('/alerts/:id', async (req, res) => {
-  const user = await extractOptionalUser(req);
-  const deleted = db.deleteAlertRule(req.params.id, user?.uid);
-  if (!deleted) return res.status(404).json({ error: 'Alert rule not found' });
+apiRouter.delete('/alerts/:id', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+  const user = req.user!;
+  const deleted = db.deleteAlertRule(req.params.id, user.uid);
+  if (!deleted) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
   res.json({ success: true });
 });
 
+// Public exceedance events ledger
 apiRouter.get('/alerts/events', (_req, res) => {
   res.json(db.getExceedanceEvents());
 });
 
-// Saved Locations
-apiRouter.get('/saved-locations', async (req, res) => {
-  const user = await extractOptionalUser(req);
-  res.json(db.getSavedLocations(user?.uid));
+// Saved Locations: strictly authenticated per user
+apiRouter.get('/saved-locations', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+  res.json(db.getSavedLocations(req.user!.uid));
 });
 
-apiRouter.post('/saved-locations', async (req, res) => {
+apiRouter.post('/saved-locations', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await extractOptionalUser(req);
+    const user = req.user!;
     const { name, lat, lon, country, stationId } = req.body;
     if (!name || lat === undefined || lon === undefined) {
       return res.status(400).json({ error: 'Missing location fields' });
     }
     const saved = db.addSavedLocation({
-      userId: user?.uid || 'system',
+      userId: user.uid,
       name,
       lat: parseFloat(lat),
       lon: parseFloat(lon),
@@ -360,25 +361,24 @@ apiRouter.post('/saved-locations', async (req, res) => {
   }
 });
 
-apiRouter.delete('/saved-locations/:id', async (req, res) => {
-  const user = await extractOptionalUser(req);
-  const deleted = db.deleteSavedLocation(req.params.id, user?.uid);
-  if (!deleted) return res.status(404).json({ error: 'Location not found' });
+apiRouter.delete('/saved-locations/:id', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+  const user = req.user!;
+  const deleted = db.deleteSavedLocation(req.params.id, user.uid);
+  if (!deleted) return res.status(404).json({ error: 'Location not found or unauthorized' });
   res.json({ success: true });
 });
 
-// Comparisons
-apiRouter.get('/comparisons', async (req, res) => {
-  const user = await extractOptionalUser(req);
-  res.json(db.getComparisonSessions(user?.uid));
+// Comparisons: strictly authenticated per user
+apiRouter.get('/comparisons', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+  res.json(db.getComparisonSessions(req.user!.uid));
 });
 
-apiRouter.post('/comparisons', async (req, res) => {
+apiRouter.post('/comparisons', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const user = await extractOptionalUser(req);
+    const user = req.user!;
     const { title, locations } = req.body;
     const session = db.saveComparisonSession({
-      userId: user?.uid || 'system',
+      userId: user.uid,
       title: title || 'Comparison Session',
       locations: locations || [],
     });
@@ -395,17 +395,13 @@ function toSafeUser(user: User) {
 }
 
 // Authentication endpoints: strictly synchronized with Firebase Authentication
-apiRouter.get('/auth/me', async (req, res) => {
-  const firebaseUser = await extractOptionalUser(req);
-  if (firebaseUser) {
-    const user = db.upsertFirebaseUser({
-      uid: firebaseUser.uid,
-      email: firebaseUser.email,
-      name: firebaseUser.name || (firebaseUser as any).displayName,
-    });
-    return res.json({ user: toSafeUser(user) });
-  }
-  res.status(401).json({ error: 'Not authenticated. Missing or invalid Firebase ID token.' });
+apiRouter.get('/auth/me', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+  const user = db.upsertFirebaseUser({
+    uid: req.user!.uid,
+    email: req.user!.email,
+    name: (req.user as any).name || (req.user as any).displayName,
+  });
+  res.json({ user: toSafeUser(user) });
 });
 
 apiRouter.post('/auth/logout', (_req, res) => {

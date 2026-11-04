@@ -4,6 +4,8 @@ import type { AlertRule } from '../types';
 
 export const AlertsView: React.FC = () => {
   const {
+    currentUser,
+    setActiveView,
     alertRules,
     exceedanceEvents,
     toggleAlertRule,
@@ -36,7 +38,7 @@ export const AlertsView: React.FC = () => {
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
+    setTimeout(() => setToastMsg(null), 3500);
   };
 
   const filteredEvents = exceedanceEvents.filter(e => {
@@ -51,6 +53,11 @@ export const AlertsView: React.FC = () => {
   const handleCreateRule = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreateError(null);
+    if (!currentUser) {
+      setCreateError('Authentication required: Sign in with your EcoTrack account to save custom alert thresholds.');
+      return;
+    }
+
     const parsedThreshold = parseFloat(newThreshold);
     if (isNaN(parsedThreshold) || parsedThreshold <= 0) {
       setCreateError('Please specify a positive numerical threshold ceiling.');
@@ -61,7 +68,7 @@ export const AlertsView: React.FC = () => {
     const lat = matched ? matched.lat : 35.6895;
     const lon = matched ? matched.lon : 139.6917;
 
-    await createAlertRule({
+    const result = await createAlertRule({
       locationName: newLocation,
       lat,
       lon,
@@ -73,6 +80,11 @@ export const AlertsView: React.FC = () => {
       notificationChannel: newChannel,
     });
 
+    if (!result.success) {
+      setCreateError(result.error || 'Failed to create alert rule.');
+      return;
+    }
+
     setShowCreateModal(false);
     showToast(`Alert rule created for ${newLocation} (${newPollutant} > ${parsedThreshold})`);
   };
@@ -81,13 +93,18 @@ export const AlertsView: React.FC = () => {
     e.preventDefault();
     if (!editingRule) return;
     setEditError(null);
+    if (!currentUser) {
+      setEditError('Authentication required: Sign in to modify alert thresholds.');
+      return;
+    }
+
     const parsedThreshold = parseFloat(editThreshold);
     if (isNaN(parsedThreshold) || parsedThreshold <= 0) {
       setEditError('Please specify a positive numerical threshold ceiling.');
       return;
     }
 
-    await updateAlertRule(editingRule.id, {
+    const result = await updateAlertRule(editingRule.id, {
       pollutant: editPollutant,
       operator: editOperator,
       threshold: parsedThreshold,
@@ -96,8 +113,29 @@ export const AlertsView: React.FC = () => {
       notificationChannel: editChannel,
     });
 
+    if (!result.success) {
+      setEditError(result.error || 'Failed to update alert rule.');
+      return;
+    }
+
     setEditingRule(null);
     showToast(`Alert rule for ${editingRule.locationName} updated successfully.`);
+  };
+
+  const handleToggle = async (id: string) => {
+    const res = await toggleAlertRule(id);
+    if (!res.success) {
+      showToast(res.error || 'Failed to toggle alert rule');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const res = await deleteAlertRule(id);
+    if (!res.success) {
+      showToast(res.error || 'Failed to delete alert rule');
+    } else {
+      showToast('Alert rule removed from your account.');
+    }
   };
 
   return (
@@ -119,13 +157,38 @@ export const AlertsView: React.FC = () => {
           </div>
 
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              if (!currentUser) {
+                showToast('Please sign in to configure customized alert thresholds.');
+                setActiveView('auth');
+              } else {
+                setShowCreateModal(true);
+              }
+            }}
             className="flex items-center justify-center gap-1.5 px-4 py-2 sm:py-2.5 rounded-xl bg-primary text-on-primary font-label-ui text-xs sm:text-sm font-semibold shadow-md hover:bg-primary-fixed transition-colors cursor-pointer self-start sm:self-auto shrink-0"
           >
             <span className="material-symbols-outlined text-[16px] sm:text-[18px]">add_alert</span>
             <span>Create Alert Rule</span>
           </button>
         </div>
+
+        {/* Public Access Notice for Unauthenticated Users */}
+        {!currentUser && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-primary/10 border border-primary/20 rounded-xl text-on-surface">
+            <div className="flex items-start sm:items-center gap-2.5">
+              <span className="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5 sm:mt-0">public</span>
+              <div className="text-xs sm:text-sm">
+                <span className="font-semibold text-primary">Public Incident Ledger:</span> Global atmospheric exceedances and baseline telemetry are publicly viewable. Sign in to synchronize private alert thresholds across your devices.
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveView('auth')}
+              className="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-ui text-xs font-semibold hover:bg-primary-fixed transition-colors cursor-pointer self-start sm:self-auto shrink-0 shadow-sm"
+            >
+              Sign In to Personalize
+            </button>
+          </div>
+        )}
 
         {/* Severity Filter Strip */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-surface-container-low/70 p-2.5 sm:p-3 rounded-xl border border-surface-container">
@@ -315,7 +378,7 @@ export const AlertsView: React.FC = () => {
 
                 <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
                   <button
-                    onClick={() => toggleAlertRule(rule.id)}
+                    onClick={() => handleToggle(rule.id)}
                     className={`px-3 py-1 rounded font-label-mono-sm text-xs font-semibold transition-colors cursor-pointer ${
                       rule.active
                         ? 'bg-primary/20 text-primary border border-primary/40'
@@ -326,6 +389,11 @@ export const AlertsView: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
+                      if (!currentUser) {
+                        showToast('Please sign in to modify alert thresholds.');
+                        setActiveView('auth');
+                        return;
+                      }
                       setEditingRule(rule);
                       setEditPollutant(rule.pollutant);
                       setEditOperator(rule.operator);
@@ -341,7 +409,7 @@ export const AlertsView: React.FC = () => {
                     <span className="material-symbols-outlined text-[18px]">edit</span>
                   </button>
                   <button
-                    onClick={() => deleteAlertRule(rule.id)}
+                    onClick={() => handleDelete(rule.id)}
                     aria-label="Delete rule"
                     title="Delete rule"
                     className="p-1 rounded text-on-surface-variant hover:text-error transition-colors cursor-pointer"
