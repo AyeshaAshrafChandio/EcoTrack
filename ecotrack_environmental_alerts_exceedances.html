@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>EcoTrack — Global AI Environmental Intelligence</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-error-container":"#ffdad6","on-secondary":"#003640","surface-variant":"#313540","on-primary-fixed-variant":"#005236","secondary-container":"#03b5d3","inverse-on-surface":"#2c303b","secondary":"#4cd7f6","on-tertiary":"#3c0091","surface-container-high":"#262a35","on-tertiary-fixed":"#23005c","primary-container":"#10b981","on-secondary-container":"#00424e","surface-bright":"#353944","secondary-fixed-dim":"#4cd7f6","tertiary-container":"#b090ff","inverse-surface":"#dfe2f1","on-secondary-fixed-variant":"#004e5c","error":"#ffb4ab","tertiary":"#d0bcff","surface":"#0f131d","surface-tint":"#4edea3","outline":"#86948a","on-tertiary-fixed-variant":"#5516be","surface-container-low":"#171b26","error-container":"#93000a","tertiary-fixed":"#e9ddff","on-primary":"#003824","on-secondary-fixed":"#001f26","surface-container-highest":"#313540","primary-fixed":"#6ffbbe","tertiary-fixed-dim":"#d0bcff","on-surface-variant":"#bbcabf","on-background":"#dfe2f1","primary":"#4edea3","outline-variant":"#3c4a42","on-error":"#690005","secondary-fixed":"#acedff","on-surface":"#dfe2f1","on-primary-fixed":"#002113","inverse-primary":"#006c49","surface-dim":"#0f131d","surface-container-lowest":"#0a0e18","surface-container":"#1c1f2a","background":"#0f131d","on-tertiary-container":"#4600a7","on-primary-container":"#00422b","primary-fixed-dim":"#4edea3"},borderRadius:{DEFAULT:"0.125rem",lg:"0.25rem",xl:"0.5rem",full:"0.75rem"},spacing:{"gutter-desktop":"1.5rem","space-2xl":"3rem",gutter:"1rem","space-xs":"0.25rem","margin-tablet":"1.5rem","margin-desktop":"2rem","space-md":"1rem","space-sm":"0.5rem","space-lg":"1.5rem","space-xl":"2rem",margin:"1rem"},fontFamily:{"body-sm":["Inter"],"display-lg":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"body-md":["Inter"],"label-mono-sm":["JetBrains Mono"],"data-metric-sm":["JetBrains Mono"],"label-ui":["Inter"],"headline-xl-mobile":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"data-metric-lg":["JetBrains Mono"],"body-lg":["Inter"],"display-lg-mobile":["Plus Jakarta Sans"]},fontSize:{"body-sm":["0.75rem",{lineHeight:"1.125rem",letterSpacing:"0.01em",fontWeight:"400"}],"display-lg":["3.5rem",{lineHeight:"4rem",letterSpacing:"-0.03em",fontWeight:"700"}],"headline-md":["1.25rem",{lineHeight:"1.75rem",letterSpacing:"-0.01em",fontWeight:"600"}],"body-md":["0.875rem",{lineHeight:"1.375rem",letterSpacing:"0em",fontWeight:"400"}],"label-mono-sm":["0.6875rem",{lineHeight:"0.875rem",letterSpacing:"0.06em",fontWeight:"500"}],"data-metric-sm":["1.25rem",{lineHeight:"1.5rem",letterSpacing:"-0.01em",fontWeight:"500"}],"label-ui":["0.75rem",{lineHeight:"1rem",letterSpacing:"0.02em",fontWeight:"600"}],"headline-xl-mobile":["1.5rem",{lineHeight:"2rem",letterSpacing:"-0.01em",fontWeight:"600"}],"headline-xl":["2rem",{lineHeight:"2.5rem",letterSpacing:"-0.02em",fontWeight:"600"}],"data-metric-lg":["2.5rem",{lineHeight:"2.75rem",letterSpacing:"-0.02em",fontWeight:"600"}],"body-lg":["1.125rem",{lineHeight:"1.75rem",letterSpacing:"0em",fontWeight:"400"}],"display-lg-mobile":["2.25rem",{lineHeight:"2.75rem",letterSpacing:"-0.02em",fontWeight:"700"}]}}}};</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-secondary-container selection:text-on-secondary-container"><header class="fixed top-0 left-0 right-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.45)]"><div class="h-16 w-full px-margin-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg shrink-0"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[22px]">eco</span></div><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">EcoTrack</span><span class="px-1.5 py-0.5 rounded bg-surface-container-high font-label-mono-sm text-label-mono-sm uppercase text-secondary tracking-wider">v3.4-AI</span></div><span class="font-label-mono-sm text-[0.625rem] tracking-wider text-on-surface-variant uppercase font-medium">Global AI Environmental Intelligence</span></div></div><div class="hidden xl:flex items-center gap-space-xs px-2.5 py-1 rounded-full bg-surface-container-low"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span></span><span class="font-label-mono-sm text-label-mono-sm text-on-surface">18,420 Active Global Ground Sensors</span></div></div><nav class="hidden lg:flex items-center gap-space-xs" data-active-classes="bg-surface-container-high text-primary font-semibold"><a class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors font-label-ui text-label-ui" data-path="home" href="#">Home</a><a class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors font-label-ui text-label-ui" data-path="dashboard" href="#">Dashboard</a><a class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors font-label-ui text-label-ui" data-path="global-map" href="#">Global Map</a><a class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors font-label-ui text-label-ui" data-path="ai-copilot" href="#">AI Copilot</a><a class="px-3 py-1.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors font-label-ui text-label-ui" data-path="compare" href="#">Compare</a><a aria-current="page" class="px-3 py-1.5 rounded transition-colors bg-surface-container-high text-primary font-semibold" data-path="alerts" href="#">Alerts</a></nav><div class="flex items-center gap-space-sm shrink-0"><div class="hidden md:flex items-center gap-space-xs bg-surface-container-low px-3 py-1.5 rounded-lg w-52 xl:w-64"><span class="material-symbols-outlined text-on-surface-variant text-[18px]">search</span><input class="bg-transparent font-body-sm text-body-sm text-on-surface placeholder:text-outline-variant focus:outline-none w-full" placeholder="Search station, pollutant, city..." readonly="" type="text"/><kbd class="font-label-mono-sm text-label-mono-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant">Ctrl+K</kbd></div><button class="hidden sm:flex items-center gap-space-xs px-2.5 py-1.5 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors font-label-mono-sm text-label-mono-sm"><span class="material-symbols-outlined text-[16px]">tune</span><span>STD: US-EPA ▾</span></button><button class="hidden sm:flex items-center gap-space-xs px-2.5 py-1.5 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors font-label-mono-sm text-label-mono-sm"><span class="material-symbols-outlined text-[16px]">translate</span><span>LANG: EN ▾</span></button><div class="relative"><button class="w-9 h-9 rounded-lg bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors relative"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-secondary"></span></button></div><div class="relative group"><button class="flex items-center gap-space-xs p-0.5 rounded-full hover:ring-2 hover:ring-surface-variant transition-all focus:outline-none"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></button><div class="absolute right-0 top-full mt-2 w-72 bg-surface-container-high shadow-[0_12px_32px_-4px_rgba(0,0,0,0.65)] rounded-xl p-space-sm hidden group-hover:block hover:block z-50"><div class="px-3 py-2 bg-surface-container-lowest rounded-lg mb-space-xs"><div class="font-label-ui text-label-ui text-on-surface font-semibold">Environmental Operations Lead</div><div class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">ops-telemetry@ecotrack.ai</div></div><div class="py-1 space-y-0.5"><a class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-body-sm text-body-sm transition-colors" href="#"><span class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[18px]">account_circle</span>User Profile</span><span class="font-label-mono-sm text-[0.625rem] text-secondary">OPS-1</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-body-sm text-body-sm transition-colors" href="#"><span class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[18px]">straighten</span>Measurement Units</span><span class="font-label-mono-sm text-[0.625rem] text-on-surface">°C / Metric</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-body-sm text-body-sm transition-colors" href="#"><span class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[18px]">fact_check</span>AQI Standard</span><span class="font-label-mono-sm text-[0.625rem] text-primary">US-EPA / WHO 2021</span></a><a class="flex items-center gap-space-xs px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-body-sm text-body-sm transition-colors" href="#"><span class="material-symbols-outlined text-[18px]">notifications_active</span>Notification Preferences</a><a class="flex items-center gap-space-xs px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-body-sm text-body-sm transition-colors" href="#"><span class="material-symbols-outlined text-[18px]">shield</span>Privacy &amp; Data Governance</a><a class="flex items-center gap-space-xs px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-body-sm text-body-sm transition-colors" href="#"><span class="material-symbols-outlined text-[18px]">manage_accounts</span>Account Settings</a></div></div></div><button class="lg:hidden w-9 h-9 rounded-lg bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined text-[22px]">menu</span></button></div></div></header><main class="w-full pt-16 bg-surface min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Environmental Alerts Screen Root -->
+<div class="w-full px-margin-desktop py-space-xl space-y-space-xl">
+<!-- Top Meta Strip & Page Header (Telemetry Level) -->
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg">
+<div class="space-y-space-xs max-w-4xl">
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded bg-surface-container-high font-label-mono-sm text-label-mono-sm uppercase text-secondary tracking-widest">SUB-SUBSYSTEM TELEMETRY</span>
+<span class="text-outline-variant font-label-mono-sm text-label-mono-sm">/</span>
+<span class="font-label-mono-sm text-label-mono-sm text-primary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+            INGESTION FEED SYNCHRONIZED
+          </span>
+<span class="text-outline-variant font-label-mono-sm text-label-mono-sm">•</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">EPOCH: 2025-05-18T14:42:09Z</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl font-bold tracking-tight text-on-surface">
+          Environmental Alerts &amp; Real-Time Exceedances
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          Proactive threshold monitors, public health advisories, and automated API webhook notifications synchronized with planetary sensor telemetry.
+        </p>
+</div>
+<!-- Action Strip & Global Channel Status -->
+<div class="flex flex-wrap items-center gap-space-sm shrink-0">
+<div class="flex items-center gap-space-xs px-3 py-2 rounded-xl bg-surface-container-low shadow-sm">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
+</span>
+<div class="flex flex-col">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface font-semibold">Channels Online: 9/9 Up</span>
+<span class="font-label-mono-sm text-[0.625rem] text-on-surface-variant">0 PENDING RETRIES</span>
+</div>
+</div>
+<button class="flex items-center gap-space-xs px-4 py-2 rounded-xl bg-primary text-on-primary font-label-ui text-label-ui hover:bg-primary-fixed transition-all shadow-md" id="open-alert-modal">
+<span class="material-symbols-outlined text-[18px]">add_alert</span>
+<span>+ Create New Alert</span>
+</button>
+</div>
+</div>
+<!-- Active Filter Ribbon and Quick Toggles -->
+<div class="flex flex-wrap items-center justify-between gap-space-md py-space-xs bg-surface-container-lowest/60 rounded-xl px-space-md">
+<div class="flex items-center gap-space-xs overflow-x-auto py-1">
+<button class="filter-pill active px-3 py-1.5 rounded-full font-label-ui text-label-ui font-semibold bg-surface-container-high text-primary flex items-center gap-1.5 transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span>All</span>
+<span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-on-surface font-label-mono-sm text-[0.6875rem]">3</span>
+</button>
+<button class="filter-pill px-3 py-1.5 rounded-full font-label-ui text-label-ui font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low flex items-center gap-1.5 transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<span>Critical</span>
+<span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-error font-label-mono-sm text-[0.6875rem]">1</span>
+</button>
+<button class="filter-pill px-3 py-1.5 rounded-full font-label-ui text-label-ui font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low flex items-center gap-1.5 transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span>Warning</span>
+<span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-secondary font-label-mono-sm text-[0.6875rem]">1</span>
+</button>
+<button class="filter-pill px-3 py-1.5 rounded-full font-label-ui text-label-ui font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low flex items-center gap-1.5 transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Advisory</span>
+<span class="px-1.5 py-0.2 rounded-full bg-surface-container-highest text-tertiary font-label-mono-sm text-[0.6875rem]">1</span>
+</button>
+</div>
+<div class="flex items-center gap-space-sm font-label-mono-sm text-label-mono-sm text-on-surface-variant">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">sync</span>
+          Stream Pulse: 3.2s
+        </span>
+<span class="text-outline-variant">•</span>
+<button class="hover:text-on-surface text-secondary transition-colors underline flex items-center gap-1">
+<span>Pause Ingestion</span>
+</button>
+</div>
+</div>
+<!-- Active Sensor Triggers & Incident Cards (3-Column Bento) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg">
+<!-- Incident 1: Delhi NCR (Critical) -->
+<div class="relative bg-surface-container-low/90 rounded-2xl shadow-xl flex flex-col justify-between overflow-hidden group hover:shadow-2xl transition-all">
+<!-- Colored telemetry spine accent -->
+<div class="h-1.5 w-full bg-error"></div>
+<div class="p-space-lg flex-1 space-y-space-md">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-mono-sm text-label-mono-sm uppercase tracking-wider font-bold">CRITICAL EXCEEDANCE</span>
+<span class="font-label-mono-sm text-label-mono-sm text-error font-medium">INC-4091</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-semibold text-on-surface leading-tight">
+                Delhi NCR — Anand Vihar Station
+              </h2>
+<p class="font-label-mono-sm text-label-mono-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+                Station ID: DEL-AV-092 • 28.6469° N, 77.3160° E
+              </p>
+</div>
+<div class="w-10 h-10 rounded-xl bg-error/15 flex items-center justify-center shrink-0 text-error">
+<span class="material-symbols-outlined text-[24px]">crisis_alert</span>
+</div>
+</div>
+<!-- Value comparison metrics block -->
+<div class="bg-surface-container rounded-xl p-space-md space-y-space-xs">
+<div class="flex items-baseline justify-between">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">Observed PM2.5</span>
+<span class="font-label-mono-sm text-label-mono-sm text-error font-semibold">+28.5% over ceiling</span>
+</div>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-data-metric-lg text-data-metric-lg font-bold text-error tracking-tight">128.5</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">µg/m³</span>
+<span class="text-outline-variant font-label-mono-sm text-label-mono-sm ml-auto">Threshold: 100.0 µg/m³</span>
+</div>
+<!-- Progress Bar Visualization -->
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden mt-1">
+<div class="bg-error h-full rounded-full w-[100%]" style="width: 100%;"></div>
+</div>
+<div class="flex justify-between font-label-mono-sm text-[0.6875rem] text-on-surface-variant pt-0.5">
+<span>Guideline Safe: 15.0</span>
+<span>Observed: 128.5 (Tick 3/3 Sustained)</span>
+</div>
+</div>
+<!-- Environmental Context & Lineage -->
+<div class="space-y-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<p class="leading-relaxed">
+              Condition sustained for 3 consecutive 15-minute sensor ticks. High particulate accumulation tied to seasonal stagnation.
+            </p>
+<div class="flex flex-wrap items-center gap-space-xs pt-1">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-mono-sm text-label-mono-sm text-secondary">SENTINEL-5P VERIFIED</span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-mono-sm text-label-mono-sm text-on-surface">COHORT: SENSITIVE &amp; ASTHMA</span>
+</div>
+</div>
+</div>
+<!-- Telemetry Card Footer -->
+<div class="px-space-lg py-space-sm bg-surface-container-lowest/80 flex items-center justify-between font-label-mono-sm text-label-mono-sm">
+<div class="flex items-center gap-space-xs text-primary">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>Push &amp; Webhook Delivered (342ms)</span>
+</div>
+<button class="text-secondary hover:text-on-surface flex items-center gap-0.5 transition-colors">
+<span>Inspect Stream</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Incident 2: London Bloomsbury (Warning) -->
+<div class="relative bg-surface-container-low/90 rounded-2xl shadow-xl flex flex-col justify-between overflow-hidden group hover:shadow-2xl transition-all">
+<div class="h-1.5 w-full bg-secondary"></div>
+<div class="p-space-lg flex-1 space-y-space-md">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-secondary-container/20 text-secondary font-label-mono-sm text-label-mono-sm uppercase tracking-wider font-bold">WARNING EXCEEDANCE</span>
+<span class="font-label-mono-sm text-label-mono-sm text-secondary font-medium">INC-4090</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-semibold text-on-surface leading-tight">
+                London — Bloomsbury Station
+              </h2>
+<p class="font-label-mono-sm text-label-mono-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+                Station ID: LON-BLM-004 • 51.5222° N, 0.1308° W
+              </p>
+</div>
+<div class="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center shrink-0 text-secondary">
+<span class="material-symbols-outlined text-[24px]">air</span>
+</div>
+</div>
+<!-- Value comparison metrics block -->
+<div class="bg-surface-container rounded-xl p-space-md space-y-space-xs">
+<div class="flex items-baseline justify-between">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">Observed NO₂ Photochemical</span>
+<span class="font-label-mono-sm text-label-mono-sm text-secondary font-semibold">+10.0% over ceiling</span>
+</div>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-data-metric-lg text-data-metric-lg font-bold text-secondary tracking-tight">44.0</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">µg/m³</span>
+<span class="text-outline-variant font-label-mono-sm text-label-mono-sm ml-auto">Threshold: 40.0 µg/m³</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden mt-1">
+<div class="bg-secondary h-full rounded-full" style="width: 82%;"></div>
+</div>
+<div class="flex justify-between font-label-mono-sm text-[0.6875rem] text-on-surface-variant pt-0.5">
+<span>Baseline: 24.2 µg/m³</span>
+<span>Peak Corridor: Euston Road</span>
+</div>
+</div>
+<!-- Environmental Context & Lineage -->
+<div class="space-y-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<p class="leading-relaxed">
+              Heavy diesel corridor traffic paired with low atmospheric boundary mixing. Model predicts gradual plume dissipation by early evening.
+            </p>
+<div class="flex flex-wrap items-center gap-space-xs pt-1">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-mono-sm text-label-mono-sm text-secondary">CIVIC ADVISORY: 112 SUB</span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-mono-sm text-label-mono-sm text-primary">DISPERSAL: 19:00 UTC</span>
+</div>
+</div>
+</div>
+<div class="px-space-lg py-space-sm bg-surface-container-lowest/80 flex items-center justify-between font-label-mono-sm text-label-mono-sm">
+<div class="flex items-center gap-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary">send</span>
+<span>Dispatched via UK Defra Webhook</span>
+</div>
+<button class="text-secondary hover:text-on-surface flex items-center gap-0.5 transition-colors">
+<span>Forecast Curve</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Incident 3: São Paulo (Advisory) -->
+<div class="relative bg-surface-container-low/90 rounded-2xl shadow-xl flex flex-col justify-between overflow-hidden group hover:shadow-2xl transition-all">
+<div class="h-1.5 w-full bg-tertiary"></div>
+<div class="p-space-lg flex-1 space-y-space-md">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded-full bg-tertiary-container/30 text-tertiary font-label-mono-sm text-label-mono-sm uppercase tracking-wider font-bold">ATMOSPHERIC ADVISORY</span>
+<span class="font-label-mono-sm text-label-mono-sm text-tertiary font-medium">INC-4089</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-semibold text-on-surface leading-tight">
+                São Paulo — Ibirapuera Central
+              </h2>
+<p class="font-label-mono-sm text-label-mono-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+                Station ID: SAO-IBP-018 • 23.5874° S, 46.6576° W
+              </p>
+</div>
+<div class="w-10 h-10 rounded-xl bg-tertiary/15 flex items-center justify-center shrink-0 text-tertiary">
+<span class="material-symbols-outlined text-[24px]">layers</span>
+</div>
+</div>
+<!-- Value comparison metrics block -->
+<div class="bg-surface-container rounded-xl p-space-md space-y-space-xs">
+<div class="flex items-baseline justify-between">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">LIDAR Inversion Ceiling</span>
+<span class="font-label-mono-sm text-label-mono-sm text-tertiary font-semibold">Boundary Compression</span>
+</div>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-data-metric-lg text-data-metric-lg font-bold text-tertiary tracking-tight">1,180</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">m AGL</span>
+<span class="text-outline-variant font-label-mono-sm text-label-mono-sm ml-auto">Ceiling Trap: 1,200m</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden mt-1">
+<div class="bg-tertiary h-full rounded-full" style="width: 68%;"></div>
+</div>
+<div class="flex justify-between font-label-mono-sm text-[0.6875rem] text-on-surface-variant pt-0.5">
+<span>Trap Window: 02:00 – 06:00 BRT</span>
+<span>Thermal ΔT: +3.2°C at 900m</span>
+</div>
+</div>
+<!-- Environmental Context & Lineage -->
+<div class="space-y-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<p class="leading-relaxed">
+              Nocturnal boundary layer thermal inversion predicted. Particulate buildup anticipated near surface levels before sunrise.
+            </p>
+<div class="flex flex-wrap items-center gap-space-xs pt-1">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-mono-sm text-label-mono-sm text-secondary">MET-INPE COPERNICUS</span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-mono-sm text-label-mono-sm text-on-surface">MUNICIPAL HEALTH SYNC</span>
+</div>
+</div>
+</div>
+<div class="px-space-lg py-space-sm bg-surface-container-lowest/80 flex items-center justify-between font-label-mono-sm text-label-mono-sm">
+<div class="flex items-center gap-space-xs text-primary">
+<span class="material-symbols-outlined text-[16px]">sync_saved_locally</span>
+<span>Automated Health API Armed</span>
+</div>
+<button class="text-secondary hover:text-on-surface flex items-center gap-0.5 transition-colors">
+<span>Inversion Profile</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Middle Split: Interactive Rule Constructor & Live Dispatch Sinks Pipeline -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<!-- Interactive Alert Rule Constructor & Dispatch Engine (8 Cols) -->
+<div class="xl:col-span-8 bg-surface-container-low/80 rounded-2xl p-space-lg shadow-xl space-y-space-lg">
+<div class="flex flex-wrap items-center justify-between gap-space-sm border-b border-surface-container-high pb-space-md">
+<div class="space-y-1">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-mono-sm text-label-mono-sm uppercase tracking-wider text-secondary font-semibold">RULE INFERENCE WORKFLOW</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">
+              Interactive Alert Rule Constructor &amp; Dispatch Engine
+            </h2>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm px-2.5 py-1 rounded bg-surface-container text-on-surface-variant">
+            MODE: LIVE AUTONOMOUS WATCH
+          </span>
+</div>
+<form class="space-y-space-lg" id="rule-constructor-form" onsubmit="event.preventDefault();">
+<!-- Row 1: Target Station and Target Analyte -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="space-y-space-xs">
+<label class="block font-label-ui text-label-ui uppercase tracking-wider text-on-surface-variant font-semibold" for="station-selector">
+                Target Observation Station / Spatial Cell
+              </label>
+<div class="relative">
+<select class="w-full bg-surface-container px-3.5 py-2.5 rounded-xl font-body-sm text-body-sm text-on-surface appearance-none focus:outline-none focus:bg-surface-container-high transition-colors" id="station-selector">
+<option selected="">Tokyo — Shinjuku Met Tower (TK-04)</option>
+<option>Delhi NCR — Anand Vihar Station (DEL-AV-092)</option>
+<option>London — Bloomsbury Station (LON-BLM-004)</option>
+<option>São Paulo — Ibirapuera Central (SAO-IBP-018)</option>
+<option>Los Angeles — Long Beach Port (US-LGB-71)</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-3 text-[18px] text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+<div class="flex items-center gap-space-xs font-label-mono-sm text-[0.6875rem] text-on-surface-variant">
+<span>GEO: 35.6895° N, 139.6917° E</span>
+<span>•</span>
+<span class="text-primary">ONLINE (14 Pings/hr)</span>
+</div>
+</div>
+<div class="space-y-space-xs">
+<label class="block font-label-ui text-label-ui uppercase tracking-wider text-on-surface-variant font-semibold" for="analyte-selector">
+                Target Analyte / Indicator
+              </label>
+<div class="relative">
+<select class="w-full bg-surface-container px-3.5 py-2.5 rounded-xl font-body-sm text-body-sm text-on-surface appearance-none focus:outline-none focus:bg-surface-container-high transition-colors" id="analyte-selector">
+<option selected="">PM2.5 (Fine Particulate &lt;2.5µm)</option>
+<option>PM10 (Coarse Inhalable Particulate)</option>
+<option>NO2 (Nitrogen Dioxide Photochemical)</option>
+<option>O3 (Tropospheric Ground Ozone)</option>
+<option>SO2 (Sulfur Dioxide Trace)</option>
+<option>CO (Carbon Monoxide Sensor Array)</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-3 text-[18px] text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+<div class="flex items-center gap-space-xs font-label-mono-sm text-[0.6875rem] text-on-surface-variant">
+<span>SENSOR: Laser Scattering Optical Spec</span>
+<span>•</span>
+<span class="text-secondary">ACCURACY: ±2.1%</span>
+</div>
+</div>
+</div>
+<!-- Row 2: Benchmark Reference and Threshold Slider -->
+<div class="space-y-space-md bg-surface-container rounded-xl p-space-md">
+<div class="flex flex-wrap items-center justify-between gap-space-xs">
+<div class="space-y-0.5">
+<label class="block font-label-ui text-label-ui uppercase tracking-wider text-on-surface font-semibold">
+                  Exceedance Threshold Value &amp; Standard Benchmark
+                </label>
+<span class="font-body-sm text-body-sm text-on-surface-variant">
+                  Baseline calibrated against: <span class="text-on-surface font-semibold">WHO Air Quality Guideline 2021 (24h Mean)</span>
+</span>
+</div>
+<!-- Interactive Dynamic Counter Display -->
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-xl shadow-inner">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">Selected Trigger:</span>
+<span class="font-data-metric-sm text-data-metric-sm font-bold text-secondary" id="slider-counter">55</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">µg/m³</span>
+</div>
+</div>
+<!-- Custom Slider with Segment Markers -->
+<div class="space-y-2 pt-2">
+<div class="relative flex items-center">
+<input class="w-full h-2 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-secondary focus:outline-none" id="threshold-slider" max="150" min="5" step="1" type="range" value="55"/>
+</div>
+<!-- Calibration Segment Markers -->
+<div class="flex justify-between font-label-mono-sm text-[0.6875rem] text-on-surface-variant px-1">
+<div class="flex flex-col items-center">
+<span class="text-primary font-bold">5 µg/m³</span>
+<span class="text-[0.625rem]">WHO Clean</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-primary">15 µg/m³</span>
+<span class="text-[0.625rem]">WHO 24h</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-secondary font-bold">35 µg/m³</span>
+<span class="text-[0.625rem]">US-EPA Moderate</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-tertiary">75 µg/m³</span>
+<span class="text-[0.625rem]">Unhealthy</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-error font-bold">150 µg/m³</span>
+<span class="text-[0.625rem]">Hazardous</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Row 3: Sustain Condition Radio Matrix -->
+<div class="space-y-space-xs">
+<label class="block font-label-ui text-label-ui uppercase tracking-wider text-on-surface-variant font-semibold">
+              Temporal Sustain Condition (Debounce Filter)
+            </label>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm" id="sustain-group">
+<button class="sustain-btn flex flex-col p-3 rounded-xl bg-surface-container text-left transition-all hover:bg-surface-container-high" data-val="immediate" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-ui text-label-ui text-on-surface font-semibold">Immediate Single Tick</span>
+<span class="radio-indicator w-3 h-3 rounded-full bg-surface-container-highest"></span>
+</div>
+<span class="font-body-sm text-[0.6875rem] text-on-surface-variant mt-1">Zero debounce latency. Triggers instantly on raw spike.</span>
+</button>
+<button class="sustain-btn active flex flex-col p-3 rounded-xl bg-surface-container-high text-left transition-all shadow-sm" data-val="2h" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-ui text-label-ui text-primary font-semibold">2 Hours Sustained</span>
+<span class="radio-indicator w-3 h-3 rounded-full bg-primary flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-surface"></span>
+</span>
+</div>
+<span class="font-body-sm text-[0.6875rem] text-on-surface-variant mt-1">Filters ephemeral noise like local traffic surges.</span>
+</button>
+<button class="sustain-btn flex flex-col p-3 rounded-xl bg-surface-container text-left transition-all hover:bg-surface-container-high" data-val="4h" type="button">
+<div class="flex items-center justify-between w-full">
+<span class="font-label-ui text-label-ui text-on-surface font-semibold">4 Hours Rolling Mean</span>
+<span class="radio-indicator w-3 h-3 rounded-full bg-surface-container-highest"></span>
+</div>
+<span class="font-body-sm text-[0.6875rem] text-on-surface-variant mt-1">Epidemiological cohort exposure metric.</span>
+</button>
+</div>
+</div>
+<!-- Row 4: Autonomous Dispatch Channels -->
+<div class="space-y-space-xs">
+<label class="block font-label-ui text-label-ui uppercase tracking-wider text-on-surface-variant font-semibold">
+              Autonomous Dispatch Channels &amp; Target Endpoints
+            </label>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-space-sm">
+<!-- Checkbox Item 1 -->
+<label class="flex items-start gap-space-xs p-3 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer select-none">
+<input checked="" class="mt-0.5 w-4 h-4 rounded bg-surface-container-lowest text-primary accent-primary focus:ring-0" type="checkbox"/>
+<div class="space-y-0.5">
+<span class="font-label-ui text-label-ui text-on-surface font-semibold block">Webhook HTTP</span>
+<span class="font-label-mono-sm text-[0.625rem] text-secondary block">Payload v2 REST</span>
+</div>
+</label>
+<!-- Checkbox Item 2 -->
+<label class="flex items-start gap-space-xs p-3 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer select-none">
+<input checked="" class="mt-0.5 w-4 h-4 rounded bg-surface-container-lowest text-primary accent-primary focus:ring-0" type="checkbox"/>
+<div class="space-y-0.5">
+<span class="font-label-ui text-label-ui text-on-surface font-semibold block">Email Advisory</span>
+<span class="font-label-mono-sm text-[0.625rem] text-on-surface-variant block">SMTP Secure Relay</span>
+</div>
+</label>
+<!-- Checkbox Item 3 -->
+<label class="flex items-start gap-space-xs p-3 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer select-none">
+<input checked="" class="mt-0.5 w-4 h-4 rounded bg-surface-container-lowest text-primary accent-primary focus:ring-0" type="checkbox"/>
+<div class="space-y-0.5">
+<span class="font-label-ui text-label-ui text-on-surface font-semibold block">Push Notification</span>
+<span class="font-label-mono-sm text-[0.625rem] text-primary block">FCM &amp; WebPush VAPID</span>
+</div>
+</label>
+<!-- Checkbox Item 4 -->
+<label class="flex items-start gap-space-xs p-3 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer select-none">
+<input class="mt-0.5 w-4 h-4 rounded bg-surface-container-lowest text-primary accent-primary focus:ring-0" type="checkbox"/>
+<div class="space-y-0.5">
+<span class="font-label-ui text-label-ui text-on-surface font-semibold block">SMS Gate</span>
+<span class="font-label-mono-sm text-[0.625rem] text-error block">Critical Only (Tier 1)</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Buttons and Status Verification -->
+<div class="flex flex-wrap items-center justify-between gap-space-md pt-space-xs border-t border-surface-container-high">
+<button class="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high font-label-ui text-label-ui text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1.5" id="reset-rule-btn" type="button">
+<span class="material-symbols-outlined text-[16px]">restart_alt</span>
+<span>Reset Parameters</span>
+</button>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-mono-sm text-[0.6875rem] text-primary hidden md:inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                SYNTAX VERIFIED (ZERO REGRESSION)
+              </span>
+<button class="px-5 py-2.5 rounded-xl bg-primary text-on-primary font-label-ui text-label-ui font-semibold hover:bg-primary-fixed transition-all shadow-lg flex items-center gap-2" id="arm-alert-btn" type="button">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>Save &amp; Arm Alert Rule</span>
+</button>
+</div>
+</div>
+</form>
+</div>
+<!-- Dispatch Sinks & Delivery Latencies Real-Time Telemetry (4 Cols) -->
+<div class="xl:col-span-4 bg-surface-container-low/80 rounded-2xl p-space-lg shadow-xl space-y-space-lg">
+<div class="space-y-1 border-b border-surface-container-high pb-space-md">
+<div class="flex items-center justify-between">
+<span class="font-label-mono-sm text-label-mono-sm uppercase tracking-wider text-secondary font-semibold">PIPELINE MONITOR</span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-mono-sm text-[0.625rem] text-primary">SLO: 99.9%</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">
+            Dispatch Sinks &amp; Latency
+          </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Live delivery throughput across registered alert sink architectures.
+          </p>
+</div>
+<!-- Metric Cluster -->
+<div class="space-y-space-md">
+<!-- Sink 1: Civic Resilience Webhook -->
+<div class="bg-surface-container rounded-xl p-space-md space-y-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-label-ui text-label-ui text-on-surface font-semibold">Civic Resilience Webhook</span>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-primary font-semibold">99.98%</span>
+</div>
+<div class="flex items-baseline justify-between font-label-mono-sm text-label-mono-sm">
+<span class="text-on-surface-variant">Average Delivery Latency</span>
+<span class="text-on-surface font-medium">112ms <span class="text-[0.625rem] text-primary">(p95)</span></span>
+</div>
+<!-- Mini Sparkline inline SVG chart -->
+<div class="pt-1">
+<svg class="w-full h-8 text-secondary" fill="none" viewbox="0 0 200 32">
+<path d="M0,24 Q20,18 40,22 T80,12 T120,20 T160,8 T200,14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+<path d="M0,24 Q20,18 40,22 T80,12 T120,20 T160,8 T200,14 L200,32 L0,32 Z" fill="currentColor" fill-opacity="0.1"></path>
+</svg>
+</div>
+<div class="flex justify-between font-label-mono-sm text-[0.625rem] text-on-surface-variant">
+<span>HTTP 200 OK: 142,390</span>
+<span>Errors: 0 (Last 1h)</span>
+</div>
+</div>
+<!-- Sink 2: Emergency SMS Gateway -->
+<div class="bg-surface-container rounded-xl p-space-md space-y-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-ui text-label-ui text-on-surface font-semibold">Emergency SMS Gateway</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container-high font-label-mono-sm text-[0.625rem] text-secondary font-bold uppercase">ARMED / IDLE</span>
+</div>
+<div class="flex items-baseline justify-between font-label-mono-sm text-label-mono-sm">
+<span class="text-on-surface-variant">Carrier Gateway Latency</span>
+<span class="text-on-surface font-medium">840ms <span class="text-[0.625rem] text-secondary">(GSM)</span></span>
+</div>
+<!-- Mini Horizontal bar breakdown -->
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden mt-1">
+<div class="bg-secondary h-full rounded-full" style="width: 14%;"></div>
+</div>
+<div class="flex justify-between font-label-mono-sm text-[0.625rem] text-on-surface-variant">
+<span>Quota Reserved: 100,000</span>
+<span>Available: 86.4%</span>
+</div>
+</div>
+<!-- Sink 3: Copilot Multi-Agent Dispatch -->
+<div class="bg-surface-container rounded-xl p-space-md space-y-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-label-ui text-label-ui text-on-surface font-semibold">Copilot Multi-Agent Dispatch</span>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-tertiary font-semibold">READY</span>
+</div>
+<div class="flex items-baseline justify-between font-label-mono-sm text-label-mono-sm">
+<span class="text-on-surface-variant">Model Synthesizer</span>
+<span class="text-on-surface font-medium">LLaMA 3.3 70B</span>
+</div>
+<p class="font-body-sm text-[0.6875rem] text-on-surface-variant leading-normal">
+              Autonomous generation of targeted civil warnings, translated dynamically into 14 municipal languages.
+            </p>
+<div class="flex items-center justify-between font-label-mono-sm text-[0.625rem] text-on-surface-variant pt-1">
+<span>Inference: 14.8 tps</span>
+<span class="text-tertiary">CONFIDENCE: 98.9%</span>
+</div>
+</div>
+</div>
+<!-- Real-Time Activity Log Micro-ticker -->
+<div class="bg-surface-container-lowest/80 rounded-xl p-space-sm space-y-2">
+<div class="flex items-center justify-between font-label-mono-sm text-[0.6875rem] text-on-surface-variant">
+<span>DISPATCH TICKER</span>
+<span class="text-primary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+              LIVE
+            </span>
+</div>
+<div class="space-y-1 font-label-mono-sm text-[0.6875rem]">
+<div class="flex items-center justify-between text-on-surface-variant truncate">
+<span>[14:41:02] DEL-AV-092 → WHOOK_DEL_CIVIC</span>
+<span class="text-primary shrink-0 ml-2">200 OK</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant truncate">
+<span>[14:38:19] LON-BLM-004 → DEFRA_AIR_PUB</span>
+<span class="text-primary shrink-0 ml-2">200 OK</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant truncate">
+<span>[14:31:00] SAO-IBP-018 → SMS_EMERG_GATE</span>
+<span class="text-on-surface-variant shrink-0 ml-2">SKIP (LOW)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Historical Ledger & Audit Trail (Full Width Table) -->
+<div class="w-full bg-surface-container-low/90 rounded-2xl p-space-lg shadow-xl space-y-space-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="space-y-1">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-label-mono-sm text-label-mono-sm uppercase tracking-wider text-primary font-semibold">IMMUTABLE REPOSITORY</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">
+            Exceedance Provenance &amp; Historical Audit Trail
+          </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Cryptographically sealed event ledger verifying sensor threshold events and regulatory notifications.
+          </p>
+</div>
+<div class="flex items-center gap-space-sm shrink-0">
+<button class="px-3.5 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high font-label-ui text-label-ui text-on-surface transition-colors flex items-center gap-1.5 shadow-sm" id="sync-log-btn">
+<span class="material-symbols-outlined text-[16px] text-secondary">sync</span>
+<span>Sync Log</span>
+</button>
+<button class="px-3.5 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high font-label-ui text-label-ui text-on-surface transition-colors flex items-center gap-1.5 shadow-sm" id="export-csv-btn">
+<span class="material-symbols-outlined text-[16px] text-primary">download</span>
+<span>Export CSV</span>
+</button>
+</div>
+</div>
+<!-- Ledger Table Wrapper -->
+<div class="w-full overflow-x-auto rounded-xl">
+<table class="w-full text-left font-body-sm text-body-sm border-collapse">
+<thead>
+<tr class="bg-surface-container font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase tracking-wider">
+<th class="py-3 px-4 font-semibold">Timestamp (UTC)</th>
+<th class="py-3 px-4 font-semibold">Station Identifier</th>
+<th class="py-3 px-4 font-semibold">Indicator</th>
+<th class="py-3 px-4 font-semibold">Observed vs Ceiling</th>
+<th class="py-3 px-4 font-semibold">Dispatch Latency</th>
+<th class="py-3 px-4 font-semibold">Channel Status</th>
+<th class="py-3 px-4 font-semibold">SHA-256 Audit Trace</th>
+<th class="py-3 px-4 font-semibold text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-high/40 text-on-surface">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-3.5 px-4 font-label-mono-sm text-label-mono-sm text-on-surface whitespace-nowrap">
+                2025-05-18 14:38:09
+              </td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="font-medium text-on-surface">Delhi NCR — Anand Vihar</div>
+<div class="font-label-mono-sm text-[0.625rem] text-on-surface-variant">DEL-AV-092</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-label-mono-sm text-[0.6875rem] font-semibold">
+                  PM2.5
+                </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-label-mono-sm">
+<span class="text-error font-semibold">128.5</span>
+<span class="text-on-surface-variant"> / 100.0 µg/m³</span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-label-mono-sm text-primary">
+                342 ms
+              </td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1 font-label-mono-sm text-label-mono-sm text-primary">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>DELIVERED (9/9)</span>
+</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-[0.6875rem] text-on-surface-variant">
+<span class="font-mono bg-surface-container px-2 py-0.5 rounded text-secondary" title="SHA-256 Checksum">
+                  e9a2f...39b1
+                </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap text-right">
+<button class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="View Verification Payload">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-3.5 px-4 font-label-mono-sm text-label-mono-sm text-on-surface whitespace-nowrap">
+                2025-05-18 13:12:44
+              </td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="font-medium text-on-surface">London — Bloomsbury</div>
+<div class="font-label-mono-sm text-[0.625rem] text-on-surface-variant">LON-BLM-004</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-secondary-container/30 text-secondary font-label-mono-sm text-[0.6875rem] font-semibold">
+                  NO2
+                </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-label-mono-sm">
+<span class="text-secondary font-semibold">44.0</span>
+<span class="text-on-surface-variant"> / 40.0 µg/m³</span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-label-mono-sm text-primary">
+                112 ms
+              </td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1 font-label-mono-sm text-label-mono-sm text-primary">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>DELIVERED (6/6)</span>
+</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-[0.6875rem] text-on-surface-variant">
+<span class="font-mono bg-surface-container px-2 py-0.5 rounded text-secondary" title="SHA-256 Checksum">
+                  c11d0...77fa
+                </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap text-right">
+<button class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="View Verification Payload">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-3.5 px-4 font-label-mono-sm text-label-mono-sm text-on-surface whitespace-nowrap">
+                2025-05-18 10:05:18
+              </td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="font-medium text-on-surface">São Paulo — Ibirapuera</div>
+<div class="font-label-mono-sm text-[0.625rem] text-on-surface-variant">SAO-IBP-018</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-tertiary-container/30 text-tertiary font-label-mono-sm text-[0.6875rem] font-semibold">
+                  INVERSION
+                </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-label-mono-sm">
+<span class="text-tertiary font-semibold">1,180m</span>
+<span class="text-on-surface-variant"> / 1,200m Trap</span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-label-mono-sm text-primary">
+                198 ms
+              </td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1 font-label-mono-sm text-label-mono-sm text-primary">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>SYNCED (MUNICIPAL)</span>
+</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-[0.6875rem] text-on-surface-variant">
+<span class="font-mono bg-surface-container px-2 py-0.5 rounded text-secondary" title="SHA-256 Checksum">
+                  88ba4...a302
+                </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap text-right">
+<button class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="View Verification Payload">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-3.5 px-4 font-label-mono-sm text-label-mono-sm text-on-surface whitespace-nowrap">
+                2025-05-18 07:44:21
+              </td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="font-medium text-on-surface">Los Angeles — Long Beach Port</div>
+<div class="font-label-mono-sm text-[0.625rem] text-on-surface-variant">US-LGB-71</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-mono-sm text-[0.6875rem] font-semibold">
+                  SO2
+                </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-label-mono-sm">
+<span class="text-on-surface font-semibold">18.2</span>
+<span class="text-on-surface-variant"> / 20.0 ppb</span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-label-mono-sm text-primary">
+                105 ms
+              </td>
+<td class="py-3.5 px-4 whitespace-nowrap">
+<div class="flex items-center gap-1 font-label-mono-sm text-label-mono-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">info</span>
+<span>NORMALIZED</span>
+</div>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap font-label-mono-sm text-[0.6875rem] text-on-surface-variant">
+<span class="font-mono bg-surface-container px-2 py-0.5 rounded text-secondary" title="SHA-256 Checksum">
+                  24cc9...5e91
+                </span>
+</td>
+<td class="py-3.5 px-4 whitespace-nowrap text-right">
+<button class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="View Verification Payload">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination and Ledger Metadata -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pt-space-xs font-label-mono-sm text-label-mono-sm text-on-surface-variant">
+<div>
+          Showing 1 – 4 of 42 Exceedance Entries • Audit Hash Ledger v3.4
+        </div>
+<div class="flex items-center gap-space-xs">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" disabled="">
+            Previous
+          </button>
+<span class="px-2 text-on-surface font-semibold">1 / 11</span>
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface hover:text-on-surface transition-colors">
+            Next
+          </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Notification Toast feedback container -->
+<div class="fixed bottom-6 right-6 z-50 pointer-events-none flex flex-col gap-2" id="toast-container"></div>
+</div>
+<script>
+  // DOM Interactions for Alert Constructor & Real-Time Controls
+  (function initAlertScreen() {
+    // Threshold slider dynamic counter reflection
+    const thresholdSlider = document.getElementById('threshold-slider');
+    const sliderCounter = document.getElementById('slider-counter');
+
+    if (thresholdSlider && sliderCounter) {
+      thresholdSlider.addEventListener('input', (e) => {
+        sliderCounter.textContent = e.target.value;
+      });
+    }
+
+    // Sustain condition segmented selector
+    const sustainBtns = document.querySelectorAll('.sustain-btn');
+    sustainBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        sustainBtns.forEach((b) => {
+          b.classList.remove('active', 'bg-surface-container-high');
+          b.classList.add('bg-surface-container');
+          const title = b.querySelector('.font-label-ui');
+          if (title) {
+            title.classList.remove('text-primary');
+            title.classList.add('text-on-surface');
+          }
+          const ind = b.querySelector('.radio-indicator');
+          if (ind) {
+            ind.innerHTML = '';
+            ind.className = 'radio-indicator w-3 h-3 rounded-full bg-surface-container-highest';
+          }
+        });
+
+        btn.classList.add('active', 'bg-surface-container-high');
+        btn.classList.remove('bg-surface-container');
+        const activeTitle = btn.querySelector('.font-label-ui');
+        if (activeTitle) {
+          activeTitle.classList.remove('text-on-surface');
+          activeTitle.classList.add('text-primary');
+        }
+        const activeInd = btn.querySelector('.radio-indicator');
+        if (activeInd) {
+          activeInd.className = 'radio-indicator w-3 h-3 rounded-full bg-primary flex items-center justify-center';
+          activeInd.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-surface"></span>';
+        }
+      });
+    });
+
+    // Helper toast generator
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-xl bg-surface-container-highest text-on-surface shadow-2xl font-label-ui text-label-ui border-l-4 transition-all duration-300 transform translate-y-4 opacity-0 ' + 
+        (type === 'success' ? 'border-primary' : 'border-secondary');
+      
+      const icon = type === 'success' ? 'check_circle' : 'info';
+      const iconColor = type === 'success' ? 'text-primary' : 'text-secondary';
+      
+      toast.innerHTML = `
+        <span class="material-symbols-outlined text-[18px] ${iconColor}">${icon}</span>
+        <span>${message}</span>
+      `;
+
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Arm Alert Button action
+    const armBtn = document.getElementById('arm-alert-btn');
+    if (armBtn) {
+      armBtn.addEventListener('click', () => {
+        const val = thresholdSlider ? thresholdSlider.value : '55';
+        showToast(`Alert armed successfully for Tokyo Station (> ${val} µg/m³ PM2.5). Dispatch Webhooks active.`, 'success');
+      });
+    }
+
+    // Reset Parameters action
+    const resetBtn = document.getElementById('reset-rule-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (thresholdSlider) {
+          thresholdSlider.value = 55;
+          sliderCounter.textContent = '55';
+        }
+        showToast('Alert parameters reset to calibrated defaults.', 'info');
+      });
+    }
+
+    // Sync log action
+    const syncLogBtn = document.getElementById('sync-log-btn');
+    if (syncLogBtn) {
+      syncLogBtn.addEventListener('click', () => {
+        showToast('Cryptographic audit log synchronized with decentralized ledger (SHA-256 verified).', 'success');
+      });
+    }
+
+    // Export CSV action
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+    if (exportCsvBtn) {
+      exportCsvBtn.addEventListener('click', () => {
+        showToast('Exporting 42 verified exceedance telemetry rows to CSV...', 'info');
+      });
+    }
+
+    // Filter pill toggles
+    const filterPills = document.querySelectorAll('.filter-pill');
+    filterPills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        filterPills.forEach((p) => {
+          p.classList.remove('active', 'bg-surface-container-high', 'text-primary', 'font-semibold');
+          p.classList.add('text-on-surface-variant', 'font-medium');
+        });
+        pill.classList.add('active', 'bg-surface-container-high', 'text-primary', 'font-semibold');
+        pill.classList.remove('text-on-surface-variant');
+      });
+    });
+
+    // Top CTA Modal trigger simulation
+    const openModalBtn = document.getElementById('open-alert-modal');
+    if (openModalBtn) {
+      openModalBtn.addEventListener('click', () => {
+        const constructorSection = document.getElementById('rule-constructor-form');
+        if (constructorSection) {
+          constructorSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          showToast('Focusing rule constructor canvas. Configure parameters below.', 'info');
+        }
+      });
+    }
+  })();
+</script></main><footer class="w-full bg-surface-container-lowest text-on-surface-variant pt-space-xl pb-space-lg shadow-[0_-1px_8px_rgba(0,0,0,0.35)]"><div class="w-full px-margin-desktop"><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-lg pb-space-lg"><div class="space-y-space-sm"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[20px]">radar</span><span class="font-headline-md text-headline-md text-on-surface font-semibold">EcoTrack Planetary Core</span></div><p class="font-body-sm text-body-sm text-on-surface-variant">Continuous real-time geospatial synthesis powering planetary atmospheric safety, emissions analytics, and forward AI trajectory modeling.</p><div class="flex items-center gap-space-xs pt-space-xs"><span class="px-2 py-0.5 rounded bg-surface-container font-label-mono-sm text-label-mono-sm text-primary">META AI TRACK</span><span class="px-2 py-0.5 rounded bg-surface-container font-label-mono-sm text-label-mono-sm text-secondary">SAM 3.1 GEOSPATIAL</span></div></div><div class="space-y-space-xs"><div class="font-label-ui text-label-ui uppercase tracking-wider text-on-surface font-semibold">Primary Ingestion Provenance</div><ul class="space-y-1 font-label-mono-sm text-label-mono-sm text-on-surface-variant"><li>• Copernicus CAMS (Atmosphere Service)</li><li>• OpenAQ Global Distributed Sensor Mesh</li><li>• NOAA GOES-18 Western Hemisphere Imagery</li><li>• Sentinel-5P TROPOMI Tropospheric Sensors</li></ul></div><div class="space-y-space-xs"><div class="font-label-ui text-label-ui uppercase tracking-wider text-on-surface font-semibold">Telemetry &amp; Health Status</div><div class="space-y-2"><div class="flex items-center justify-between font-label-mono-sm text-label-mono-sm bg-surface-container px-2.5 py-1.5 rounded"><span>Pipeline Latency</span><span class="text-primary font-semibold">42ms (p99)</span></div><div class="flex items-center justify-between font-label-mono-sm text-label-mono-sm bg-surface-container px-2.5 py-1.5 rounded"><span>AI Confidence Threshold</span><span class="text-secondary font-semibold">98.4% SAM-3</span></div><div class="flex items-center justify-between font-label-mono-sm text-label-mono-sm bg-surface-container px-2.5 py-1.5 rounded"><span>Data Ingestion Rate</span><span class="text-on-surface">14.2 GB/min</span></div></div></div><div class="space-y-space-xs"><div class="font-label-ui text-label-ui uppercase tracking-wider text-on-surface font-semibold">Standard Compliance</div><p class="font-body-sm text-body-sm text-on-surface-variant">Calibrated under US-EPA 40 CFR Part 58, WHO 2021 Global Air Quality Guidelines, and EU CAQI Directives with multi-region uncertainty bounds.</p><div class="pt-space-xs flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-primary"></span><span class="font-label-mono-sm text-label-mono-sm text-on-surface">OPERATIONAL / NORMAL</span></div></div></div><div class="pt-space-md flex flex-col md:flex-row items-center justify-between gap-space-sm font-label-mono-sm text-label-mono-sm text-on-surface-variant"><div class="flex items-center gap-space-xs"><span>© 2025 EcoTrack Planetary Intelligence.</span><span>Meta AI Hackathon Project.</span></div><div class="flex items-center gap-space-md"><a class="hover:text-on-surface transition-colors" href="#">Data Lineage</a><a class="hover:text-on-surface transition-colors" href="#">API Feeds</a><a class="hover:text-on-surface transition-colors" href="#">Methodology &amp; Whitepaper</a><a class="hover:text-on-surface transition-colors" href="#">System Diagnostics</a></div></div></div></footer></body></html>

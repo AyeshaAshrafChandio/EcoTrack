@@ -1,0 +1,6 @@
+{
+  "name": "EcoTrack — Global AI Environmental Intelligence",
+  "description": "Production-grade environmental intelligence platform unifying real-time global air quality telemetry, atmospheric speciation, Meta AI reasoning, and predictive hazard alerts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

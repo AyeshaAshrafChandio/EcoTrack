@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>EcoTrack — Planetary Intelligence</title><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"secondary":"#4cd7f6","tertiary-fixed-dim":"#d0bcff","on-secondary-fixed":"#001f26","on-primary-fixed-variant":"#005236","inverse-surface":"#dfe2f1","secondary-container":"#03b5d3","surface-tint":"#4edea3","primary-fixed-dim":"#4edea3","tertiary":"#d0bcff","on-surface":"#dfe2f1","primary-fixed":"#6ffbbe","on-secondary-fixed-variant":"#004e5c","on-tertiary-container":"#4600a7","on-primary-fixed":"#002113","on-primary-container":"#00422b","on-primary":"#003824","primary-container":"#10b981","on-surface-variant":"#bbcabf","inverse-on-surface":"#2c303b","surface-bright":"#353944","outline-variant":"#3c4a42","surface":"#0f131d","surface-container-lowest":"#0a0e18","on-tertiary":"#3c0091","on-background":"#dfe2f1","secondary-fixed-dim":"#4cd7f6","secondary-fixed":"#acedff","surface-variant":"#313540","surface-container-highest":"#313540","error":"#ffb4ab","tertiary-fixed":"#e9ddff","on-secondary":"#003640","on-secondary-container":"#00424e","on-error":"#690005","surface-container-low":"#171b26","on-tertiary-fixed-variant":"#5516be","inverse-primary":"#006c49","tertiary-container":"#b090ff","on-error-container":"#ffdad6","background":"#0f131d","on-tertiary-fixed":"#23005c","surface-container":"#1c1f2a","surface-dim":"#0f131d","outline":"#86948a","primary":"#4edea3","error-container":"#93000a","surface-container-high":"#262a35"},borderRadius:{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},spacing:{"space-xl":"2rem","space-sm":"0.5rem","space-xs":"0.25rem","space-lg":"1.5rem","space-2xl":"3rem","margin":"1rem","space-md":"1rem","margin-tablet":"1.5rem","gutter-desktop":"1.5rem","gutter":"1rem","margin-desktop":"2rem"},fontFamily:{"display-lg":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"data-metric-sm":["JetBrains Mono"],"data-metric-lg":["JetBrains Mono"],"label-mono-sm":["JetBrains Mono"],"body-sm":["Inter"],"headline-xl-mobile":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"label-ui":["Inter"],"body-lg":["Inter"],"body-md":["Inter"],"display-lg-mobile":["Plus Jakarta Sans"]},fontSize:{"display-lg":["3.5rem",{"lineHeight":"4rem","letterSpacing":"-0.03em","fontWeight":"700"}],"headline-md":["1.25rem",{"lineHeight":"1.75rem","letterSpacing":"-0.01em","fontWeight":"600"}],"data-metric-sm":["1.25rem",{"lineHeight":"1.5rem","letterSpacing":"-0.01em","fontWeight":"500"}],"data-metric-lg":["2.5rem",{"lineHeight":"2.75rem","letterSpacing":"-0.02em","fontWeight":"600"}],"label-mono-sm":["0.6875rem",{"lineHeight":"0.875rem","letterSpacing":"0.06em","fontWeight":"500"}],"body-sm":["0.75rem",{"lineHeight":"1.125rem","letterSpacing":"0.01em","fontWeight":"400"}],"headline-xl-mobile":["1.5rem",{"lineHeight":"2rem","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-xl":["2rem",{"lineHeight":"2.5rem","letterSpacing":"-0.02em","fontWeight":"600"}],"label-ui":["0.75rem",{"lineHeight":"1rem","letterSpacing":"0.02em","fontWeight":"600"}],"body-lg":["1.125rem",{"lineHeight":"1.75rem","letterSpacing":"0em","fontWeight":"400"}],"body-md":["0.875rem",{"lineHeight":"1.375rem","letterSpacing":"0em","fontWeight":"400"}],"display-lg-mobile":["2.25rem",{"lineHeight":"2.75rem","letterSpacing":"-0.02em","fontWeight":"700"}]}}}};</script></head><body class="bg-surface text-on-surface font-body-md text-body-md min-h-screen flex flex-col antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-margin-desktop flex items-center justify-between"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><div class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></div><div class="flex flex-col"><span class="font-headline-md text-headline-md tracking-tight text-on-surface">EcoTrack <span class="text-primary font-label-mono-sm text-label-mono-sm ml-space-xs px-space-xs py-0.5 rounded bg-surface-container-high">V3.4-AI</span></span><span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase tracking-wider">Planetary Intelligence</span></div></div><div class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface-variant"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span><span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">CALIBRATED NODE • SHA-256 ENCRYPTED AUTH</span></div></div><div class="flex items-center gap-space-lg"><nav class="flex items-center gap-space-md" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded"><a aria-current="page" class="px-space-sm py-1.5 transition-colors bg-primary-container text-on-primary-container font-semibold rounded" data-path="portal-authentication" href="#">Authentication</a><a class="font-label-ui text-label-ui px-space-sm py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-colors" data-path="compliance-lineage" href="#">Compliance &amp; Keys</a><a class="font-label-ui text-label-ui px-space-sm py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-colors" data-path="station-registration" href="#">Node Registry</a></nav><div class="flex items-center gap-space-md pl-space-md"><a class="hidden sm:flex items-center gap-space-xs font-label-ui text-label-ui px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface transition-all" data-path="main-telemetry-dashboard" href="#"><span class="material-symbols-outlined text-[16px] text-primary">arrow_back</span><span>Back to Platform</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></div></header><main class="w-full pt-16 bg-surface flex-1"><div class="flex flex-col w-full min-w-0">
+<div class="relative w-full overflow-hidden px-margin sm:px-margin-tablet lg:px-margin-desktop py-space-xl lg:py-space-2xl">
+<div class="absolute -top-32 left-1/4 w-[540px] h-[540px] rounded-full bg-primary/5 blur-[120px] pointer-events-none -z-10"></div>
+<div class="absolute bottom-0 right-10 w-[420px] h-[420px] rounded-full bg-secondary/5 blur-[100px] pointer-events-none -z-10"></div>
+<div class="absolute inset-0 bg-[radial-gradient(#1c1f2a_1px,transparent_1px)] [background-size:28px_28px] opacity-40 pointer-events-none -z-10"></div>
+<div class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+<div class="lg:col-span-6 flex flex-col gap-space-lg pr-0 lg:pr-space-lg">
+<div class="inline-flex items-center gap-space-xs self-start px-space-sm py-1 rounded-full bg-surface-container-high">
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+<span class="font-label-mono-sm text-label-mono-sm uppercase text-primary tracking-widest">Network Authority Tier-1</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<p class="font-display-lg text-headline-xl sm:text-display-lg text-on-surface tracking-tight">
+            Planetary Telemetry &amp; <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-container to-secondary">Atmospheric AI</span>
+</p>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+            Continuous synthetic-aperture radar and multi-spectral validation. Secure gateway for atmospheric researchers, climate risk operators, and municipal analysts.
+          </p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+<div class="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-xs">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">sensors</span>NODES
+            </span>
+<span class="font-data-metric-sm text-data-metric-sm text-on-surface">18,420</span>
+<span class="font-body-sm text-body-sm text-primary">Live Synced • 99.98%</span>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-xs">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-secondary">satellite_alt</span>FEED
+            </span>
+<span class="font-data-metric-sm text-data-metric-sm text-on-surface">Sentinel-5P</span>
+<span class="font-body-sm text-body-sm text-secondary">TROPOMI • Level-3</span>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-xs">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-tertiary">memory</span>COPILOT
+            </span>
+<span class="font-data-metric-sm text-data-metric-sm text-on-surface">LLaMA 3.3</span>
+<span class="font-body-sm text-body-sm text-tertiary">70B Spatial RAG</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-space-sm relative overflow-hidden">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase tracking-wider">Telemetry Stream: Global AQI Composite</span>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-primary bg-surface-container-high px-2 py-0.5 rounded">STREAM ID #8841-A</span>
+</div>
+<div class="w-full h-16 flex items-end gap-1.5 pt-2">
+<div class="flex-1 bg-surface-container-high rounded-t hover:bg-primary-container transition-all h-[45%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t hover:bg-primary-container transition-all h-[60%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t hover:bg-primary-container transition-all h-[35%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t hover:bg-primary-container transition-all h-[75%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t hover:bg-primary-container transition-all h-[90%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t hover:bg-primary-container transition-all h-[65%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t hover:bg-primary-container transition-all h-[40%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t hover:bg-primary-container transition-all h-[80%]"></div>
+<div class="flex-1 bg-primary-container rounded-t h-[95%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t hover:bg-primary-container transition-all h-[55%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t hover:bg-primary-container transition-all h-[70%]"></div>
+<div class="flex-1 bg-surface-container-high rounded-t hover:bg-primary-container transition-all h-[48%]"></div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-mono-sm text-label-mono-sm">
+<span>NO₂ Tropospheric Column: 2.14 × 10¹⁵ mol/cm²</span>
+<span class="text-primary font-semibold">98.4% CONF</span>
+</div>
+</div>
+</div>
+<div class="lg:col-span-6 w-full max-w-lg mx-auto lg:ml-auto">
+<div class="bg-surface-container-low/90 backdrop-blur-xl p-space-lg sm:p-space-xl rounded-xl shadow-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-[24px]">public</span>
+</div>
+<div class="flex flex-col">
+<h1 class="font-headline-md text-headline-md text-on-surface">Portal Access</h1>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">SECURE ORBITAL NODE ENTRY</span>
+</div>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm px-space-xs py-1 rounded bg-surface-container-highest text-secondary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> TLS 1.3
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Enter credentials to access verified planetary telemetry, model inference APIs, and calibrated sensor clusters.
+          </p>
+<button class="w-full flex items-center justify-center gap-space-sm py-2.5 px-space-md rounded bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface font-label-ui text-label-ui" id="googleOAuthBtn" type="button">
+<svg class="w-4 h-4" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"></path>
+</svg>
+<span>Sign in with Google <span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant font-normal">(OAuth Ready)</span></span>
+</button>
+<div class="relative flex items-center justify-center my-space-xs">
+<div class="w-full h-px bg-surface-container-highest"></div>
+<span class="absolute bg-surface-container-low px-space-sm font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase">
+              or authenticate with email
+            </span>
+</div>
+<div class="p-space-sm rounded bg-surface-container flex items-start gap-space-sm" id="mfaBanner">
+<span class="material-symbols-outlined text-[18px] text-secondary mt-0.5">verified_user</span>
+<div class="flex-1 flex flex-col">
+<span class="font-label-ui text-label-ui text-on-surface font-semibold">Institutional SSO &amp; MFA Enabled</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Hardware security keys (FIDO2) or municipal webhook TOTP will be prompted upon entry.</span>
+</div>
+<button aria-label="Dismiss notice" class="text-on-surface-variant hover:text-on-surface" id="dismissBannerBtn" type="button">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<div class="hidden p-space-sm rounded bg-error-container text-on-error-container flex items-center gap-space-sm" id="formAlert">
+<span class="material-symbols-outlined text-[18px]">error</span>
+<span class="font-body-sm text-body-sm font-medium" id="formAlertText">Invalid credentials or node certificate expired.</span>
+</div>
+<form class="flex flex-col gap-space-md" id="signInForm" novalidate="">
+<div class="flex flex-col gap-space-xs">
+<div class="flex justify-between items-center">
+<label class="font-label-ui text-label-ui text-on-surface" for="emailInput">Researcher / Operator Email</label>
+<span class="hidden font-label-mono-sm text-label-mono-sm text-primary items-center gap-1" id="emailValidBadge">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> VALID ACADEMIC DOMAIN
+                </span>
+</div>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px] pointer-events-none">mail</span>
+<input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant/60 pl-10 pr-space-md py-2.5 rounded font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary transition-all" id="emailInput" placeholder="operator@noaa-station.gov" required="" type="email"/>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex justify-between items-center">
+<label class="font-label-ui text-label-ui text-on-surface" for="passwordInput">Security Key / Password</label>
+<button class="font-label-ui text-label-ui text-secondary hover:underline" id="openForgotModalBtn" type="button">
+                  Forgot password?
+                </button>
+</div>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px] pointer-events-none">lock</span>
+<input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant/60 pl-10 pr-10 py-2.5 rounded font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary transition-all" id="passwordInput" placeholder="••••••••••••••••" required="" type="password"/>
+<button aria-label="Toggle password visibility" class="absolute right-3 text-on-surface-variant hover:text-on-surface p-1 flex items-center justify-center" id="togglePasswordBtn" type="button">
+<span class="material-symbols-outlined text-[18px]" id="pwdEyeIcon">visibility</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between py-1">
+<label class="flex items-center gap-space-xs cursor-pointer select-none">
+<input class="w-4 h-4 rounded bg-surface-container-lowest accent-primary text-primary focus:ring-0 cursor-pointer" id="rememberDevice" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Remember hardware fingerprint (30 days)</span>
+</label>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant/70">SHA-256</span>
+</div>
+<button class="w-full py-3 px-space-lg rounded font-label-ui text-label-ui font-semibold text-on-primary bg-primary hover:bg-primary-container transition-all shadow-md flex items-center justify-center gap-space-xs cursor-pointer" id="submitSignInBtn" type="submit">
+<span>Sign In to Planetary Console</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</form>
+<div class="pt-space-xs flex flex-col items-center gap-space-xs text-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant">
+              New to the EcoTrack Planetary Network?
+            </span>
+<a class="font-label-ui text-label-ui text-primary hover:underline flex items-center gap-1 font-semibold" href="#">
+              Create an Account / Request Academic Node Access
+              <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-surface-container-lowest/80 backdrop-blur-md" id="forgotPasswordModal">
+<div class="w-full max-w-md bg-surface-container-high p-space-lg rounded-xl shadow-2xl flex flex-col gap-space-md">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">vpn_key</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Reset Security Key</h2>
+<p class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">CRYPTOGRAPHIC RECOVERY PROTOCOL</p>
+</div>
+</div>
+<button aria-label="Close dialog" class="text-on-surface-variant hover:text-on-surface p-1" id="closeModalCross" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+        Enter your registered academic or institutional email to receive a cryptographically signed recovery token valid for 15 minutes.
+      </p>
+<form class="flex flex-col gap-space-md" id="recoveryForm">
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-ui text-label-ui text-on-surface" for="recoveryEmail">Registered Email</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">alternate_email</span>
+<input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant/60 pl-10 pr-space-md py-2.5 rounded font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary" id="recoveryEmail" placeholder="operator@copernicus-hub.eu" required="" type="email"/>
+</div>
+</div>
+<div class="hidden p-space-sm rounded bg-surface-container font-body-sm text-body-sm text-primary flex items-center gap-space-xs" id="recoveryFeedback">
+<span class="material-symbols-outlined text-[16px]">mark_email_read</span>
+<span>Recovery token dispatched to node endpoint. Check inbox.</span>
+</div>
+<div class="flex items-center justify-end gap-space-sm pt-space-xs">
+<button class="px-space-md py-2 rounded text-on-surface-variant hover:text-on-surface font-label-ui text-label-ui" id="cancelModalBtn" type="button">
+            Back to Sign In
+          </button>
+<button class="px-space-md py-2 rounded bg-secondary text-on-secondary font-label-ui text-label-ui font-semibold hover:bg-secondary-container transition-colors shadow-sm" type="submit">
+            Send Recovery Link
+          </button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const passwordInput = document.getElementById('passwordInput');
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    const pwdEyeIcon = document.getElementById('pwdEyeIcon');
+    const emailInput = document.getElementById('emailInput');
+    const emailValidBadge = document.getElementById('emailValidBadge');
+    const signInForm = document.getElementById('signInForm');
+    const formAlert = document.getElementById('formAlert');
+    const formAlertText = document.getElementById('formAlertText');
+    const mfaBanner = document.getElementById('mfaBanner');
+    const dismissBannerBtn = document.getElementById('dismissBannerBtn');
+    const googleOAuthBtn = document.getElementById('googleOAuthBtn');
+    const openForgotModalBtn = document.getElementById('openForgotModalBtn');
+    const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+    const closeModalCross = document.getElementById('closeModalCross');
+    const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const recoveryForm = document.getElementById('recoveryForm');
+    const recoveryFeedback = document.getElementById('recoveryFeedback');
+
+    if (togglePasswordBtn && passwordInput && pwdEyeIcon) {
+      togglePasswordBtn.addEventListener('click', () => {
+        const isPassword = passwordInput.getAttribute('type') === 'password';
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+        pwdEyeIcon.textContent = isPassword ? 'visibility_off' : 'visibility';
+      });
+    }
+
+    if (emailInput && emailValidBadge) {
+      emailInput.addEventListener('input', () => {
+        const val = emailInput.value.trim().toLowerCase();
+        const isAcademicOrGov = val.includes('@') && (val.endsWith('.edu') || val.endsWith('.gov') || val.endsWith('.org') || val.endsWith('.eu'));
+        if (isAcademicOrGov) {
+          emailValidBadge.classList.remove('hidden');
+          emailValidBadge.classList.add('inline-flex');
+        } else {
+          emailValidBadge.classList.add('hidden');
+          emailValidBadge.classList.remove('inline-flex');
+        }
+      });
+    }
+
+    if (dismissBannerBtn && mfaBanner) {
+      dismissBannerBtn.addEventListener('click', () => {
+        mfaBanner.style.display = 'none';
+      });
+    }
+
+    if (signInForm) {
+      signInForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        const pwd = passwordInput.value;
+
+        if (!email || !pwd) {
+          formAlertText.textContent = 'Please fill out all required authentication fields.';
+          formAlert.classList.remove('hidden');
+          return;
+        }
+
+        if (pwd.length < 6) {
+          formAlertText.textContent = 'Security key must be at least 6 characters for node handshake.';
+          formAlert.classList.remove('hidden');
+          return;
+        }
+
+        formAlert.classList.add('hidden');
+        const submitBtn = document.getElementById('submitSignInBtn');
+        const originalContent = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <span class="w-4 h-4 rounded-full border-2 border-on-primary border-t-transparent animate-spin mr-2"></span>
+          <span>Verifying Cryptographic Credentials...</span>
+        `;
+
+        setTimeout(() => {
+          submitBtn.innerHTML = `
+            <span class="material-symbols-outlined text-[18px]">verified</span>
+            <span>Handshake Verified &bull; Redirecting...</span>
+          `;
+          setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalContent;
+          }, 1500);
+        }, 1200);
+      });
+    }
+
+    if (googleOAuthBtn) {
+      googleOAuthBtn.addEventListener('click', () => {
+        formAlertText.textContent = 'Federated OAuth handshake simulated: Provider endpoint responded with HTTP 200.';
+        formAlert.classList.remove('hidden');
+        formAlert.classList.replace('bg-error-container', 'bg-surface-container');
+        formAlert.classList.replace('text-on-error-container', 'text-secondary');
+      });
+    }
+
+    const openModal = () => {
+      forgotPasswordModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      const recoveryInput = document.getElementById('recoveryEmail');
+      if (recoveryInput) recoveryInput.focus();
+    };
+
+    const closeModal = () => {
+      forgotPasswordModal.classList.add('hidden');
+      document.body.style.overflow = '';
+      if (recoveryFeedback) recoveryFeedback.classList.add('hidden');
+    };
+
+    if (openForgotModalBtn) openForgotModalBtn.addEventListener('click', openModal);
+    if (closeModalCross) closeModalCross.addEventListener('click', closeModal);
+    if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+
+    if (forgotPasswordModal) {
+      forgotPasswordModal.addEventListener('click', (e) => {
+        if (e.target === forgotPasswordModal) closeModal();
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !forgotPasswordModal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
+
+    if (recoveryForm && recoveryFeedback) {
+      recoveryForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        recoveryFeedback.classList.remove('hidden');
+        setTimeout(() => {
+          closeModal();
+        }, 2000);
+      });
+    }
+  })();
+</script></main><footer class="w-full bg-surface-container-lowest py-space-xl shadow-[0_-1px_8px_rgba(0,0,0,0.04)]"><div class="w-full px-margin-desktop"><div class="flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex flex-wrap items-center gap-space-md text-on-surface-variant"><span class="font-label-mono-sm text-label-mono-sm text-on-surface flex items-center gap-space-xs"><span class="material-symbols-outlined text-[14px] text-primary">verified_user</span>ISO/TC 146 CERTIFIED</span><span class="font-label-mono-sm text-label-mono-sm flex items-center gap-space-xs"><span class="w-1 h-1 rounded-full bg-outline"></span>US-EPA 40 CFR COMPLIANT</span><span class="font-label-mono-sm text-label-mono-sm flex items-center gap-space-xs"><span class="w-1 h-1 rounded-full bg-outline"></span>SENTINEL-5P VALIDATED</span></div><div class="flex items-center gap-space-lg text-on-surface-variant"><a class="font-label-ui text-label-ui hover:text-on-surface transition-colors" data-path="security-credentials" href="#">Security Specs</a><a class="font-label-ui text-label-ui hover:text-on-surface transition-colors" data-path="terms-of-service" href="#">Terms of Service</a><a class="font-label-ui text-label-ui hover:text-on-surface transition-colors" data-path="privacy-policy" href="#">Privacy Policy</a></div></div><div class="mt-space-md pt-space-md flex flex-col sm:flex-row items-center justify-between gap-space-sm"><p class="font-body-sm text-body-sm text-on-surface-variant">© 2025 EcoTrack Planetary Intelligence Systems. Cryptographic node authority reserved.</p><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-primary-container"></span><span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase tracking-wider">Node Latency: 14ms (Encrypted Sync)</span></div></div></div></footer></body></html>

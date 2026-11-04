@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>EcoTrack — Planetary Intelligence</title><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"secondary":"#4cd7f6","tertiary-fixed-dim":"#d0bcff","on-secondary-fixed":"#001f26","on-primary-fixed-variant":"#005236","inverse-surface":"#dfe2f1","secondary-container":"#03b5d3","surface-tint":"#4edea3","primary-fixed-dim":"#4edea3","tertiary":"#d0bcff","on-surface":"#dfe2f1","primary-fixed":"#6ffbbe","on-secondary-fixed-variant":"#004e5c","on-tertiary-container":"#4600a7","on-primary-fixed":"#002113","on-primary-container":"#00422b","on-primary":"#003824","primary-container":"#10b981","on-surface-variant":"#bbcabf","inverse-on-surface":"#2c303b","surface-bright":"#353944","outline-variant":"#3c4a42","surface":"#0f131d","surface-container-lowest":"#0a0e18","on-tertiary":"#3c0091","on-background":"#dfe2f1","secondary-fixed-dim":"#4cd7f6","secondary-fixed":"#acedff","surface-variant":"#313540","surface-container-highest":"#313540","error":"#ffb4ab","tertiary-fixed":"#e9ddff","on-secondary":"#003640","on-secondary-container":"#00424e","on-error":"#690005","surface-container-low":"#171b26","on-tertiary-fixed-variant":"#5516be","inverse-primary":"#006c49","tertiary-container":"#b090ff","on-error-container":"#ffdad6","background":"#0f131d","on-tertiary-fixed":"#23005c","surface-container":"#1c1f2a","surface-dim":"#0f131d","outline":"#86948a","primary":"#4edea3","error-container":"#93000a","surface-container-high":"#262a35"},borderRadius:{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},spacing:{"space-xl":"2rem","space-sm":"0.5rem","space-xs":"0.25rem","space-lg":"1.5rem","space-2xl":"3rem","margin":"1rem","space-md":"1rem","margin-tablet":"1.5rem","gutter-desktop":"1.5rem","gutter":"1rem","margin-desktop":"2rem"},fontFamily:{"display-lg":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"data-metric-sm":["JetBrains Mono"],"data-metric-lg":["JetBrains Mono"],"label-mono-sm":["JetBrains Mono"],"body-sm":["Inter"],"headline-xl-mobile":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"label-ui":["Inter"],"body-lg":["Inter"],"body-md":["Inter"],"display-lg-mobile":["Plus Jakarta Sans"]},fontSize:{"display-lg":["3.5rem",{"lineHeight":"4rem","letterSpacing":"-0.03em","fontWeight":"700"}],"headline-md":["1.25rem",{"lineHeight":"1.75rem","letterSpacing":"-0.01em","fontWeight":"600"}],"data-metric-sm":["1.25rem",{"lineHeight":"1.5rem","letterSpacing":"-0.01em","fontWeight":"500"}],"data-metric-lg":["2.5rem",{"lineHeight":"2.75rem","letterSpacing":"-0.02em","fontWeight":"600"}],"label-mono-sm":["0.6875rem",{"lineHeight":"0.875rem","letterSpacing":"0.06em","fontWeight":"500"}],"body-sm":["0.75rem",{"lineHeight":"1.125rem","letterSpacing":"0.01em","fontWeight":"400"}],"headline-xl-mobile":["1.5rem",{"lineHeight":"2rem","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-xl":["2rem",{"lineHeight":"2.5rem","letterSpacing":"-0.02em","fontWeight":"600"}],"label-ui":["0.75rem",{"lineHeight":"1rem","letterSpacing":"0.02em","fontWeight":"600"}],"body-lg":["1.125rem",{"lineHeight":"1.75rem","letterSpacing":"0em","fontWeight":"400"}],"body-md":["0.875rem",{"lineHeight":"1.375rem","letterSpacing":"0em","fontWeight":"400"}],"display-lg-mobile":["2.25rem",{"lineHeight":"2.75rem","letterSpacing":"-0.02em","fontWeight":"700"}]}}}};</script></head><body class="bg-surface text-on-surface font-body-md text-body-md min-h-screen flex flex-col antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-margin-desktop flex items-center justify-between"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><div class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></div><div class="flex flex-col"><span class="font-headline-md text-headline-md tracking-tight text-on-surface">EcoTrack <span class="text-primary font-label-mono-sm text-label-mono-sm ml-space-xs px-space-xs py-0.5 rounded bg-surface-container-high">V3.4-AI</span></span><span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase tracking-wider">Planetary Intelligence</span></div></div><div class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface-variant"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span><span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">CALIBRATED NODE • SHA-256 ENCRYPTED AUTH</span></div></div><div class="flex items-center gap-space-lg"><nav class="flex items-center gap-space-md" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded"><a aria-current="page" class="px-space-sm py-1.5 transition-colors bg-primary-container text-on-primary-container font-semibold rounded" data-path="portal-authentication" href="#">Authentication</a><a class="font-label-ui text-label-ui px-space-sm py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-colors" data-path="compliance-lineage" href="#">Compliance &amp; Keys</a><a class="font-label-ui text-label-ui px-space-sm py-1.5 rounded text-on-surface-variant hover:text-on-surface transition-colors" data-path="station-registration" href="#">Node Registry</a></nav><div class="flex items-center gap-space-md pl-space-md"><a class="hidden sm:flex items-center gap-space-xs font-label-ui text-label-ui px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface transition-all" data-path="main-telemetry-dashboard" href="#"><span class="material-symbols-outlined text-[16px] text-primary">arrow_back</span><span>Back to Platform</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></div></header><main class="w-full pt-16 bg-surface flex-1"><div class="flex flex-col w-full">
+<div class="relative w-full min-h-[calc(100vh-4rem)] flex items-center justify-center p-gutter md:p-gutter-desktop overflow-hidden">
+<!-- Atmospheric Ambient Backdrops -->
+<div class="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-secondary-container/10 blur-[120px] pointer-events-none"></div>
+<div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-primary-container/10 blur-[140px] pointer-events-none"></div>
+<div class="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-tertiary-container/5 blur-[100px] pointer-events-none"></div>
+<!-- Main Workspace Container -->
+<div class="relative w-full max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-space-lg lg:gap-space-2xl items-stretch my-auto">
+<!-- Left Column: Context / Intelligence Mesh Overview -->
+<div class="lg:col-span-5 flex flex-col justify-between p-space-lg sm:p-space-xl bg-surface-container-low/80 backdrop-blur-xl rounded-xl shadow-xl space-y-space-xl">
+<div class="flex flex-col space-y-space-lg">
+<!-- Terminal Status Tag -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-highest text-primary">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-mono-sm text-label-mono-sm tracking-wider uppercase font-semibold">MESH NODE REGISTRATION • v3.4</span>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">REGION: EU-NORTH-01</span>
+</div>
+<!-- Headline & Narrative -->
+<div class="space-y-space-sm">
+<span class="font-label-mono-sm text-label-mono-sm text-secondary uppercase tracking-widest block font-medium">Environmental Computing Nexus</span>
+<h1 class="font-headline-xl text-headline-xl text-on-surface leading-tight font-bold tracking-tight">
+              Join the Planetary Environmental <span class="text-primary">Intelligence Mesh</span>
+</h1>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              Equip your laboratory or research team with zero-latency sensor feeds, autonomous hyperspectral segmentation, and cryptographically verified atmospheric provenance.
+            </p>
+</div>
+<!-- High-Precision Metric Visual Card -->
+<div class="p-space-md rounded bg-surface-container-lowest/90 space-y-space-md">
+<div class="flex items-center justify-between text-on-surface">
+<span class="font-label-ui text-label-ui uppercase tracking-wider text-on-surface-variant flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-secondary">public</span> Live Ingestion Constellation
+              </span>
+<span class="font-label-mono-sm text-label-mono-sm text-primary">18,420 ACTIVE SENSORS</span>
+</div>
+<!-- Vector Telemetry Chart / Sparkline -->
+<div class="h-20 w-full flex items-end gap-1 pt-2">
+<div class="flex-1 bg-surface-container-high hover:bg-secondary-container transition-all h-[42%] rounded-t-sm" title="Sector A1: 42 ppm"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary-container transition-all h-[58%] rounded-t-sm" title="Sector A2: 58 ppm"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary-container transition-all h-[69%] rounded-t-sm" title="Sector A3: 69 ppm"></div>
+<div class="flex-1 bg-secondary-container/40 hover:bg-secondary h-[84%] rounded-t-sm" title="Sector B1: 84 ppm"></div>
+<div class="flex-1 bg-primary hover:bg-primary-fixed h-[95%] rounded-t-sm" title="Sector B2: 95 ppm"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary-container transition-all h-[61%] rounded-t-sm" title="Sector B3: 61 ppm"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary-container transition-all h-[48%] rounded-t-sm" title="Sector C1: 48 ppm"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary-container transition-all h-[52%] rounded-t-sm" title="Sector C2: 52 ppm"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary-container transition-all h-[67%] rounded-t-sm" title="Sector C3: 67 ppm"></div>
+<div class="flex-1 bg-secondary-container/60 hover:bg-secondary h-[79%] rounded-t-sm" title="Sector D1: 79 ppm"></div>
+<div class="flex-1 bg-primary/70 hover:bg-primary h-[88%] rounded-t-sm" title="Sector D2: 88 ppm"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-secondary-container transition-all h-[64%] rounded-t-sm" title="Sector D3: 64 ppm"></div>
+</div>
+<div class="flex items-center justify-between font-label-mono-sm text-label-mono-sm text-on-surface-variant pt-space-xs">
+<span>Sentinel-5P Sync: 0.8s</span>
+<span class="text-secondary font-semibold">TROPOMI • NO2 / O3 / PM2.5</span>
+</div>
+</div>
+<!-- Feature Capability Badges -->
+<div class="space-y-space-md pt-space-xs">
+<div class="flex items-start gap-space-md p-space-sm rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="p-2 rounded bg-surface-container-highest text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">sensors</span>
+</div>
+<div class="space-y-0.5">
+<h2 class="font-label-ui text-label-ui text-on-surface font-semibold">Ground Truth Telemetry Access (18,420 Nodes)</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Calibrated high-density micro-station feeds alongside official EPA and Copernicus air quality observation stations.</p>
+</div>
+</div>
+<div class="flex items-start gap-space-md p-space-sm rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="p-2 rounded bg-surface-container-highest text-secondary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">model_training</span>
+</div>
+<div class="space-y-0.5">
+<h2 class="font-label-ui text-label-ui text-on-surface font-semibold">Meta SAM 3.1 &amp; Vision AI Processing Sandbox</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Zero-shot multispectral plume segmentation and emission perimeter contouring in browser WebGL shaders.</p>
+</div>
+</div>
+<div class="flex items-start gap-space-md p-space-sm rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="p-2 rounded bg-surface-container-highest text-tertiary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">webhook</span>
+</div>
+<div class="space-y-0.5">
+<h2 class="font-label-ui text-label-ui text-on-surface font-semibold">Sub-minute Exceedance Webhooks &amp; Speciation</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Dispatch programmatic triggers to alert systems when volatile organic compounds cross WHO threshold tiers.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Node Validation Metadata -->
+<div class="pt-space-md flex items-center justify-between text-on-surface-variant font-label-mono-sm text-label-mono-sm">
+<span class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span> TLS 1.3 / mTLS COMPLIANT
+          </span>
+<span>FEDERATED IDENTITY V2</span>
+</div>
+</div>
+<!-- Right Column: Registration Terminal Card -->
+<div class="lg:col-span-7 flex flex-col justify-center p-space-lg sm:p-space-xl bg-surface-container-low/95 backdrop-blur-2xl rounded-xl shadow-2xl space-y-space-lg">
+<!-- Header Section -->
+<div class="flex items-start justify-between">
+<div class="space-y-space-xs">
+<div class="flex items-center gap-space-xs text-primary mb-1">
+<span class="material-symbols-outlined text-[20px]">hub</span>
+<span class="font-label-mono-sm text-label-mono-sm uppercase tracking-widest font-bold">RESEARCH WORKSPACE PROVISIONING</span>
+</div>
+<h2 class="font-headline-xl text-headline-xl font-bold text-on-surface tracking-tight">Create Research Account</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Provision your planetary monitoring workspace in seconds with automated peer credentials.</p>
+</div>
+<div class="hidden sm:flex flex-col items-end">
+<span class="font-label-mono-sm text-label-mono-sm px-space-sm py-0.5 rounded bg-surface-container text-on-surface-variant">TIER-0: RESEARCH TIER</span>
+<span class="font-label-mono-sm text-label-mono-sm text-primary mt-1">RATE LIMIT: 250k req/mo</span>
+</div>
+</div>
+<!-- Federated OAuth Button -->
+<div class="space-y-space-xs">
+<button class="w-full flex items-center justify-center gap-space-md py-3 px-space-md rounded bg-surface-container hover:bg-surface-container-high transition-all text-on-surface font-label-ui text-label-ui shadow-sm active:scale-[0.99]" id="google-auth-btn" type="button">
+<svg class="w-4 h-4 shrink-0" fill="currentColor" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"></path>
+</svg>
+<span class="font-semibold">Sign up with Google</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant font-normal">(Federated OAuth UI Ready)</span>
+</button>
+</div>
+<!-- Text Divider -->
+<div class="relative flex items-center justify-center my-space-xs">
+<div class="w-full bg-surface-container-highest h-[1px]"></div>
+<span class="absolute px-space-md bg-surface-container-low font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase tracking-wider">or register with academic / institutional email</span>
+</div>
+<!-- Live Validation Alert Banner (Toggled by user action) -->
+<div class="p-space-sm rounded bg-surface-container flex items-center gap-space-sm text-on-surface-variant transition-all" id="validation-banner">
+<span class="material-symbols-outlined text-[18px] text-secondary">info</span>
+<span class="font-body-sm text-body-sm" id="banner-text">Provisioning requires valid domain credentials and an entropy-verified master secret.</span>
+</div>
+<!-- Main Registration Form -->
+<form class="space-y-space-md" id="signup-form" novalidate="">
+<!-- Field: Full Name / Lead Investigator -->
+<div class="space-y-1">
+<label class="font-label-ui text-label-ui text-on-surface flex items-center justify-between" for="lead-name">
+<span>Full Name / Lead Investigator <span class="text-primary">*</span></span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant" id="name-feedback">MIN 3 CHARACTERS</span>
+</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[20px] pointer-events-none">person</span>
+<input class="w-full bg-surface-container-lowest text-on-surface font-body-md text-body-md pl-10 pr-10 py-2.5 rounded focus:outline-none focus:bg-surface-container transition-all placeholder:text-on-surface-variant/50" id="lead-name" name="name" placeholder="Dr. Elena Rostova" required="" type="text"/>
+<span class="material-symbols-outlined absolute right-3 text-[18px] text-on-surface-variant/40 pointer-events-none" id="name-status-icon">check_circle</span>
+</div>
+</div>
+<!-- Field: Institutional or Personal Email -->
+<div class="space-y-1">
+<label class="font-label-ui text-label-ui text-on-surface flex items-center justify-between" for="lead-email">
+<span>Institutional or Personal Email <span class="text-primary">*</span></span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant" id="email-feedback">INSTITUTION DOMAIN PREFERRED</span>
+</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[20px] pointer-events-none">mail</span>
+<input class="w-full bg-surface-container-lowest text-on-surface font-body-md text-body-md pl-10 pr-10 py-2.5 rounded focus:outline-none focus:bg-surface-container transition-all placeholder:text-on-surface-variant/50" id="lead-email" name="email" placeholder="elena.rostova@geocenter.eu" required="" type="email"/>
+<span class="material-symbols-outlined absolute right-3 text-[18px] text-on-surface-variant/40 pointer-events-none" id="email-status-icon">radio_button_unchecked</span>
+</div>
+</div>
+<!-- Dual Password Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Field: Create Master Password -->
+<div class="space-y-1">
+<label class="font-label-ui text-label-ui text-on-surface flex items-center justify-between" for="master-pass">
+<span>Master Password <span class="text-primary">*</span></span>
+</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[20px] pointer-events-none">lock</span>
+<input class="w-full bg-surface-container-lowest text-on-surface font-body-md text-body-md pl-10 pr-10 py-2.5 rounded focus:outline-none focus:bg-surface-container transition-all placeholder:text-on-surface-variant/50 font-data-metric-sm" id="master-pass" name="password" placeholder="••••••••••••" required="" type="password"/>
+<button aria-label="Toggle password visibility" class="absolute right-3 text-on-surface-variant hover:text-on-surface flex items-center focus:outline-none" id="toggle-pass-visibility" type="button">
+<span class="material-symbols-outlined text-[18px]" id="pass-eye-icon">visibility</span>
+</button>
+</div>
+</div>
+<!-- Field: Confirm Master Password -->
+<div class="space-y-1">
+<label class="font-label-ui text-label-ui text-on-surface flex items-center justify-between" for="confirm-pass">
+<span>Confirm Password <span class="text-primary">*</span></span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant" id="match-feedback">NOT MATCHED</span>
+</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[20px] pointer-events-none">lock_reset</span>
+<input class="w-full bg-surface-container-lowest text-on-surface font-body-md text-body-md pl-10 pr-10 py-2.5 rounded focus:outline-none focus:bg-surface-container transition-all placeholder:text-on-surface-variant/50 font-data-metric-sm" id="confirm-pass" name="confirmPassword" placeholder="••••••••••••" required="" type="password"/>
+<button aria-label="Toggle confirm password visibility" class="absolute right-3 text-on-surface-variant hover:text-on-surface flex items-center focus:outline-none" id="toggle-confirm-visibility" type="button">
+<span class="material-symbols-outlined text-[18px]" id="confirm-eye-icon">visibility</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Password Strength & Entropy Inspector -->
+<div class="p-space-sm rounded bg-surface-container space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase tracking-wider">Cryptographic Strength Meter:</span>
+<span class="font-label-mono-sm text-label-mono-sm text-error font-bold" id="strength-label">UNSATISFACTORY</span>
+</div>
+<!-- Segmented Strength Meter Bars -->
+<div class="grid grid-cols-4 gap-1.5 h-1.5 w-full">
+<div class="h-full rounded-sm bg-surface-container-highest transition-colors" id="bar-1"></div>
+<div class="h-full rounded-sm bg-surface-container-highest transition-colors" id="bar-2"></div>
+<div class="h-full rounded-sm bg-surface-container-highest transition-colors" id="bar-3"></div>
+<div class="h-full rounded-sm bg-surface-container-highest transition-colors" id="bar-4"></div>
+</div>
+<!-- Entropy Criteria Checklist -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-xs pt-1">
+<div class="flex items-center gap-1.5 text-on-surface-variant font-label-mono-sm text-label-mono-sm" id="rule-length">
+<span class="material-symbols-outlined text-[14px]">cancel</span>
+<span>Min 8 characters</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-label-mono-sm text-label-mono-sm" id="rule-chars">
+<span class="material-symbols-outlined text-[14px]">cancel</span>
+<span>Alphanumeric &amp; symbol</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-label-mono-sm text-label-mono-sm" id="rule-entropy">
+<span class="material-symbols-outlined text-[14px]">cancel</span>
+<span>High entropy key</span>
+</div>
+</div>
+</div>
+<!-- Compliance & Legal Checkbox -->
+<div class="flex items-start gap-space-sm pt-space-xs">
+<div class="relative flex items-center pt-0.5">
+<input class="w-4 h-4 rounded bg-surface-container-lowest text-primary-container focus:ring-0 focus:outline-none cursor-pointer accent-primary" id="compliance-agreement" required="" type="checkbox"/>
+</div>
+<label class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed select-none" for="compliance-agreement">
+              I agree to the <button class="text-secondary hover:underline font-semibold focus:outline-none" id="open-terms-modal" type="button">Terms of Service</button> and acknowledge the <button class="text-secondary hover:underline font-semibold focus:outline-none" id="open-privacy-modal" type="button">Environmental Data Privacy &amp; Provenance Policy</button>, including automated sensor validation hashes.
+            </label>
+</div>
+<!-- Submit Action Button -->
+<div class="pt-space-xs">
+<button class="w-full flex items-center justify-center gap-space-sm py-3.5 px-space-md rounded bg-primary-container text-on-primary font-headline-md text-headline-md font-bold shadow-lg hover:brightness-110 active:scale-[0.99] transition-all" id="submit-provision-btn" type="submit">
+<span class="material-symbols-outlined text-[20px]" id="submit-icon">rocket_launch</span>
+<span id="submit-label">Provision Workspace &amp; Create Account</span>
+</button>
+</div>
+</form>
+<!-- Prominent Footer Link to Login -->
+<div class="flex flex-col sm:flex-row items-center justify-between pt-space-md bg-surface-container-lowest/50 p-space-sm rounded gap-space-xs">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Already have an EcoTrack Node account?</span>
+<a class="font-label-ui text-label-ui text-primary hover:text-primary-fixed flex items-center gap-1 font-semibold transition-colors" data-path="portal-authentication" href="#">
+<span>Sign In to Existing Node</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive Policy Modal (Hidden by Default) -->
+<div aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center bg-surface-container-lowest/80 backdrop-blur-md p-space-md hidden" id="policy-modal" role="dialog">
+<div class="w-full max-w-2xl bg-surface-container-low p-space-xl rounded-xl shadow-2xl space-y-space-lg max-h-[870px] flex flex-col">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[22px]">verified_user</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold" id="modal-title">Policy &amp; Data Lineage Charter</h3>
+</div>
+<button aria-label="Close modal" class="text-on-surface-variant hover:text-on-surface p-1 rounded hover:bg-surface-container" id="close-policy-modal" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="overflow-y-auto space-y-space-md font-body-sm text-body-sm text-on-surface-variant pr-2">
+<p>By registering a research node on the EcoTrack Planetary Intelligence Network, your institution agrees to provide accurate coordinate references for local low-cost sensors and comply with open environmental exchange protocols (ISO/TC 146 &amp; OGC Standards).</p>
+<p>1. <strong class="text-on-surface">Data Provenance:</strong> Ingested streams are timestamped with SHA-256 validation blocks. Anonymized speciation signatures may be federated to enhance continental atmospheric modeling.</p>
+<p>2. <strong class="text-on-surface">Compute Quotas:</strong> Free tier workspaces include 250,000 requests monthly across Sentinel-5P, Landsat-9, and synthetic SAM 3.1 inference routines.</p>
+<p>3. <strong class="text-on-surface">Export Security:</strong> Cryptographic API keys provisioned upon workspace completion must remain within secured CI/CD secret managers.</p>
+</div>
+<div class="pt-space-sm flex justify-end">
+<button class="px-space-md py-2 bg-primary-container text-on-primary font-label-ui text-label-ui font-semibold rounded hover:brightness-110 transition-all" id="acknowledge-policy-btn" type="button">
+          Acknowledge &amp; Return to Setup
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    // DOM Elements
+    const form = document.getElementById('signup-form');
+    const nameInput = document.getElementById('lead-name');
+    const emailInput = document.getElementById('lead-email');
+    const passInput = document.getElementById('master-pass');
+    const confirmInput = document.getElementById('confirm-pass');
+    const termsCheck = document.getElementById('compliance-agreement');
+    
+    // Feedback & UI Nodes
+    const nameStatusIcon = document.getElementById('name-status-icon');
+    const emailStatusIcon = document.getElementById('email-status-icon');
+    const emailFeedback = document.getElementById('email-feedback');
+    const matchFeedback = document.getElementById('match-feedback');
+    const strengthLabel = document.getElementById('strength-label');
+    const bar1 = document.getElementById('bar-1');
+    const bar2 = document.getElementById('bar-2');
+    const bar3 = document.getElementById('bar-3');
+    const bar4 = document.getElementById('bar-4');
+    const ruleLength = document.getElementById('rule-length');
+    const ruleChars = document.getElementById('rule-chars');
+    const ruleEntropy = document.getElementById('rule-entropy');
+    const submitBtn = document.getElementById('submit-provision-btn');
+    const submitLabel = document.getElementById('submit-label');
+    const submitIcon = document.getElementById('submit-icon');
+    const banner = document.getElementById('validation-banner');
+    const bannerText = document.getElementById('banner-text');
+
+    // Visibility toggles
+    const togglePassBtn = document.getElementById('toggle-pass-visibility');
+    const passEyeIcon = document.getElementById('pass-eye-icon');
+    const toggleConfirmBtn = document.getElementById('toggle-confirm-visibility');
+    const confirmEyeIcon = document.getElementById('confirm-eye-icon');
+
+    // Modal elements
+    const policyModal = document.getElementById('policy-modal');
+    const openTermsBtn = document.getElementById('open-terms-modal');
+    const openPrivacyBtn = document.getElementById('open-privacy-modal');
+    const closePolicyModal = document.getElementById('close-policy-modal');
+    const ackPolicyBtn = document.getElementById('acknowledge-policy-btn');
+    const modalTitle = document.getElementById('modal-title');
+    const googleAuthBtn = document.getElementById('google-auth-btn');
+
+    // Toggle Password Visibility
+    if (togglePassBtn && passInput) {
+      togglePassBtn.addEventListener('click', function() {
+        const isPass = passInput.type === 'password';
+        passInput.type = isPass ? 'text' : 'password';
+        passEyeIcon.textContent = isPass ? 'visibility_off' : 'visibility';
+      });
+    }
+
+    if (toggleConfirmBtn && confirmInput) {
+      toggleConfirmBtn.addEventListener('click', function() {
+        const isPass = confirmInput.type === 'password';
+        confirmInput.type = isPass ? 'text' : 'password';
+        confirmEyeIcon.textContent = isPass ? 'visibility_off' : 'visibility';
+      });
+    }
+
+    // Live Name Validation
+    if (nameInput) {
+      nameInput.addEventListener('input', function() {
+        if (this.value.trim().length >= 3) {
+          nameStatusIcon.textContent = 'check_circle';
+          nameStatusIcon.className = 'material-symbols-outlined absolute right-3 text-[18px] text-primary';
+        } else {
+          nameStatusIcon.textContent = 'radio_button_unchecked';
+          nameStatusIcon.className = 'material-symbols-outlined absolute right-3 text-[18px] text-on-surface-variant/40';
+        }
+      });
+    }
+
+    // Live Email Validation
+    if (emailInput) {
+      emailInput.addEventListener('input', function() {
+        const val = this.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isAcademic = /\.edu$|\.ac\.|geocenter|\.org$|\.gov$/.test(val);
+
+        if (emailRegex.test(val)) {
+          emailStatusIcon.textContent = 'check_circle';
+          emailStatusIcon.className = 'material-symbols-outlined absolute right-3 text-[18px] text-primary';
+          if (isAcademic) {
+            emailFeedback.textContent = 'VERIFIED ACADEMIC / LAB DOMAIN';
+            emailFeedback.className = 'font-label-mono-sm text-label-mono-sm text-primary font-semibold';
+          } else {
+            emailFeedback.textContent = 'VALID STANDARD FORMAT';
+            emailFeedback.className = 'font-label-mono-sm text-label-mono-sm text-secondary font-semibold';
+          }
+        } else {
+          emailStatusIcon.textContent = 'error';
+          emailStatusIcon.className = 'material-symbols-outlined absolute right-3 text-[18px] text-on-surface-variant/40';
+          emailFeedback.textContent = 'INSTITUTION DOMAIN PREFERRED';
+          emailFeedback.className = 'font-label-mono-sm text-label-mono-sm text-on-surface-variant';
+        }
+      });
+    }
+
+    // Live Password Strength Calculation
+    function updatePasswordSecurity() {
+      const val = passInput ? passInput.value : '';
+      let score = 0;
+      const hasLength = val.length >= 8;
+      const hasMixed = /[a-zA-Z]/.test(val) && /[0-9]/.test(val) && /[^a-zA-Z0-9]/.test(val);
+      const hasEntropy = val.length >= 12 && hasMixed;
+
+      // Update Checklist Icons
+      updateRuleState(ruleLength, hasLength);
+      updateRuleState(ruleChars, hasMixed);
+      updateRuleState(ruleEntropy, hasEntropy);
+
+      if (hasLength) score++;
+      if (hasMixed) score++;
+      if (val.length >= 12) score++;
+      if (hasEntropy) score++;
+
+      // Reset bars
+      const bars = [bar1, bar2, bar3, bar4];
+      bars.forEach(b => {
+        b.className = 'h-full rounded-sm bg-surface-container-highest transition-colors';
+      });
+
+      if (val.length === 0) {
+        strengthLabel.textContent = 'UNSATISFACTORY';
+        strengthLabel.className = 'font-label-mono-sm text-label-mono-sm text-error font-bold';
+        return;
+      }
+
+      if (score === 1) {
+        bar1.className = 'h-full rounded-sm bg-error transition-colors';
+        strengthLabel.textContent = 'LOW RESISTANCE';
+        strengthLabel.className = 'font-label-mono-sm text-label-mono-sm text-error font-bold';
+      } else if (score === 2) {
+        bar1.className = 'h-full rounded-sm bg-secondary-container transition-colors';
+        bar2.className = 'h-full rounded-sm bg-secondary-container transition-colors';
+        strengthLabel.textContent = 'MODERATE';
+        strengthLabel.className = 'font-label-mono-sm text-label-mono-sm text-secondary font-bold';
+      } else if (score === 3) {
+        bar1.className = 'h-full rounded-sm bg-primary transition-colors';
+        bar2.className = 'h-full rounded-sm bg-primary transition-colors';
+        bar3.className = 'h-full rounded-sm bg-primary transition-colors';
+        strengthLabel.textContent = 'ROBUST';
+        strengthLabel.className = 'font-label-mono-sm text-label-mono-sm text-primary font-bold';
+      } else if (score >= 4) {
+        bars.forEach(b => {
+          b.className = 'h-full rounded-sm bg-primary-container transition-colors';
+        });
+        strengthLabel.textContent = 'CRYPTOGRAPHIC PERFECTION';
+        strengthLabel.className = 'font-label-mono-sm text-label-mono-sm text-primary-container font-bold';
+      }
+
+      checkPasswordMatch();
+    }
+
+    function updateRuleState(elem, isValid) {
+      if (!elem) return;
+      const icon = elem.querySelector('.material-symbols-outlined');
+      if (isValid) {
+        icon.textContent = 'check_circle';
+        elem.className = 'flex items-center gap-1.5 text-primary font-label-mono-sm text-label-mono-sm font-semibold';
+      } else {
+        icon.textContent = 'cancel';
+        elem.className = 'flex items-center gap-1.5 text-on-surface-variant font-label-mono-sm text-label-mono-sm';
+      }
+    }
+
+    function checkPasswordMatch() {
+      if (!confirmInput || !passInput) return;
+      if (confirmInput.value.length === 0) {
+        matchFeedback.textContent = 'NOT MATCHED';
+        matchFeedback.className = 'font-label-mono-sm text-label-mono-sm text-on-surface-variant';
+        return;
+      }
+      if (confirmInput.value === passInput.value) {
+        matchFeedback.textContent = 'HASH MATCH CONFIRMED';
+        matchFeedback.className = 'font-label-mono-sm text-label-mono-sm text-primary font-bold';
+      } else {
+        matchFeedback.textContent = 'MISMATCH DETECTED';
+        matchFeedback.className = 'font-label-mono-sm text-label-mono-sm text-error font-bold';
+      }
+    }
+
+    if (passInput) passInput.addEventListener('input', updatePasswordSecurity);
+    if (confirmInput) confirmInput.addEventListener('input', checkPasswordMatch);
+
+    // Modal Triggers
+    if (openTermsBtn) {
+      openTermsBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        modalTitle.textContent = 'EcoTrack Mesh — Terms of Service';
+        policyModal.classList.remove('hidden');
+      });
+    }
+
+    if (openPrivacyBtn) {
+      openPrivacyBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        modalTitle.textContent = 'Environmental Data Privacy & Provenance Charter';
+        policyModal.classList.remove('hidden');
+      });
+    }
+
+    if (closePolicyModal) {
+      closePolicyModal.addEventListener('click', function() {
+        policyModal.classList.add('hidden');
+      });
+    }
+
+    if (ackPolicyBtn) {
+      ackPolicyBtn.addEventListener('click', function() {
+        policyModal.classList.add('hidden');
+        if (termsCheck) termsCheck.checked = true;
+      });
+    }
+
+    // OAuth Simulation
+    if (googleAuthBtn) {
+      googleAuthBtn.addEventListener('click', function() {
+        banner.className = 'p-space-sm rounded bg-surface-container-high flex items-center gap-space-sm text-secondary transition-all';
+        bannerText.textContent = 'Initializing Google Federated Auth Provider handshake... (Redirect simulation)';
+        setTimeout(() => {
+          bannerText.textContent = 'OAuth Session Ready: Identity Token validated via Google API.';
+          banner.className = 'p-space-sm rounded bg-primary-container/20 flex items-center gap-space-sm text-primary font-medium transition-all';
+        }, 1200);
+      });
+    }
+
+    // Form Submission & Workspace Provisioning Simulation
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const nameVal = nameInput.value.trim();
+        const emailVal = emailInput.value.trim();
+        const passVal = passInput.value;
+        const confirmVal = confirmInput.value;
+        const agreed = termsCheck.checked;
+
+        if (nameVal.length < 3) {
+          banner.className = 'p-space-sm rounded bg-error-container/30 flex items-center gap-space-sm text-error transition-all';
+          bannerText.textContent = 'Lead Investigator name must be at least 3 characters.';
+          nameInput.focus();
+          return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+          banner.className = 'p-space-sm rounded bg-error-container/30 flex items-center gap-space-sm text-error transition-all';
+          bannerText.textContent = 'Please provide a syntactically valid email address for node registry.';
+          emailInput.focus();
+          return;
+        }
+
+        if (passVal.length < 8) {
+          banner.className = 'p-space-sm rounded bg-error-container/30 flex items-center gap-space-sm text-error transition-all';
+          bannerText.textContent = 'Password must meet minimum cryptographic length (8+ characters).';
+          passInput.focus();
+          return;
+        }
+
+        if (passVal !== confirmVal) {
+          banner.className = 'p-space-sm rounded bg-error-container/30 flex items-center gap-space-sm text-error transition-all';
+          bannerText.textContent = 'Master passwords do not match. Re-enter identical keys.';
+          confirmInput.focus();
+          return;
+        }
+
+        if (!agreed) {
+          banner.className = 'p-space-sm rounded bg-error-container/30 flex items-center gap-space-sm text-error transition-all';
+          bannerText.textContent = 'You must agree to the Terms of Service & Data Provenance Policy.';
+          return;
+        }
+
+        // Simulate Provisioning Process
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-80', 'cursor-not-allowed');
+        submitIcon.textContent = 'sync';
+        submitIcon.classList.add('animate-spin');
+        submitLabel.textContent = 'Provisioning Planetary Node & Cryptographic Keys...';
+
+        banner.className = 'p-space-sm rounded bg-secondary-container/20 flex items-center gap-space-sm text-secondary transition-all';
+        bannerText.textContent = 'Allocating telemetry cluster, generating SHA-256 token, binding node identity...';
+
+        setTimeout(() => {
+          submitIcon.classList.remove('animate-spin');
+          submitIcon.textContent = 'verified';
+          submitLabel.textContent = 'Workspace Provisioned Successfully!';
+          submitBtn.classList.remove('bg-primary-container', 'text-on-primary');
+          submitBtn.classList.add('bg-primary', 'text-on-primary-fixed');
+
+          banner.className = 'p-space-sm rounded bg-primary-container/30 flex items-center gap-space-sm text-primary font-bold transition-all';
+          bannerText.textContent = 'Welcome Dr. Elena Rostova. Node cluster active. Redirecting to Telemetry Dashboard...';
+
+          setTimeout(() => {
+            // Simulated transition to main platform dashboard
+            const dashboardLink = document.querySelector('a[data-path="main-telemetry-dashboard"]');
+            if (dashboardLink) {
+              dashboardLink.click();
+            } else {
+              window.location.hash = 'main-telemetry-dashboard';
+            }
+          }, 1500);
+        }, 1800);
+      });
+    }
+  })();
+</script></main><footer class="w-full bg-surface-container-lowest py-space-xl shadow-[0_-1px_8px_rgba(0,0,0,0.04)]"><div class="w-full px-margin-desktop"><div class="flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex flex-wrap items-center gap-space-md text-on-surface-variant"><span class="font-label-mono-sm text-label-mono-sm text-on-surface flex items-center gap-space-xs"><span class="material-symbols-outlined text-[14px] text-primary">verified_user</span>ISO/TC 146 CERTIFIED</span><span class="font-label-mono-sm text-label-mono-sm flex items-center gap-space-xs"><span class="w-1 h-1 rounded-full bg-outline"></span>US-EPA 40 CFR COMPLIANT</span><span class="font-label-mono-sm text-label-mono-sm flex items-center gap-space-xs"><span class="w-1 h-1 rounded-full bg-outline"></span>SENTINEL-5P VALIDATED</span></div><div class="flex items-center gap-space-lg text-on-surface-variant"><a class="font-label-ui text-label-ui hover:text-on-surface transition-colors" data-path="security-credentials" href="#">Security Specs</a><a class="font-label-ui text-label-ui hover:text-on-surface transition-colors" data-path="terms-of-service" href="#">Terms of Service</a><a class="font-label-ui text-label-ui hover:text-on-surface transition-colors" data-path="privacy-policy" href="#">Privacy Policy</a></div></div><div class="mt-space-md pt-space-md flex flex-col sm:flex-row items-center justify-between gap-space-sm"><p class="font-body-sm text-body-sm text-on-surface-variant">© 2025 EcoTrack Planetary Intelligence Systems. Cryptographic node authority reserved.</p><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-primary-container"></span><span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant uppercase tracking-wider">Node Latency: 14ms (Encrypted Sync)</span></div></div></div></footer></body></html>
