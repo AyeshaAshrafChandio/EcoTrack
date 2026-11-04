@@ -78,6 +78,7 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
 
   const [inputPrompt, setInputPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [preferredProvider, setPreferredProvider] = useState<'cloudflare' | 'groq' | 'ollama'>('cloudflare');
 
   // Visual inspection state (Honest preview, zero fake SAM 3.1)
   const [inspectedImage, setInspectedImage] = useState<string>(
@@ -88,6 +89,23 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
     sizeKb: 142,
     uploadTime: 'Initial Baseline Sample',
   });
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
+  const [imageAnalysisResult, setImageAnalysisResult] = useState<{
+    disclaimer: string;
+    observations: string[];
+    visibleHazeLevel?: string;
+    weatherContext?: {
+      relativeHumidity: number;
+      boundaryLayerHeight: number;
+      windSpeed: number;
+    };
+    modelForecastComparison?: {
+      aqi: number;
+      dominantPollutant: string;
+    };
+  } | null>(null);
+  const [imageAnalysisError, setImageAnalysisError] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,6 +120,8 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
     const reader = new FileReader();
     reader.onload = () => {
       setInspectedImage(reader.result as string);
+      setImageAnalysisResult(null);
+      setImageAnalysisError(null);
       setImageMeta({
         name: file.name,
         sizeKb: Math.round(file.size / 1024),
@@ -109,6 +129,40 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
       });
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleRunImageAnalysis = async () => {
+    if (!inspectedImage || isAnalyzingImage) return;
+    setIsAnalyzingImage(true);
+    setImageAnalysisError(null);
+
+    try {
+      const res = await fetch('/api/copilot/analyze-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageData: inspectedImage,
+          locationContext: {
+            name: selectedLocation.name,
+            lat: selectedLocation.lat,
+            lon: selectedLocation.lon,
+            telemetry: currentTelemetry,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      setImageAnalysisResult(data);
+    } catch (err: any) {
+      setImageAnalysisError(err.message || 'Image context analysis failed.');
+    } finally {
+      setIsAnalyzingImage(false);
+    }
   };
 
   const handleSendPrompt = async (promptToSend?: string) => {
@@ -132,6 +186,7 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: text,
+          preferredProvider,
           context: {
             location: selectedLocation.name,
             lat: selectedLocation.lat,
@@ -346,20 +401,33 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
           <div className="lg:col-span-8">
             {activeTab === 'copilot' ? (
               <div className="flex flex-col h-[650px] sm:h-[720px] rounded-2xl bg-surface-container-low border border-surface-container shadow-xl overflow-hidden">
-                {/* Chat Top Banner */}
+                {/* Chat Top Banner with Provider Selector */}
                 <div className="px-4 py-3 bg-surface-container-lowest border-b border-surface-container flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                     <span className="font-label-ui text-xs font-bold text-on-surface">
-                      Meta Llama 3.2 3B Instruct Copilot
+                      AI Environmental Copilot
+                    </span>
+                    <span className="hidden sm:inline text-on-surface-variant text-xs">•</span>
+                    <span className="hidden sm:inline font-label-mono-sm text-[0.625rem] text-primary">
+                      English &amp; اردو
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 font-label-mono-sm text-[0.625rem] text-on-surface-variant">
-                    <span className="px-2 py-0.5 rounded bg-surface-container text-secondary">
-                      Cloudflare Free Tier / Ollama
-                    </span>
-                    <span className="hidden sm:inline">•</span>
-                    <span className="hidden sm:inline text-primary">English &amp; اردو</span>
+
+                  {/* Provider Selector */}
+                  <div className="flex items-center gap-2">
+                    <label className="font-label-mono-sm text-[0.625rem] text-on-surface-variant uppercase hidden md:inline">
+                      Inference Engine:
+                    </label>
+                    <select
+                      value={preferredProvider}
+                      onChange={e => setPreferredProvider(e.target.value as any)}
+                      className="bg-surface-container border border-surface-variant rounded-lg px-2.5 py-1 text-xs font-label-mono-sm text-on-surface focus:outline-none cursor-pointer"
+                    >
+                      <option value="cloudflare">Meta Llama 3.2 3B (Cloudflare Free Tier - Primary)</option>
+                      <option value="groq">Groq Cloud LPU (Secondary / Fallback)</option>
+                      <option value="ollama">Local Ollama (Offline / Air-Gapped)</option>
+                    </select>
                   </div>
                 </div>
 
@@ -389,12 +457,17 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
 
                         {msg.role === 'assistant' && (
                           <div className="pt-2 border-t border-surface-variant/30 flex flex-wrap items-center justify-between gap-2 font-label-mono-sm text-[0.625rem] text-on-surface-variant">
-                            <span className="truncate max-w-[220px]">
+                            <span className="truncate max-w-[260px] text-primary">
                               {msg.modelUsed || '@cf/meta/llama-3.2-3b-instruct'}
                             </span>
+                            {msg.hostingProvider && (
+                              <span className="px-1.5 py-0.5 rounded bg-surface-container-highest text-secondary truncate">
+                                {msg.hostingProvider}
+                              </span>
+                            )}
                             {msg.citations && msg.citations.length > 0 && (
-                              <span className="text-secondary truncate">
-                                Source: {msg.citations[0]}
+                              <span className="text-on-surface-variant truncate">
+                                Ref: {msg.citations[0]}
                               </span>
                             )}
                           </div>
@@ -412,7 +485,13 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
                   {isGenerating && (
                     <div className="flex items-center gap-2 text-primary font-label-mono-sm text-xs p-3 rounded-xl bg-surface-container max-w-xs">
                       <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-                      <span>Meta Llama 3.2 3B reasoning...</span>
+                      <span>
+                        {preferredProvider === 'groq'
+                          ? 'Groq Cloud LPU reasoning...'
+                          : preferredProvider === 'ollama'
+                          ? 'Local Ollama reasoning...'
+                          : 'Meta Llama 3.2 3B reasoning...'}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -472,7 +551,7 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
                       Inspect site images alongside telemetry without deceptive or ungrounded claims.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap">
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -486,7 +565,25 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
                       className="px-3.5 py-2 rounded-xl bg-surface-container hover:bg-surface-bright border border-surface-variant font-label-ui text-xs font-semibold text-on-surface flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
                     >
                       <span className="material-symbols-outlined text-[16px] text-primary">cloud_upload</span>
-                      <span>Upload Site Image (Max 5MB)</span>
+                      <span>Change Image</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRunImageAnalysis}
+                      disabled={isAnalyzingImage}
+                      className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-fixed text-on-primary font-label-ui text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all shadow-md disabled:opacity-50"
+                    >
+                      {isAnalyzingImage ? (
+                        <>
+                          <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                          <span>Analyzing Visual Context...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-[16px]">search_check</span>
+                          <span>Run Visual Inspection</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -504,6 +601,64 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
                     EcoTrack firmly refuses to generate fabricated pixel segmentation masks or invent fake confidence numbers. All air quality metrics displayed in this portal originate directly from Open-Meteo physical meteorological and atmospheric dispersion models (Copernicus CAMS &amp; ECMWF).
                   </p>
                 </div>
+
+                {/* Image Analysis Results Card if available */}
+                {imageAnalysisError && (
+                  <div className="p-3 rounded-xl bg-error/15 border border-error/30 text-error text-xs flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">warning</span>
+                    <span>{imageAnalysisError}</span>
+                  </div>
+                )}
+
+                {imageAnalysisResult && (
+                  <div className="p-4 rounded-xl bg-surface-container border border-primary/30 space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-surface-variant/40">
+                      <span className="font-label-ui text-xs font-bold text-primary flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[16px]">visibility</span>
+                        Qualitative Visual Context Analysis Result
+                      </span>
+                      <span className="font-label-mono-sm text-[0.625rem] text-secondary">
+                        Visible Haze: {imageAnalysisResult.visibleHazeLevel || 'Low / Moderate'}
+                      </span>
+                    </div>
+
+                    {/* Prominent Mandatory Disclaimer Banner */}
+                    <div className="p-2.5 rounded-lg bg-surface-container-lowest text-on-surface-variant font-label-mono-sm text-[0.6875rem] border-l-2 border-primary">
+                      ⚠️ <strong>Mandatory Compliance Notice:</strong> {imageAnalysisResult.disclaimer}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant uppercase tracking-wider">
+                        Qualitative Observations:
+                      </span>
+                      <ul className="space-y-1">
+                        {imageAnalysisResult.observations.map((obs, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-xs text-on-surface">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0"></span>
+                            <span>{obs}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {imageAnalysisResult.weatherContext && (
+                      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-surface-variant/30 font-label-mono-sm text-[0.6875rem]">
+                        <div className="p-2 rounded bg-surface-container-lowest">
+                          <span className="text-on-surface-variant block">Humidity:</span>
+                          <span className="text-on-surface font-semibold">{imageAnalysisResult.weatherContext.relativeHumidity}%</span>
+                        </div>
+                        <div className="p-2 rounded bg-surface-container-lowest">
+                          <span className="text-on-surface-variant block">Boundary Layer:</span>
+                          <span className="text-on-surface font-semibold">{imageAnalysisResult.weatherContext.boundaryLayerHeight}m</span>
+                        </div>
+                        <div className="p-2 rounded bg-surface-container-lowest">
+                          <span className="text-on-surface-variant block">Wind Speed:</span>
+                          <span className="text-on-surface font-semibold">{imageAnalysisResult.weatherContext.windSpeed} m/s</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Image Preview Canvas */}
                 <div className="relative h-64 sm:h-80 md:h-96 w-full rounded-2xl overflow-hidden bg-surface-container-lowest border border-surface-container">

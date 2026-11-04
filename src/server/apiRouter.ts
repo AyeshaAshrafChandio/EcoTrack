@@ -34,7 +34,9 @@ apiRouter.get('/status', async (_req, res) => {
     configured: false,
     accessible: false,
     statusMessage: 'Groq check failed',
-    availableModels: [],
+    availableModels: [] as string[],
+    allModels: [] as string[],
+    configuredModel: undefined as string | undefined,
     recommendedModel: 'llama-3.3-70b-versatile',
   }));
   const openAQConfigured = openAQService.isKeyConfigured();
@@ -58,6 +60,9 @@ apiRouter.get('/status', async (_req, res) => {
     },
     verifiedTelemetryNodes: stations.length,
     atmosphericStandards: 'US-EPA 40 CFR 58 Breakpoints / WHO 2021 Air Quality Guidelines',
+    groqConfiguredModel: groqStatus.configuredModel,
+    groqAvailableModels: groqStatus.availableModels,
+    groqAllModels: groqStatus.allModels,
     timestamp: new Date().toISOString(),
   });
 });
@@ -218,7 +223,7 @@ apiRouter.get('/environment/compare', async (req, res) => {
 // 7. AI Environmental Copilot Chat (Meta Llama on Cloudflare / Groq / Ollama)
 apiRouter.post('/copilot/chat', async (req, res) => {
   try {
-    const { prompt, context, conversationHistory } = req.body;
+    const { prompt, context, conversationHistory, preferredProvider, groqModel } = req.body;
     if (!prompt || !prompt.trim()) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
@@ -227,6 +232,8 @@ apiRouter.post('/copilot/chat', async (req, res) => {
       prompt,
       context,
       conversationHistory,
+      preferredProvider,
+      groqModel,
     });
 
     // Record in local database session
@@ -249,6 +256,28 @@ apiRouter.post('/copilot/chat', async (req, res) => {
   } catch (err: any) {
     console.error('Copilot inference error:', err);
     res.status(500).json({ error: err.message || 'AI Copilot inference failed' });
+  }
+});
+
+// 7b. Environmental Visual Inspection Analysis (Vision AI with strictly enforced non-quantitative disclaimer)
+apiRouter.post('/copilot/analyze-image', async (req, res) => {
+  try {
+    const { image, locationName, lat, lon } = req.body;
+    if (!image) {
+      return res.status(400).json({ error: 'Image data is required' });
+    }
+
+    const result = await aiCopilotService.analyzeImageContext({
+      image,
+      locationName: locationName || 'Monitored Site',
+      lat: lat !== undefined ? parseFloat(lat) : 24.8607,
+      lon: lon !== undefined ? parseFloat(lon) : 67.0011,
+    });
+
+    res.json(result);
+  } catch (err: any) {
+    console.error('Image analysis error:', err);
+    res.status(500).json({ error: err.message || 'Visual context inspection failed' });
   }
 });
 
@@ -295,7 +324,7 @@ apiRouter.patch('/alerts/:id/toggle', verifyOperatorSession, async (req: Authent
   const rule = db.getAlertRules(user.id).find(r => r.id === req.params.id);
   if (!rule) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
 
-  const updated = db.updateAlertRule(req.params.id, { active: !rule.active });
+  const updated = db.toggleAlertRule(req.params.id, user.id);
   res.json(updated);
 });
 
@@ -304,7 +333,7 @@ apiRouter.put('/alerts/:id', verifyOperatorSession, async (req: AuthenticatedReq
   const rule = db.getAlertRules(user.id).find(r => r.id === req.params.id);
   if (!rule) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
 
-  const updated = db.updateAlertRule(req.params.id, req.body);
+  const updated = db.updateAlertRule(req.params.id, user.id, req.body);
   res.json(updated);
 });
 
@@ -313,7 +342,7 @@ apiRouter.delete('/alerts/:id', verifyOperatorSession, async (req: Authenticated
   const rule = db.getAlertRules(user.id).find(r => r.id === req.params.id);
   if (!rule) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
 
-  const deleted = db.deleteAlertRule(req.params.id);
+  const deleted = db.deleteAlertRule(req.params.id, user.id);
   if (!deleted) return res.status(404).json({ error: 'Alert rule not found' });
   res.json({ success: true });
 });

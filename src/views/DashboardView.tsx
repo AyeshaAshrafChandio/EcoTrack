@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 
 export const DashboardView: React.FC = () => {
@@ -13,6 +13,27 @@ export const DashboardView: React.FC = () => {
   } = useApp();
 
   const [activePollutantTab, setActivePollutantTab] = useState<'PM2.5' | 'PM10' | 'NO2' | 'O3' | 'SO2' | 'CO'>('PM2.5');
+  const [groundStations, setGroundStations] = useState<any[]>([]);
+  const [loadingGround, setLoadingGround] = useState<boolean>(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoadingGround(true);
+    fetch(`/api/environment/openaq?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&radius=35000`)
+      .then(r => r.json())
+      .then(data => {
+        if (isMounted) {
+          setGroundStations(data.stations || []);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setGroundStations([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoadingGround(false);
+      });
+    return () => { isMounted = false; };
+  }, [selectedLocation.lat, selectedLocation.lon]);
 
   if (loadingTelemetry || !currentTelemetry) {
     return (
@@ -321,11 +342,11 @@ export const DashboardView: React.FC = () => {
                 6-Pollutant Speciation Breakdown
               </h2>
               <p className="font-body-sm text-xs sm:text-body-sm text-on-surface-variant">
-                Instrumental readings verified against WHO 2021 air quality ceilings and EPA sub-indices.
+                Atmospheric forecast readings harmonized to US-EPA 40 CFR Part 58 breakpoints and WHO 2021 guidelines.
               </p>
             </div>
             <span className="px-2.5 py-1 rounded-full bg-surface-container font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-secondary self-start sm:self-auto">
-              REAL INSTRUMENT TELEMETRY
+              ATMOSPHERIC MODEL FORECAST (Open-Meteo CAMS)
             </span>
           </div>
 
@@ -389,6 +410,80 @@ export const DashboardView: React.FC = () => {
               );
             })}
           </div>
+        </div>
+
+        {/* Physical Ground Station Telemetry (OpenAQ v3) */}
+        <div className="rounded-2xl bg-surface-container-low p-4 sm:p-5 shadow-lg border border-surface-container space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-[20px]">sensors</span>
+              <div>
+                <h3 className="font-headline-md text-base sm:text-lg font-bold text-on-surface">
+                  Calibrated Ground Sensor Observations (OpenAQ v3)
+                </h3>
+                <p className="font-body-sm text-xs text-on-surface-variant">
+                  Physical reference and community monitoring instruments within 35km radius.
+                </p>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-surface-container font-label-mono-sm text-[0.625rem] text-primary self-start sm:self-auto font-semibold">
+              PHYSICAL GROUND MONITORS
+            </span>
+          </div>
+
+          {loadingGround ? (
+            <div className="p-4 text-center text-xs font-label-mono-sm text-on-surface-variant flex items-center justify-center gap-2">
+              <span className="material-symbols-outlined text-[16px] text-primary animate-spin">progress_activity</span>
+              <span>Scanning for OpenAQ reference ground monitors...</span>
+            </div>
+          ) : groundStations.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              {groundStations.slice(0, 2).map((st: any) => (
+                <div key={st.stationId} className="p-3.5 rounded-xl bg-surface-container border border-surface-variant/40 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-body-md text-sm font-bold text-on-surface truncate">
+                        {st.name}
+                      </div>
+                      <div className="font-label-mono-sm text-[0.625rem] text-secondary">
+                        ID: {st.stationId} • {st.city}, {st.country}
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded bg-primary/10 text-primary font-label-mono-sm text-[0.55rem] font-bold shrink-0">
+                      GROUND PHYSICAL SENSOR
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 font-label-mono-sm text-xs">
+                    {Object.entries(st.measurements || {}).slice(0, 6).map(([param, m]: [string, any]) => (
+                      <div key={param} className="p-2 rounded-lg bg-surface-container-high/60">
+                        <div className="text-[0.6rem] text-on-surface-variant truncate">{m.parameter || param}</div>
+                        <div className="font-bold text-on-surface text-sm">
+                          {typeof m.value === 'number' ? m.value : 'N/A'}{' '}
+                          <span className="text-[0.6rem] font-normal text-on-surface-variant">{m.unit}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between text-[0.6rem] font-label-mono-sm text-on-surface-variant pt-1 border-t border-surface-variant/30">
+                    <span className="truncate max-w-[200px]">Source: {st.attribution}</span>
+                    <span>Observed: {(Object.values(st.measurements || {})[0] as { lastUpdated?: string } | undefined)?.lastUpdated ? new Date((Object.values(st.measurements || {})[0] as any).lastUpdated).toLocaleTimeString() : 'Recent'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-3.5 rounded-xl bg-surface-container/60 border border-surface-container text-xs font-body-sm text-on-surface-variant flex items-start gap-2.5">
+              <span className="material-symbols-outlined text-[18px] text-outline shrink-0 mt-0.5">info</span>
+              <div>
+                <span className="font-semibold text-on-surface">No physical OpenAQ ground monitor station located within 35km of these coordinates.</span>
+                <p className="pt-0.5 leading-relaxed">
+                  Remote or unmonitored zones rely strictly on the Open-Meteo CAMS 0.1° high-resolution atmospheric dispersion model shown above. Ground observations are never fabricated when no sensor exists.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 48-Hour Hourly Trend Chart */}

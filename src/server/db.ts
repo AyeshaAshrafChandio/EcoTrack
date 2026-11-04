@@ -363,10 +363,11 @@ class Database {
     return newUser;
   }
 
-  public upsertLocalUser(userData: { id?: string; email: string; name?: string }): User {
+  public upsertLocalUser(userData: { id?: string; email: string; name?: string; role?: string; apiKey?: string; createdAt?: string }): User {
     let existing = this.data.users.find(u => (userData.id && u.id === userData.id) || u.email.toLowerCase() === userData.email.toLowerCase());
     if (existing) {
       if (userData.name) existing.name = userData.name;
+      if (userData.role) existing.role = userData.role;
       this.schedulePersist();
       return existing;
     }
@@ -374,9 +375,9 @@ class Database {
       id: userData.id || `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       name: userData.name || 'Authenticated Operator',
       email: userData.email,
-      role: 'Environmental Systems Engineer',
-      apiKey: `eco_${Math.random().toString(36).substring(2, 12)}`,
-      createdAt: new Date().toISOString(),
+      role: userData.role || 'Environmental Systems Engineer',
+      apiKey: userData.apiKey || `eco_${Math.random().toString(36).substring(2, 12)}`,
+      createdAt: userData.createdAt || new Date().toISOString(),
     };
     this.data.users.push(newUser);
     this.schedulePersist();

@@ -3,13 +3,14 @@
  * Provides token verification and server-side authentication validation.
  */
 
-import admin from 'firebase-admin';
+import { getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
 
 let firebaseAdminInitialized = false;
 
-export function initFirebaseAdmin() {
+export function initFirebaseAdmin(): boolean {
   if (firebaseAdminInitialized) return true;
-  if (admin.apps.length > 0) {
+  if (getApps().length > 0) {
     firebaseAdminInitialized = true;
     return true;
   }
@@ -18,7 +19,7 @@ export function initFirebaseAdmin() {
 
   if (projectId) {
     try {
-      admin.initializeApp({
+      initializeApp({
         projectId,
       });
       firebaseAdminInitialized = true;
@@ -33,16 +34,15 @@ export function initFirebaseAdmin() {
   return false;
 }
 
-export async function verifyFirebaseIdToken(idToken: string): Promise<admin.auth.DecodedIdToken | null> {
+export async function verifyFirebaseIdToken(idToken: string): Promise<DecodedIdToken | null> {
   const initialized = initFirebaseAdmin();
   if (!initialized) return null;
 
   try {
-    const decoded = await admin.auth().verifyIdToken(idToken);
+    const decoded = await getAuth().verifyIdToken(idToken);
     return decoded;
   } catch (err) {
     return null;
   }
 }
 
-export { admin };

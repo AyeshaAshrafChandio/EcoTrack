@@ -11,9 +11,52 @@ export const GlobalMapView: React.FC = () => {
 
   const [activePollutant, setActivePollutant] = useState<'AQI' | 'PM2.5' | 'PM10' | 'NO2' | 'O3' | 'SO2' | 'CO'>('AQI');
   const [selectedStation, setSelectedStation] = useState<GlobalStation | null>(null);
+  const [selectedOpenaqStation, setSelectedOpenaqStation] = useState<{
+    id: number;
+    name: string;
+    locality?: string;
+    country?: string;
+    lat: number;
+    lon: number;
+    distanceKm?: number;
+    measurements: Record<string, { value: number; unit: string; lastUpdated: string }>;
+  } | null>(null);
+  const [showModelLayer, setShowModelLayer] = useState<boolean>(true);
+  const [showOpenaqLayer, setShowOpenaqLayer] = useState<boolean>(true);
+  const [openaqStations, setOpenaqStations] = useState<Array<{
+    id: number;
+    name: string;
+    locality?: string;
+    country?: string;
+    lat: number;
+    lon: number;
+    distanceKm?: number;
+    measurements: Record<string, { value: number; unit: string; lastUpdated: string }>;
+  }>>([]);
   const [temporalOffset, setTemporalOffset] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [showMobileInspector, setShowMobileInspector] = useState<boolean>(false);
+
+  // Fetch OpenAQ physical stations near selectedLocation
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchOpenaq = async () => {
+      try {
+        const res = await fetch(`/api/environment/openaq?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&radiusKm=120`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!isCancelled && Array.isArray(data.stations)) {
+          setOpenaqStations(data.stations);
+        }
+      } catch {
+        // Safe fallback
+      }
+    };
+    fetchOpenaq();
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedLocation.lat, selectedLocation.lon]);
 
   // Auto-play temporal slider effect
   useEffect(() => {
@@ -155,7 +198,7 @@ export const GlobalMapView: React.FC = () => {
     };
   }, []);
 
-  // Update Markers dynamically when stations, activePollutant, or temporalOffset changes
+  // Update Markers dynamically when stations, openaqStations, layers, activePollutant, or temporalOffset changes
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -163,37 +206,81 @@ export const GlobalMapView: React.FC = () => {
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
-    stations.forEach(st => {
-      const { val, unit, color } = getPollutantMetric(st, activePollutant);
+    // 1. Render Atmospheric Model Forecast Nodes (Open-Meteo CAMS)
+    if (showModelLayer) {
+      stations.forEach(st => {
+        const { val, unit, color } = getPollutantMetric(st, activePollutant);
 
-      const circle = L.circleMarker([st.lat, st.lon], {
-        radius: 9,
-        fillColor: color,
-        color: '#0f131d',
-        weight: 2,
-        opacity: 1,
-        fillOpacity: 0.9,
-      }).addTo(map);
+        const circle = L.circleMarker([st.lat, st.lon], {
+          radius: 9,
+          fillColor: color,
+          color: '#0f131d',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.9,
+        }).addTo(map);
 
-      circle.bindTooltip(
-        `<div style="font-family: 'Inter', sans-serif; font-size: 11px; padding: 2px;">
-          <strong>${st.name}</strong><br/>
-          ${activePollutant}: <span style="color: ${color}; font-weight: bold;">${val} ${unit}</span><br/>
-          <span style="color: #94a3b8; font-size: 9px;">Network: ${st.sensorNetwork}</span>
-        </div>`,
-        { direction: 'top', className: 'dark-tooltip' }
-      );
+        circle.bindTooltip(
+          `<div style="font-family: 'Inter', sans-serif; font-size: 11px; padding: 2px;">
+            <div style="font-size: 9px; color: #38bdf8; font-weight: bold;">[MODEL FORECAST — CAMS]</div>
+            <strong>${st.name}</strong><br/>
+            ${activePollutant}: <span style="color: ${color}; font-weight: bold;">${val} ${unit}</span><br/>
+            <span style="color: #94a3b8; font-size: 9px;">Network: ${st.sensorNetwork}</span>
+          </div>`,
+          { direction: 'top', className: 'dark-tooltip' }
+        );
 
-      circle.on('click', () => {
-        setSelectedStation(st);
-        selectCity(`${st.city}, ${st.country}`, st.lat, st.lon);
-        setShowMobileInspector(true);
-        map.setView([st.lat, st.lon], 6, { animate: true });
+        circle.on('click', () => {
+          setSelectedOpenaqStation(null);
+          setSelectedStation(st);
+          selectCity(`${st.city}, ${st.country}`, st.lat, st.lon);
+          setShowMobileInspector(true);
+          map.setView([st.lat, st.lon], 6, { animate: true });
+        });
+
+        markersRef.current.push(circle);
       });
+    }
 
-      markersRef.current.push(circle);
-    });
-  }, [stations, activePollutant, temporalOffset]);
+    // 2. Render Physical Ground Sensors (OpenAQ v3)
+    if (showOpenaqLayer) {
+      openaqStations.forEach(st => {
+        // Cyan square/diamond marker with distinct pulse border
+        const marker = L.circleMarker([st.lat, st.lon], {
+          radius: 10,
+          fillColor: '#0284c7', // sky-600
+          color: '#38bdf8', // sky-400 cyan
+          weight: 2.5,
+          opacity: 1,
+          fillOpacity: 0.95,
+        }).addTo(map);
+
+        const sensorSummary = Object.entries(st.measurements || {})
+          .slice(0, 3)
+          .map(([k, v]) => `${k}: ${v.value} ${v.unit}`)
+          .join(', ') || 'Online telemetry';
+
+        marker.bindTooltip(
+          `<div style="font-family: 'Inter', sans-serif; font-size: 11px; padding: 3px;">
+            <div style="font-size: 9px; color: #4ade80; font-weight: bold;">[PHYSICAL GROUND SENSOR — OpenAQ v3]</div>
+            <strong>${st.name}</strong><br/>
+            <span style="color: #cbd5e1; font-size: 10px;">${sensorSummary}</span><br/>
+            <span style="color: #94a3b8; font-size: 9px;">Dist: ${st.distanceKm?.toFixed(1) ?? 'N/A'} km</span>
+          </div>`,
+          { direction: 'top', className: 'dark-tooltip' }
+        );
+
+        marker.on('click', () => {
+          setSelectedStation(null);
+          setSelectedOpenaqStation(st);
+          setShowMobileInspector(true);
+          map.setView([st.lat, st.lon], 8, { animate: true });
+        });
+
+        markersRef.current.push(marker);
+      });
+    }
+  }, [stations, openaqStations, showModelLayer, showOpenaqLayer, activePollutant, temporalOffset]);
 
   // Center on selected location if changed
   useEffect(() => {
@@ -206,11 +293,113 @@ export const GlobalMapView: React.FC = () => {
 
   // Inspector Content shared between desktop sidebar and mobile drawer
   const renderInspectorContent = (isMobileDrawer = false) => {
+    // 1. If OpenAQ Physical Ground Station is selected
+    if (selectedOpenaqStation) {
+      const st = selectedOpenaqStation;
+      const measurementEntries = Object.entries(st.measurements || {});
+
+      return (
+        <div className="flex flex-col h-full justify-between p-3.5 sm:p-4 overflow-y-auto space-y-3">
+          <div>
+            <div className="flex items-center justify-between pb-1">
+              <span className="font-label-mono-sm text-[0.625rem] uppercase text-primary font-bold truncate pr-2">
+                OpenAQ Physical Station #{st.id}
+              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400 font-label-mono-sm text-[0.625rem] font-bold border border-sky-500/30">
+                  GROUND OBSERVATION
+                </span>
+                {isMobileDrawer && (
+                  <button
+                    onClick={() => setShowMobileInspector(false)}
+                    className="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            <h2 className="font-headline-md text-base sm:text-lg font-bold text-on-surface truncate">
+              {st.name}
+            </h2>
+            <p className="font-label-mono-sm text-[0.6875rem] text-on-surface-variant truncate">
+              {st.locality ? `${st.locality}, ` : ''}{st.country || 'Global'} • {st.lat.toFixed(3)}° N, {st.lon.toFixed(3)}° E
+            </p>
+            {st.distanceKm !== undefined && (
+              <span className="text-[0.625rem] font-label-mono-sm text-secondary">
+                Approx {st.distanceKm.toFixed(1)} km from query center
+              </span>
+            )}
+          </div>
+
+          {/* Physical Instrument Provenance Callout */}
+          <div className="p-2.5 rounded-xl bg-sky-950/40 border border-sky-700/40 text-sky-200 text-xs space-y-1">
+            <div className="font-label-ui font-bold text-[0.6875rem] uppercase tracking-wider text-sky-300 flex items-center gap-1">
+              <span className="material-symbols-outlined text-[15px]">sensors</span>
+              Calibrated Physical Telemetry (OpenAQ v3)
+            </div>
+            <p className="text-[0.6875rem] leading-relaxed text-sky-100">
+              Direct physical measurements recorded by ground-based regulatory or research monitoring instruments.
+            </p>
+          </div>
+
+          {/* Live Sensor Measurements Grid */}
+          <div className="space-y-1.5">
+            <div className="font-label-mono-sm text-[0.625rem] text-outline uppercase font-semibold">
+              Reported Ground Readings ({measurementEntries.length})
+            </div>
+            {measurementEntries.length > 0 ? (
+              <div className="grid grid-cols-2 gap-1.5 font-label-mono-sm text-xs">
+                {measurementEntries.map(([param, m]) => (
+                  <div key={param} className="p-2 rounded bg-surface-container flex flex-col justify-between">
+                    <span className="text-on-surface-variant uppercase text-[0.625rem]">{param}</span>
+                    <span className="text-primary font-bold text-sm">
+                      {m.value} <span className="text-[0.625rem] font-normal text-on-surface-variant">{m.unit}</span>
+                    </span>
+                    <span className="text-[0.55rem] text-outline truncate">{new Date(m.lastUpdated).toLocaleDateString()}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-3 rounded-lg bg-surface-container text-xs text-on-surface-variant text-center">
+                Station registered on OpenAQ v3 network; real-time measurement channel initializing or pending update.
+              </div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="space-y-2 pt-2 border-t border-surface-container">
+            <button
+              onClick={() => {
+                selectCity(st.name, st.lat, st.lon);
+                setActiveView('dashboard');
+              }}
+              className="w-full py-2.5 rounded-lg bg-primary-container hover:bg-primary font-label-ui text-xs sm:text-sm font-semibold text-on-primary-container transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow"
+            >
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">space_dashboard</span>
+              <span>Open Location Dashboard</span>
+            </button>
+            <button
+              onClick={() => {
+                selectCity(st.name, st.lat, st.lon);
+                setActiveView('ai-copilot');
+              }}
+              className="w-full py-2 rounded-lg bg-surface-container hover:bg-surface-bright font-label-ui text-xs sm:text-sm text-secondary transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">smart_toy</span>
+              <span>Copilot Scientific Analysis</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // 2. If Atmospheric Model Forecast Station is selected
     if (!selectedStation) {
       return (
         <div className="flex flex-col items-center justify-center h-full p-6 text-center text-on-surface-variant">
           <span className="material-symbols-outlined text-[32px] text-outline mb-2">public</span>
-          <div className="font-headline-md text-base text-on-surface">Select a Ground Station</div>
+          <div className="font-headline-md text-base text-on-surface">Select a Ground Node</div>
           <p className="font-body-sm text-xs mt-1">
             Tap any active node halo on the global canvas to inspect live telemetry.
           </p>
@@ -228,7 +417,7 @@ export const GlobalMapView: React.FC = () => {
             </span>
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-label-mono-sm text-[0.625rem] font-semibold">
-                LIVE TELEMETRY
+                MODEL FORECAST
               </span>
               {isMobileDrawer && (
                 <button
@@ -252,7 +441,7 @@ export const GlobalMapView: React.FC = () => {
         <div className="p-3 rounded-xl bg-surface-container flex items-center justify-between">
           <div>
             <div className="font-label-mono-sm text-[0.625rem] text-on-surface-variant uppercase">
-              Current AQI
+              Forecast AQI (EPA)
             </div>
             <div className={`font-data-metric-lg text-2xl sm:text-3xl font-extrabold ${currentAqi <= 50 ? 'text-primary' : currentAqi <= 100 ? 'text-secondary' : 'text-error'}`}>
               {currentAqi}
@@ -271,17 +460,17 @@ export const GlobalMapView: React.FC = () => {
         {/* Sensor & Network Info */}
         <div className="p-2 sm:p-2.5 rounded-lg bg-surface-container space-y-0.5 font-label-mono-sm text-[0.6875rem]">
           <div className="text-on-surface-variant truncate">
-            Sensor: <strong className="text-on-surface">{selectedStation.sensorModel}</strong>
+            Model: <strong className="text-on-surface">{selectedStation.sensorModel}</strong>
           </div>
           <div className="text-on-surface-variant truncate">
-            Network: <strong className="text-secondary">{selectedStation.sensorNetwork}</strong>
+            Provenance: <strong className="text-secondary">{selectedStation.sensorNetwork}</strong>
           </div>
         </div>
 
         {/* Speciation Snapshot */}
         <div className="space-y-1">
           <div className="font-label-mono-sm text-[0.625rem] text-outline uppercase font-semibold">
-            Speciation Snapshot
+            Forecast Speciation Snapshot
           </div>
           <div className="grid grid-cols-2 gap-1.5 font-label-mono-sm text-xs">
             <div className="p-2 rounded bg-surface-container flex justify-between">
@@ -313,7 +502,7 @@ export const GlobalMapView: React.FC = () => {
             className="w-full py-2.5 rounded-lg bg-primary-container hover:bg-primary font-label-ui text-xs sm:text-sm font-semibold text-on-primary-container transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow"
           >
             <span className="material-symbols-outlined text-[16px] sm:text-[18px]">space_dashboard</span>
-            <span>Open Station Dashboard</span>
+            <span>Open Forecast Dashboard</span>
           </button>
           <button
             onClick={() => {
@@ -343,31 +532,38 @@ export const GlobalMapView: React.FC = () => {
           <div className="flex items-center gap-1.5 sm:gap-2 bg-surface-container-high/90 backdrop-blur-xl px-2.5 sm:px-3 py-1.5 rounded-lg shadow-2xl flex-1 max-w-md border border-surface-variant min-w-0">
             <span className="material-symbols-outlined text-secondary text-[18px] sm:text-[20px] shrink-0">explore</span>
             <span className="font-body-sm text-xs sm:text-body-sm text-on-surface truncate w-full">
-              {selectedStation ? `${selectedStation.name} (${selectedStation.lat.toFixed(2)}°, ${selectedStation.lon.toFixed(2)}°)` : 'Select station on map...'}
+              {selectedOpenaqStation
+                ? `[OpenAQ Ground] ${selectedOpenaqStation.name}`
+                : selectedStation
+                ? `[CAMS Forecast] ${selectedStation.name}`
+                : 'Select node or sensor on map...'}
             </span>
-            <button
-              onClick={() => {
-                if (selectedStation) {
-                  selectCity(`${selectedStation.city}, ${selectedStation.country}`, selectedStation.lat, selectedStation.lon);
-                  setActiveView('dashboard');
-                }
-              }}
-              className="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm transition-colors cursor-pointer shrink-0"
-            >
-              LOCATE
-            </button>
           </div>
 
-          {/* Layer Ingestion Multi-Select Control */}
-          <div className="flex items-center gap-1 sm:gap-1.5 bg-surface-container-high/90 backdrop-blur-xl p-1 rounded-lg shadow-2xl border border-surface-variant shrink-0">
-            <div className="flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded bg-surface-container-lowest text-on-surface text-[0.625rem] sm:text-label-mono-sm font-label-mono-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-              <span>GROUND</span>
-            </div>
-            <div className="flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded bg-surface-container text-secondary text-[0.625rem] sm:text-label-mono-sm font-label-mono-sm">
-              <span className="material-symbols-outlined text-[13px] sm:text-[14px]">satellite_alt</span>
-              <span>SENTINEL</span>
-            </div>
+          {/* Interactive Layer Ingestion Multi-Select Controls */}
+          <div className="flex items-center gap-1 bg-surface-container-high/90 backdrop-blur-xl p-1 rounded-lg shadow-2xl border border-surface-variant shrink-0">
+            <button
+              onClick={() => setShowModelLayer(!showModelLayer)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm transition-all cursor-pointer ${
+                showModelLayer
+                  ? 'bg-primary text-on-primary font-bold shadow'
+                  : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>CAMS FORECAST</span>
+            </button>
+            <button
+              onClick={() => setShowOpenaqLayer(!showOpenaqLayer)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm transition-all cursor-pointer ${
+                showOpenaqLayer
+                  ? 'bg-sky-500 text-white font-bold shadow'
+                  : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[13px] sm:text-[14px]">sensors</span>
+              <span>OPENAQ GROUND ({openaqStations.length})</span>
+            </button>
           </div>
         </div>
 

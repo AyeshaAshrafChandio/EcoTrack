@@ -5,6 +5,7 @@ import { formatFirebaseAuthError } from '../firebase';
 export const AuthView: React.FC = () => {
   const {
     setActiveView,
+    returnToView,
     loginWithEmail,
     loginWithGoogle,
     resetPassword,
@@ -38,10 +39,8 @@ export const AuthView: React.FC = () => {
 
     try {
       await loginWithEmail(email.trim(), password);
-      setStatusMsg({ text: 'Authentication successful! Redirecting to live telemetry dashboard...', type: 'success' });
-      setTimeout(() => {
-        setActiveView('dashboard');
-      }, 700);
+      const destName = returnToView === 'alerts' ? 'alerts ledger' : returnToView === 'copilot' || returnToView === 'ai-copilot' ? 'AI copilot' : 'environmental dashboard';
+      setStatusMsg({ text: `Authentication successful! Returning to ${destName}...`, type: 'success' });
     } catch (err: any) {
       setStatusMsg({ text: formatFirebaseAuthError(err), type: 'error' });
     } finally {
@@ -54,10 +53,8 @@ export const AuthView: React.FC = () => {
     setStatusMsg(null);
     try {
       await loginWithGoogle();
-      setStatusMsg({ text: 'Google authentication successful! Redirecting to dashboard...', type: 'success' });
-      setTimeout(() => {
-        setActiveView('dashboard');
-      }, 700);
+      const destName = returnToView === 'alerts' ? 'alerts ledger' : returnToView === 'copilot' || returnToView === 'ai-copilot' ? 'AI copilot' : 'environmental dashboard';
+      setStatusMsg({ text: `Google authentication successful! Returning to ${destName}...`, type: 'success' });
     } catch (err: any) {
       setStatusMsg({ text: formatFirebaseAuthError(err), type: 'error' });
     } finally {
@@ -206,6 +203,27 @@ export const AuthView: React.FC = () => {
             </p>
           </div>
 
+          {/* Guest Exploration Option - No Account Required */}
+          <div className="p-3 sm:p-3.5 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="material-symbols-outlined text-primary text-[22px] shrink-0">public</span>
+              <div className="min-w-0">
+                <div className="font-label-ui text-xs font-bold text-on-surface">Public Guest Access</div>
+                <div className="font-body-sm text-[0.6875rem] text-on-surface-variant truncate">
+                  Explore global forecasts, maps, and copilot with zero registration
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveView('dashboard')}
+              className="px-3 py-1.5 rounded-lg bg-primary text-on-primary hover:bg-primary-fixed font-label-ui text-xs font-bold transition-all cursor-pointer shrink-0 shadow-sm flex items-center gap-1"
+            >
+              <span>Explore</span>
+              <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
+            </button>
+          </div>
+
           {/* Firebase Configuration Notice if environment variables are missing */}
           {!firebaseConfigured && (
             <div className="p-3.5 rounded-xl bg-surface-container border border-surface-variant/80 text-xs space-y-2">
@@ -351,8 +369,8 @@ export const AuthView: React.FC = () => {
             </button>
           </form>
 
-          {/* Switch to Signup (Screen 8) */}
-          <div className="pt-2 border-t border-surface-container text-center">
+          {/* Switch to Signup (Screen 8) or Continue as Guest */}
+          <div className="pt-2 border-t border-surface-container text-center space-y-2">
             <p className="font-body-sm text-xs text-on-surface-variant">
               Need to provision a new research node?{' '}
               <button
@@ -363,6 +381,15 @@ export const AuthView: React.FC = () => {
                 Sign up here (Screen 8)
               </button>
             </p>
+            <div>
+              <button
+                type="button"
+                onClick={() => setActiveView('dashboard')}
+                className="text-on-surface-variant hover:text-on-surface font-label-ui text-xs underline cursor-pointer transition-colors"
+              >
+                Skip sign-in and explore as guest →
+              </button>
+            </div>
           </div>
         </div>
       </div>

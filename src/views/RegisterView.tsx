@@ -353,8 +353,8 @@ export const RegisterView: React.FC = () => {
             </button>
           </form>
 
-          {/* Switch to Login (Screen 7) */}
-          <div className="pt-2 border-t border-surface-container text-center">
+          {/* Switch to Login (Screen 7) or Guest */}
+          <div className="pt-2 border-t border-surface-container text-center space-y-2">
             <p className="font-body-sm text-xs text-on-surface-variant">
               Already have an operator account?{' '}
               <button
@@ -365,6 +365,15 @@ export const RegisterView: React.FC = () => {
                 Sign in here (Screen 7)
               </button>
             </p>
+            <div>
+              <button
+                type="button"
+                onClick={() => setActiveView('dashboard')}
+                className="text-on-surface-variant hover:text-on-surface font-label-ui text-xs underline cursor-pointer transition-colors"
+              >
+                Skip registration and explore as guest →
+              </button>
+            </div>
           </div>
         </div>
       </div>

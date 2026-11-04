@@ -57,6 +57,9 @@ export interface OpenAQStationResult {
   attribution: string;
 }
 
+const openAQCache = new Map<string, { data: { stations: OpenAQStationResult[]; status: string }; timestamp: number }>();
+const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes
+
 export class OpenAQService {
   private get apiKey(): string | undefined {
     return process.env.OPENAQ_API_KEY?.trim();
@@ -67,7 +70,7 @@ export class OpenAQService {
   }
 
   /**
-   * Search for physical ground stations near given coordinates
+   * Search for physical ground stations near given coordinates and retrieve real readings
    */
   public async findNearestStations(
     lat: number,
@@ -82,9 +85,15 @@ export class OpenAQService {
       };
     }
 
+    const cacheKey = `${lat.toFixed(3)}_${lon.toFixed(3)}_${radiusMeters}_${limit}`;
+    const cached = openAQCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.data;
+    }
+
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
+      const timeout = setTimeout(() => controller.abort(), 10000);
 
       const url = `https://api.openaq.org/v3/locations?coordinates=${lat},${lon}&radius=${radiusMeters}&limit=${limit}`;
 
@@ -115,45 +124,99 @@ export class OpenAQService {
       const locations: OpenAQLocation[] = data.results || [];
 
       if (locations.length === 0) {
-        return {
+        const emptyResult = {
           stations: [],
           status: `NO_GROUND_STATIONS_FOUND: No active OpenAQ ground monitors located within ${Math.round(radiusMeters / 1000)}km radius.`,
         };
+        openAQCache.set(cacheKey, { data: emptyResult, timestamp: Date.now() });
+        return emptyResult;
       }
 
-      const parsed: OpenAQStationResult[] = locations.map(loc => {
-        const measurements: Record<string, OpenAQMeasurement> = {};
-        if (Array.isArray(loc.sensors)) {
-          for (const s of loc.sensors) {
-            if (s.parameter && s.parameter.name) {
-              // We only record if value is present; otherwise keep as available parameter
-              measurements[s.parameter.name.toUpperCase()] = {
-                parameter: s.parameter.displayName || s.parameter.name,
-                value: 0, // Placeholder until latest measurements call
-                unit: s.parameter.units,
-                lastUpdated: loc.datetimeLast?.utc || new Date().toISOString(),
-              };
+      // Fetch latest actual observations for the top stations in parallel
+      const parsed: OpenAQStationResult[] = await Promise.all(
+        locations.slice(0, 4).map(async loc => {
+          const measurements: Record<string, OpenAQMeasurement> = {};
+          const sensorsMap = new Map<number, NonNullable<OpenAQLocation['sensors']>[0]>();
+
+          if (Array.isArray(loc.sensors)) {
+            for (const s of loc.sensors) {
+              sensorsMap.set(s.id, s);
             }
           }
-        }
 
-        return {
-          stationId: `OPENAQ-${loc.id}`,
-          name: loc.name,
-          city: loc.locality || loc.name,
-          country: loc.country?.name || loc.country?.code || '',
-          latitude: loc.coordinates.latitude,
-          longitude: loc.coordinates.longitude,
-          measurements,
-          isGroundStation: true,
-          attribution: 'OpenAQ Community & Reference Ground Monitors',
-        };
-      });
+          // Query /latest endpoint for this station
+          try {
+            const latestController = new AbortController();
+            const latestTimeout = setTimeout(() => latestController.abort(), 6000);
+            const latestRes = await fetch(`https://api.openaq.org/v3/locations/${loc.id}/latest`, {
+              headers: {
+                'X-API-Key': this.apiKey!,
+                'Accept': 'application/json',
+              },
+              signal: latestController.signal,
+            });
+            clearTimeout(latestTimeout);
 
-      return {
+            if (latestRes.ok) {
+              const latestData = await latestRes.json();
+              const latestReadings: Array<{
+                sensorsId: number;
+                value: number;
+                datetime: { utc: string; local?: string };
+              }> = latestData.results || [];
+
+              for (const r of latestReadings) {
+                const s = sensorsMap.get(r.sensorsId);
+                if (s && s.parameter) {
+                  const paramCode = (s.parameter.name || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+                  measurements[paramCode] = {
+                    parameter: s.parameter.displayName || s.parameter.name,
+                    value: r.value,
+                    unit: s.parameter.units,
+                    lastUpdated: r.datetime?.utc || loc.datetimeLast?.utc || new Date().toISOString(),
+                  };
+                }
+              }
+            }
+          } catch (latErr) {
+            console.warn(`Could not fetch /latest for OpenAQ station ${loc.id}:`, latErr);
+          }
+
+          // If /latest had no values yet, record sensor metadata with unavailable values
+          if (Object.keys(measurements).length === 0 && Array.isArray(loc.sensors)) {
+            for (const s of loc.sensors) {
+              if (s.parameter && s.parameter.name) {
+                const paramCode = s.parameter.name.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                measurements[paramCode] = {
+                  parameter: s.parameter.displayName || s.parameter.name,
+                  value: 0,
+                  unit: s.parameter.units,
+                  lastUpdated: loc.datetimeLast?.utc || new Date().toISOString(),
+                };
+              }
+            }
+          }
+
+          return {
+            stationId: `OPENAQ-${loc.id}`,
+            name: loc.name,
+            city: loc.locality || loc.name,
+            country: loc.country?.name || loc.country?.code || '',
+            latitude: loc.coordinates.latitude,
+            longitude: loc.coordinates.longitude,
+            measurements,
+            isGroundStation: true as const,
+            attribution: 'OpenAQ Community & Reference Ground Monitors (EPA/WMO calibrated physical sensors)',
+          };
+        })
+      );
+
+      const finalResult = {
         stations: parsed,
         status: 'OPERATIONAL',
       };
+      openAQCache.set(cacheKey, { data: finalResult, timestamp: Date.now() });
+      return finalResult;
     } catch (err: any) {
       return {
         stations: [],

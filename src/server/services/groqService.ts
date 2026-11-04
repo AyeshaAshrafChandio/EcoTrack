@@ -33,6 +33,8 @@ export interface GroqAccountStatus {
   accessible: boolean;
   statusMessage: string;
   availableModels: string[];
+  allModels?: string[];
+  configuredModel?: string;
   recommendedModel: string;
 }
 
@@ -76,15 +78,20 @@ export class GroqService {
         const data = await res.json();
         const models = (data.data || []).map((m: any) => m.id as string);
         const metaModels = models.filter((m: string) => m.includes('llama') || m.includes('meta'));
+        const configuredModel = process.env.GROQ_MODEL?.trim();
+        const chatModels = models.filter((m: string) => !m.includes('whisper') && !m.includes('prompt-guard'));
+        const verifiedModel = (configuredModel && models.includes(configuredModel))
+          ? configuredModel
+          : (chatModels.find((m: string) => m.includes('qwen') || m.includes('openai') || m.includes('allam')) || chatModels[0] || models[0] || 'llama-3.3-70b-versatile');
         
         return {
           configured: true,
           accessible: true,
           statusMessage: 'Groq Cloud API is authenticated and operational.',
           availableModels: metaModels.length > 0 ? metaModels : models,
-          recommendedModel: models.includes('llama-3.3-70b-versatile')
-            ? 'llama-3.3-70b-versatile'
-            : models.find((m: string) => m.includes('llama-3.2-3b')) || models[0] || 'llama-3.3-70b-versatile',
+          allModels: models,
+          configuredModel: configuredModel || undefined,
+          recommendedModel: verifiedModel,
         };
       } else if (res.status === 401) {
         return {
