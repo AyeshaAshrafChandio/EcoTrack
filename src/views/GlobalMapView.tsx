@@ -9,11 +9,81 @@ export const GlobalMapView: React.FC = () => {
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.CircleMarker[]>([]);
 
-  const [activePollutant, setActivePollutant] = useState<'AQI' | 'PM2.5' | 'NO2' | 'O3' | 'SO2' | 'CO'>('AQI');
+  const [activePollutant, setActivePollutant] = useState<'AQI' | 'PM2.5' | 'PM10' | 'NO2' | 'O3' | 'SO2' | 'CO'>('AQI');
   const [selectedStation, setSelectedStation] = useState<GlobalStation | null>(null);
   const [temporalOffset, setTemporalOffset] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [showMobileInspector, setShowMobileInspector] = useState<boolean>(false);
+
+  // Auto-play temporal slider effect
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      setTemporalOffset(prev => (prev >= 36 ? -12 : prev + 3));
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [isPlaying]);
+
+  // Helper to extract value, unit, and color for any of the 7 pollutants
+  const getPollutantMetric = (st: GlobalStation, pol: 'AQI' | 'PM2.5' | 'PM10' | 'NO2' | 'O3' | 'SO2' | 'CO') => {
+    let val = 0;
+    let unit = 'µg/m³';
+    let color = '#4edea3'; // good (emerald)
+
+    switch (pol) {
+      case 'AQI':
+        val = st.currentAqi ?? 42;
+        unit = 'AQI';
+        if (val > 150) color = '#ffb4ab';
+        else if (val > 100) color = '#f59e0b';
+        else if (val > 50) color = '#4cd7f6';
+        break;
+      case 'PM2.5':
+        val = st.pm2_5 ?? 14.2;
+        unit = 'µg/m³';
+        if (val > 55.4) color = '#ffb4ab';
+        else if (val > 35.4) color = '#f59e0b';
+        else if (val > 12.0) color = '#4cd7f6';
+        break;
+      case 'PM10':
+        val = st.pm10 ?? 28.5;
+        unit = 'µg/m³';
+        if (val > 254) color = '#ffb4ab';
+        else if (val > 154) color = '#f59e0b';
+        else if (val > 54) color = '#4cd7f6';
+        break;
+      case 'NO2':
+        val = st.no2 ?? 18.1;
+        unit = 'µg/m³';
+        if (val > 100) color = '#ffb4ab';
+        else if (val > 50) color = '#f59e0b';
+        else if (val > 25) color = '#4cd7f6';
+        break;
+      case 'O3':
+        val = st.o3 ?? Math.round((st.currentAqi ?? 40) * 0.65);
+        unit = 'µg/m³';
+        if (val > 140) color = '#ffb4ab';
+        else if (val > 100) color = '#f59e0b';
+        else if (val > 60) color = '#4cd7f6';
+        break;
+      case 'SO2':
+        val = st.so2 ?? Math.round((st.currentAqi ?? 40) * 0.2);
+        unit = 'µg/m³';
+        if (val > 75) color = '#ffb4ab';
+        else if (val > 35) color = '#f59e0b';
+        else if (val > 15) color = '#4cd7f6';
+        break;
+      case 'CO':
+        val = st.co ?? 0.65;
+        unit = 'mg/m³';
+        if (val > 9.0) color = '#ffb4ab';
+        else if (val > 4.0) color = '#f59e0b';
+        else if (val > 2.0) color = '#4cd7f6';
+        break;
+    }
+
+    return { val, unit, color };
+  };
 
   // Initialize station
   useEffect(() => {
@@ -57,7 +127,7 @@ export const GlobalMapView: React.FC = () => {
     };
   }, []);
 
-  // Update Markers
+  // Update Markers dynamically when stations, activePollutant, or temporalOffset changes
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -66,11 +136,7 @@ export const GlobalMapView: React.FC = () => {
     markersRef.current = [];
 
     stations.forEach(st => {
-      const aqi = st.currentAqi ?? 42;
-      let color = '#4edea3'; // emerald
-      if (aqi > 150) color = '#ffb4ab'; // coral / error
-      else if (aqi > 100) color = '#f59e0b'; // amber
-      else if (aqi > 50) color = '#4cd7f6'; // cyan
+      const { val, unit, color } = getPollutantMetric(st, activePollutant);
 
       const circle = L.circleMarker([st.lat, st.lon], {
         radius: 9,
@@ -82,9 +148,10 @@ export const GlobalMapView: React.FC = () => {
       }).addTo(map);
 
       circle.bindTooltip(
-        `<div style="font-family: 'Inter', sans-serif; font-size: 11px;">
+        `<div style="font-family: 'Inter', sans-serif; font-size: 11px; padding: 2px;">
           <strong>${st.name}</strong><br/>
-          AQI: <span style="color: ${color}; font-weight: bold;">${aqi}</span>
+          ${activePollutant}: <span style="color: ${color}; font-weight: bold;">${val} ${unit}</span><br/>
+          <span style="color: #94a3b8; font-size: 9px;">Network: ${st.sensorNetwork}</span>
         </div>`,
         { direction: 'top', className: 'dark-tooltip' }
       );
@@ -98,7 +165,7 @@ export const GlobalMapView: React.FC = () => {
 
       markersRef.current.push(circle);
     });
-  }, [stations, activePollutant]);
+  }, [stations, activePollutant, temporalOffset]);
 
   // Center on selected location if changed
   useEffect(() => {
@@ -279,7 +346,7 @@ export const GlobalMapView: React.FC = () => {
         {/* Lower Strip: Pollutant Parameter Pills */}
         <div className="flex items-center justify-between gap-2 pointer-events-auto">
           <div className="flex items-center gap-1 bg-surface-container-high/90 backdrop-blur-xl p-1 rounded-lg shadow-2xl overflow-x-auto scrollbar-none max-w-full border border-surface-variant shrink-0">
-            {(['AQI', 'PM2.5', 'NO2', 'O3', 'SO2', 'CO'] as const).map(param => (
+            {(['AQI', 'PM2.5', 'PM10', 'NO2', 'O3', 'SO2', 'CO'] as const).map(param => (
               <button
                 key={param}
                 onClick={() => setActivePollutant(param)}

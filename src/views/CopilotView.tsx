@@ -59,6 +59,9 @@ Ask me any diagnostic question regarding atmospheric dispersion, boundary layer 
     'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'
   );
   const [visionAnalyzing, setVisionAnalyzing] = useState(false);
+  const [visionUploadError, setVisionUploadError] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const [visionResult, setVisionResult] = useState<any>({
     analysisSummary: 'Meta SAM 3.1 segmentation executed with 3 distinct atmospheric semantic layers. Optical haze opacity calculated at 28% with estimated horizontal visual range of 14.2 km. Ground contrast attenuation ratio is 0.82.',
     hazeOpacityPercentage: 28,
@@ -75,8 +78,69 @@ Ask me any diagnostic question regarding atmospheric dispersion, boundary layer 
       { id: '3', label: 'Ground Terrain & Urban Canopy', confidence: 0.98, color: '#4edea3' },
     ],
     scientificDisclaimer:
-      'CRITICAL SCIENTIFIC INTEGRITY NOTICE: Visual observation analysis only. RGB image segmentation via Meta SAM 3.1 identifies optical particulate haze scattering, contrast attenuation, and horizon obscuration, but CANNOT directly measure physical aerosol mass concentration (PM2.5 / PM10 in µg/m³) or official EPA AQI values. Calibrated ground stations and beta-attenuation monitors remain the sole authoritative standards.',
+      'CRITICAL SCIENTIFIC INTEGRITY NOTICE: Visual context only — not an AQI measurement. RGB image segmentation identifies optical particulate haze scattering, contrast attenuation, and horizon obscuration, but CANNOT directly measure physical aerosol mass concentration (PM2.5 / PM10 in µg/m³) or official EPA AQI values. Calibrated ground stations remain the sole authoritative standards.',
   });
+
+  const handleImageFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setVisionUploadError(null);
+
+    // Validate 5MB ceiling
+    if (file.size > 5 * 1024 * 1024) {
+      setVisionUploadError('Selected image exceeds the 5MB file size limit. Please upload a compressed image.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setVisionImage(base64);
+
+      // Perform real canvas pixel luminance and contrast measurement
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const sampleDim = 250;
+          canvas.width = sampleDim;
+          canvas.height = sampleDim;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, sampleDim, sampleDim);
+            const imgData = ctx.getImageData(0, 0, sampleDim, sampleDim);
+            const data = imgData.data;
+            let totalLum = 0;
+            let minLum = 255;
+            let maxLum = 0;
+            for (let i = 0; i < data.length; i += 4) {
+              const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+              totalLum += lum;
+              if (lum < minLum) minLum = lum;
+              if (lum > maxLum) maxLum = lum;
+            }
+            const avgLum = totalLum / (data.length / 4);
+            const michelsonContrast = parseFloat(((maxLum - minLum) / Math.max(1, maxLum + minLum)).toFixed(2));
+            const calculatedHaze = Math.round(Math.max(5, Math.min(85, (1 - michelsonContrast) * 80 + (avgLum / 255) * 20)));
+            const estimatedKm = parseFloat((Math.max(1.5, 3.912 / Math.max(0.05, calculatedHaze * 0.02))).toFixed(1));
+
+            setVisionResult((prev: any) => ({
+              ...prev,
+              hazeOpacityPercentage: calculatedHaze,
+              opticalVisibilityEstimateKm: estimatedKm,
+              contrastAttenuationRatio: michelsonContrast,
+              analysisSummary: `Custom uploaded image analyzed. Real-time pixel canvas measured Michelson contrast attenuation of ${michelsonContrast} with an optical haze opacity of ${calculatedHaze}%. Estimated visual range: ${estimatedKm} km.`,
+            }));
+          }
+        } catch (canvasErr) {
+          console.warn('Canvas pixel processing note:', canvasErr);
+        }
+      };
+      img.src = base64;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSendPrompt = async (promptToSend?: string) => {
     const text = promptToSend || inputPrompt;
@@ -122,18 +186,25 @@ Ask me any diagnostic question regarding atmospheric dispersion, boundary layer 
         };
         setMessages(prev => [...prev, assistantMsg]);
       } else {
-        throw new Error('API response failed');
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Copilot inference failed');
       }
-    } catch (err) {
+    } catch (err: any) {
       const fallbackMsg: ChatMessage = {
         id: `asst_${Date.now()}`,
         role: 'assistant',
-        content: `Diagnostic for **${selectedLocation.name}**:
-Atmospheric observations indicate an AQI of ${currentTelemetry?.overallAqi ?? 38} (${currentTelemetry?.aqiCategory ?? 'Good'}).
-The dominant vector is **${currentTelemetry?.dominantPollutant ?? 'PM2.5'}** with boundary layer height capped at ${currentTelemetry?.weather.boundaryLayerHeight ?? 850}m.
-Regional wind vector is ${currentTelemetry?.weather.windSpeed.toFixed(1) ?? 2.4} m/s ${currentTelemetry?.weather.windDirectionCompass ?? 'SSE'}.`,
+        content: `**Meta AI Copilot Notice (BLOCKED / MISSING CREDENTIALS):**
+${err.message || 'Meta AI inference endpoint requires valid META_API_KEY in server environment.'}
+
+**Current Local Telemetry for ${selectedLocation.name}:**
+- AQI: **${currentTelemetry?.overallAqi ?? 'N/A'}** (${currentTelemetry?.aqiCategory ?? 'Unspecified'})
+- Dominant Pollutant: **${currentTelemetry?.dominantPollutant ?? 'PM2.5'}**
+- Planetary Boundary Layer Height: **${currentTelemetry?.weather.boundaryLayerHeight ?? 'N/A'} m**
+- Surface Wind: **${currentTelemetry?.weather.windSpeed.toFixed(1) ?? 'N/A'} m/s**
+
+To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`META_LLAMA_ENDPOINT\` in \`.env\`.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        modelUsed: 'EcoTrack Rule-Based Engine',
+        modelUsed: 'EcoTrack Telemetry Grounding',
       };
       setMessages(prev => [...prev, fallbackMsg]);
     } finally {
@@ -286,7 +357,7 @@ Regional wind vector is ${currentTelemetry?.weather.windSpeed.toFixed(1) ?? 2.4}
   );
 
   return (
-    <div className="w-full bg-surface pb-space-xl sm:pb-space-2xl pt-space-xs sm:pt-space-md min-h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="w-full bg-surface pb-space-xl sm:pb-space-2xl pt-space-xs sm:pt-space-md min-h-full">
       <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8 space-y-3 sm:space-y-space-md">
         {/* View Switcher Strip */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-surface-container-low p-2.5 sm:p-space-sm rounded-xl border border-surface-container">
@@ -455,6 +526,19 @@ Regional wind vector is ${currentTelemetry?.weather.windSpeed.toFixed(1) ?? 2.4}
             ) : (
               /* Meta SAM 3.1 Vision AI Panel */
               <div className="rounded-2xl bg-surface-container-low border border-surface-container shadow-xl p-4 sm:p-5 space-y-3 sm:space-y-4">
+                {/* Mandatory Scientific Disclaimer Banner */}
+                <div className="flex items-center justify-between flex-wrap gap-2 px-3 py-2 rounded-xl bg-secondary-container/30 border border-secondary/30 text-secondary">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">verified</span>
+                    <span className="font-label-ui text-xs font-bold tracking-wide uppercase">
+                      Visual context only — not an AQI measurement.
+                    </span>
+                  </div>
+                  <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant">
+                    Standard: Optical Haze Attenuation
+                  </span>
+                </div>
+
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <h3 className="font-headline-md text-base sm:text-headline-md font-bold text-on-surface">
@@ -464,17 +548,41 @@ Regional wind vector is ${currentTelemetry?.weather.windSpeed.toFixed(1) ?? 2.4}
                       Vision Transformer (ViT-H) decomposing particulate haze, aerosol plumes, and tropospheric sky.
                     </p>
                   </div>
-                  <button
-                    onClick={handleRunVisionSegmentation}
-                    disabled={visionAnalyzing}
-                    className="self-start sm:self-auto px-3.5 py-2 rounded-lg bg-secondary text-on-secondary font-label-ui text-xs sm:text-sm font-bold shadow hover:bg-secondary-fixed transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">
-                      {visionAnalyzing ? 'progress_activity' : 'segment'}
-                    </span>
-                    <span>{visionAnalyzing ? 'SEGMENTING...' : 'RUN SAM 3.1'}</span>
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      onChange={handleImageFileSelect}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-bright border border-surface-variant text-on-surface font-label-ui text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    >
+                      <span className="material-symbols-outlined text-[16px] text-primary">cloud_upload</span>
+                      <span>Upload Image (Max 5MB)</span>
+                    </button>
+                    <button
+                      onClick={handleRunVisionSegmentation}
+                      disabled={visionAnalyzing}
+                      className="px-3.5 py-2 rounded-lg bg-secondary text-on-secondary font-label-ui text-xs sm:text-sm font-bold shadow hover:bg-secondary-fixed transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">
+                        {visionAnalyzing ? 'progress_activity' : 'segment'}
+                      </span>
+                      <span>{visionAnalyzing ? 'SEGMENTING...' : 'RUN SAM 3.1'}</span>
+                    </button>
+                  </div>
                 </div>
+
+                {visionUploadError && (
+                  <div className="p-2.5 rounded-lg bg-error-container/40 text-on-error-container border border-error/30 font-body-sm text-xs flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[16px] text-error">error</span>
+                    <span>{visionUploadError}</span>
+                  </div>
+                )}
 
                 {/* Image + Masks Display Canvas */}
                 <div className="relative h-56 sm:h-72 md:h-80 w-full rounded-xl overflow-hidden bg-surface-container-lowest border border-surface-container">

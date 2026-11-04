@@ -120,21 +120,11 @@ const DB_FILE = path.join(DATA_DIR, 'ecotrack.json');
 function getDefaultData(): DatabaseSchema {
   const now = new Date().toISOString();
   return {
-    users: [
-      {
-        id: 'usr_lead_01',
-        name: 'Environmental Operations Lead',
-        email: 'ops-telemetry@ecotrack.ai',
-        passwordHash: hashPassword('ops-telemetry-2026'),
-        role: 'Environmental Systems Lead (Level 4)',
-        apiKey: 'eco_live_sec_99341b8a4f912e',
-        createdAt: now,
-      },
-    ],
+    users: [],
     savedLocations: [
       {
         id: 'loc_tokyo',
-        userId: 'usr_lead_01',
+        userId: 'system',
         name: 'Tokyo, Japan',
         lat: 35.6895,
         lon: 139.6917,
@@ -144,7 +134,7 @@ function getDefaultData(): DatabaseSchema {
       },
       {
         id: 'loc_london',
-        userId: 'usr_lead_01',
+        userId: 'system',
         name: 'London, United Kingdom',
         lat: 51.5074,
         lon: -0.1278,
@@ -154,7 +144,7 @@ function getDefaultData(): DatabaseSchema {
       },
       {
         id: 'loc_delhi',
-        userId: 'usr_lead_01',
+        userId: 'system',
         name: 'Delhi NCR, India',
         lat: 28.6139,
         lon: 77.209,
@@ -166,7 +156,7 @@ function getDefaultData(): DatabaseSchema {
     alertRules: [
       {
         id: 'rule_delhi_pm25',
-        userId: 'usr_lead_01',
+        userId: 'system',
         locationName: 'Delhi NCR — Anand Vihar',
         lat: 28.6469,
         lon: 77.316,
@@ -181,7 +171,7 @@ function getDefaultData(): DatabaseSchema {
       },
       {
         id: 'rule_saopaulo_pm10',
-        userId: 'usr_lead_01',
+        userId: 'system',
         locationName: 'São Paulo — Congonhas Basin',
         lat: -23.6273,
         lon: -46.6566,
@@ -196,7 +186,7 @@ function getDefaultData(): DatabaseSchema {
       },
       {
         id: 'rule_london_no2',
-        userId: 'usr_lead_01',
+        userId: 'system',
         locationName: 'London — Euston Road Corridor',
         lat: 51.528,
         lon: -0.1337,
@@ -257,7 +247,7 @@ function getDefaultData(): DatabaseSchema {
     comparisonSessions: [
       {
         id: 'comp_tri_city',
-        userId: 'usr_lead_01',
+        userId: 'system',
         title: 'Tri-Continental Mega-Urban Comparison (Tokyo vs London vs Delhi)',
         locations: [
           { name: 'Tokyo, Japan', lat: 35.6895, lon: 139.6917, country: 'Japan' },
@@ -373,6 +363,26 @@ class Database {
     return newUser;
   }
 
+  public upsertFirebaseUser(firebaseUser: { uid: string; email?: string; name?: string }): User {
+    let existing = this.data.users.find(u => u.id === firebaseUser.uid || (firebaseUser.email && u.email === firebaseUser.email));
+    if (existing) {
+      if (firebaseUser.name) existing.name = firebaseUser.name;
+      this.schedulePersist();
+      return existing;
+    }
+    const newUser: User = {
+      id: firebaseUser.uid,
+      name: firebaseUser.name || 'Authenticated Operator',
+      email: firebaseUser.email || `${firebaseUser.uid}@firebase.user`,
+      role: 'Environmental Systems Engineer',
+      apiKey: `eco_${Math.random().toString(36).substring(2, 12)}`,
+      createdAt: new Date().toISOString(),
+    };
+    this.data.users.push(newUser);
+    this.schedulePersist();
+    return newUser;
+  }
+
   public updateUserPassword(email: string, newHash: string): boolean {
     const user = this.getUserByEmail(email);
     if (user) {
@@ -386,14 +396,14 @@ class Database {
   // --- Saved Locations ---
   public getSavedLocations(userId?: string): SavedLocation[] {
     if (userId) {
-      return this.data.savedLocations.filter(loc => loc.userId === userId);
+      return this.data.savedLocations.filter(loc => loc.userId === userId || loc.userId === 'system');
     }
     return this.data.savedLocations;
   }
 
   public addSavedLocation(loc: Omit<SavedLocation, 'id' | 'createdAt'>): SavedLocation {
     const existing = this.data.savedLocations.find(
-      l => Math.abs(l.lat - loc.lat) < 0.05 && Math.abs(l.lon - loc.lon) < 0.05
+      l => Math.abs(l.lat - loc.lat) < 0.05 && Math.abs(l.lon - loc.lon) < 0.05 && l.userId === loc.userId
     );
     if (existing) {
       return existing;
@@ -408,9 +418,13 @@ class Database {
     return newLoc;
   }
 
-  public deleteSavedLocation(id: string): boolean {
+  public deleteSavedLocation(id: string, userId?: string): boolean {
     const prevLen = this.data.savedLocations.length;
-    this.data.savedLocations = this.data.savedLocations.filter(l => l.id !== id);
+    this.data.savedLocations = this.data.savedLocations.filter(l => {
+      if (l.id !== id) return true;
+      if (userId && l.userId !== userId && l.userId !== 'system') return true;
+      return false;
+    });
     if (this.data.savedLocations.length !== prevLen) {
       this.schedulePersist();
       return true;
@@ -419,7 +433,10 @@ class Database {
   }
 
   // --- Alert Rules ---
-  public getAlertRules(): AlertRule[] {
+  public getAlertRules(userId?: string): AlertRule[] {
+    if (userId) {
+      return this.data.alertRules.filter(r => r.userId === userId || r.userId === 'system');
+    }
     return this.data.alertRules;
   }
 
@@ -434,9 +451,27 @@ class Database {
     return newRule;
   }
 
-  public toggleAlertRule(id: string): AlertRule | null {
+  public updateAlertRule(
+    id: string,
+    userId: string | undefined,
+    updates: Partial<Omit<AlertRule, 'id' | 'createdAt' | 'userId'>>
+  ): AlertRule | null {
+    const rule = this.data.alertRules.find(r => r.id === id);
+    if (!rule) return null;
+    if (userId && rule.userId !== userId && rule.userId !== 'system') {
+      return null;
+    }
+    Object.assign(rule, updates);
+    this.schedulePersist();
+    return rule;
+  }
+
+  public toggleAlertRule(id: string, userId?: string): AlertRule | null {
     const rule = this.data.alertRules.find(r => r.id === id);
     if (rule) {
+      if (userId && rule.userId !== userId && rule.userId !== 'system') {
+        return null;
+      }
       rule.active = !rule.active;
       this.schedulePersist();
       return rule;
@@ -444,9 +479,13 @@ class Database {
     return null;
   }
 
-  public deleteAlertRule(id: string): boolean {
+  public deleteAlertRule(id: string, userId?: string): boolean {
     const prevLen = this.data.alertRules.length;
-    this.data.alertRules = this.data.alertRules.filter(r => r.id !== id);
+    this.data.alertRules = this.data.alertRules.filter(r => {
+      if (r.id !== id) return true;
+      if (userId && r.userId !== userId && r.userId !== 'system') return true;
+      return false;
+    });
     if (this.data.alertRules.length !== prevLen) {
       this.schedulePersist();
       return true;
@@ -509,7 +548,10 @@ class Database {
   }
 
   // --- Comparison Sessions ---
-  public getComparisonSessions(): ComparisonSession[] {
+  public getComparisonSessions(userId?: string): ComparisonSession[] {
+    if (userId) {
+      return this.data.comparisonSessions.filter(s => s.userId === userId || s.userId === 'system');
+    }
     return this.data.comparisonSessions;
   }
 

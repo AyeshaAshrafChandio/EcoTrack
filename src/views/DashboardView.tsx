@@ -48,7 +48,7 @@ export const DashboardView: React.FC = () => {
   const aqiColors = getAqiColor(aqi);
 
   return (
-    <div className="w-full bg-surface pb-space-xl sm:pb-space-2xl pt-space-xs sm:pt-space-md overflow-hidden">
+    <div className="w-full bg-surface pb-space-xl sm:pb-space-2xl pt-space-xs sm:pt-space-md min-h-full">
       <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-space-lg">
         {/* Top Header & Telemetry Provenance Banner */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-space-md bg-surface-container-low p-3 sm:p-5 rounded-2xl shadow-lg border border-surface-container">

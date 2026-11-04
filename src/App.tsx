@@ -26,10 +26,21 @@ import { AuthView } from './views/AuthView';
 import { RegisterView } from './views/RegisterView';
 
 const MainContent: React.FC = () => {
-  const { activeView } = useApp();
+  const { activeView, authLoading } = useApp();
+
+  if (authLoading) {
+    return (
+      <main className="w-full pt-16 bg-surface flex-1 flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <div className="flex flex-col items-center gap-3">
+          <span className="material-symbols-outlined text-3xl animate-spin text-primary">progress_activity</span>
+          <span className="font-label-mono-sm text-xs text-on-surface-variant">Initializing EcoTrack Telemetry Mesh...</span>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <main className="w-full pt-16 bg-surface min-h-screen overflow-x-hidden">
+    <main className="w-full pt-16 bg-surface flex-1">
       {activeView === 'home' && <HomeView />}
       {activeView === 'dashboard' && <DashboardView />}
       {activeView === 'global-map' && <GlobalMapView />}
@@ -45,7 +56,7 @@ const MainContent: React.FC = () => {
 export default function App() {
   return (
     <AppProvider>
-      <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-surface font-body-md text-on-surface antialiased selection:bg-secondary-container selection:text-on-secondary-container">
+      <div className="min-h-screen w-full flex flex-col bg-surface font-body-md text-on-surface antialiased selection:bg-secondary-container selection:text-on-secondary-container">
         <Header />
         <MainContent />
       </div>

@@ -41,7 +41,7 @@ export const HomeView: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col w-full overflow-hidden">
+    <div className="flex flex-col w-full min-h-full">
       {/* Top Atmospheric Scrim & Ambient Radar Canvas Overlay */}
       <section className="relative w-full overflow-hidden bg-surface-container-lowest pb-space-xl sm:pb-space-2xl pt-space-md sm:pt-space-xl">
         {/* Atmospheric Ambient Glows */}

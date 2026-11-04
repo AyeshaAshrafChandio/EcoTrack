@@ -91,6 +91,9 @@ export interface GlobalStation {
   pm2_5?: number;
   pm10?: number;
   no2?: number;
+  o3?: number;
+  so2?: number;
+  co?: number;
   temperature?: number;
   status: 'Active Ground Node' | 'Calibrating';
   lastUpdated?: string;
@@ -754,6 +757,9 @@ export async function getGlobalStationsWithTelemetry(): Promise<GlobalStation[]>
           pm2_5: telemetry.pollutants['PM2.5']?.value,
           pm10: telemetry.pollutants['PM10']?.value,
           no2: telemetry.pollutants['NO2']?.value,
+          o3: telemetry.pollutants['O3']?.value,
+          so2: telemetry.pollutants['SO2']?.value,
+          co: telemetry.pollutants['CO']?.value,
           temperature: telemetry.weather.temperature,
           lastUpdated: telemetry.telemetryMetadata.timestamp,
         };
@@ -773,4 +779,66 @@ export async function getGlobalStationsWithTelemetry(): Promise<GlobalStation[]>
 
   setCache(cacheKey, results);
   return results;
+}
+
+/**
+ * Real OpenAQ v3 integration
+ * Queries the OpenAQ v3 API for physical ground monitoring stations.
+ */
+export async function fetchOpenAQData(lat?: number, lon?: number, radiusKm: number = 25) {
+  const apiKey = process.env.OPENAQ_API_KEY;
+  if (!apiKey || apiKey.trim() === '') {
+    return {
+      status: 'BLOCKED',
+      provider: 'OpenAQ v3',
+      error: 'OPENAQ_API_KEY is not configured in .env. OpenAQ v3 strictly mandates an authenticated X-API-Key header.',
+      apiKeyRequired: true,
+      timestamp: new Date().toISOString(),
+      results: [],
+    };
+  }
+
+  try {
+    let url = 'https://api.openaq.org/v3/locations?limit=10';
+    if (lat !== undefined && lon !== undefined) {
+      const radiusMeters = radiusKm * 1000;
+      url = `https://api.openaq.org/v3/locations?coordinates=${lat},${lon}&radius=${radiusMeters}&limit=10`;
+    }
+
+    const res = await fetch(url, {
+      headers: {
+        'X-API-Key': apiKey.trim(),
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => '');
+      return {
+        status: 'ERROR',
+        provider: 'OpenAQ v3',
+        error: `OpenAQ v3 returned HTTP ${res.status}: ${errorText.slice(0, 300)}`,
+        statusCode: res.status,
+        timestamp: new Date().toISOString(),
+        results: [],
+      };
+    }
+
+    const data = await res.json();
+    return {
+      status: 'ONLINE',
+      provider: 'OpenAQ v3',
+      meta: data.meta,
+      results: data.results || [],
+      timestamp: new Date().toISOString(),
+    };
+  } catch (err: any) {
+    return {
+      status: 'ERROR',
+      provider: 'OpenAQ v3',
+      error: err.message || 'Failed to connect to OpenAQ v3 API',
+      timestamp: new Date().toISOString(),
+      results: [],
+    };
+  }
 }

@@ -78,14 +78,13 @@
     margin: 0;
     padding: 0;
     width: 100%;
-    max-width: 100vw;
+    min-height: 100%;
     overflow-x: hidden;
+    overflow-y: auto;
     background-color: #0f131d;
     color: #dfe2f1;
     font-family: 'Inter', sans-serif;
-  }
-  body {
-    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
   }
   ::-webkit-scrollbar {
     width: 6px;

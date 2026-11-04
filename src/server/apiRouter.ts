@@ -5,8 +5,15 @@ import {
   fetchLiveEnvironment,
   getGlobalStationsWithTelemetry,
   searchLocations,
+  fetchOpenAQData,
 } from './services/environmental';
 import { metaAIService } from './services/metaAI';
+import {
+  verifyFirebaseToken,
+  extractOptionalUser,
+  isFirebaseAdminInitialized,
+  type AuthenticatedRequest,
+} from './authMiddleware';
 
 export const apiRouter = Router();
 
@@ -22,11 +29,32 @@ apiRouter.get('/status', async (_req, res) => {
       openMeteoWeather: 'OPERATIONAL',
       openMeteoGeocoding: 'OPERATIONAL',
       copernicusAtmosphere: 'OPERATIONAL',
-      metaAI: process.env.META_API_KEY ? 'AUTHENTICATED' : 'ARCHITECTED_GROUNDED_FALLBACK',
-      geminiEngine: process.env.GEMINI_API_KEY ? 'ACTIVE' : 'STANDBY',
+      openaqV3: process.env.OPENAQ_API_KEY ? 'AUTHENTICATED' : 'BLOCKED_NO_API_KEY',
+      metaAI: process.env.META_API_KEY ? 'AUTHENTICATED' : 'BLOCKED_NO_API_KEY',
+      firebaseAuth: isFirebaseAdminInitialized ? 'ACTIVE' : 'READY_AWAITING_PROJECT_ID',
+      database: 'LOCAL_JSON_PERSISTENCE (PostgreSQL not connected)',
     },
     activeSensors: 18420,
     calibrationStandard: 'US-EPA 40 CFR 58 / WHO 2021',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// OpenAQ v3 live query endpoint
+apiRouter.get('/environment/openaq', async (req, res) => {
+  const lat = req.query.lat ? parseFloat(req.query.lat as string) : undefined;
+  const lon = req.query.lon ? parseFloat(req.query.lon as string) : undefined;
+  const radius = req.query.radius ? parseFloat(req.query.radius as string) : 25;
+  const result = await fetchOpenAQData(lat, lon, radius);
+  res.json(result);
+});
+
+// Protected endpoint to verify Firebase ID tokens
+apiRouter.get('/auth/verify-token', verifyFirebaseToken, (req: AuthenticatedRequest, res) => {
+  res.json({
+    authenticated: true,
+    user: req.user,
+    message: 'Firebase ID token successfully verified by backend.',
     timestamp: new Date().toISOString(),
   });
 });
@@ -223,22 +251,24 @@ apiRouter.post('/vision/segment', async (req, res) => {
 });
 
 // Alert Rules
-apiRouter.get('/alerts', (_req, res) => {
+apiRouter.get('/alerts', async (req, res) => {
+  const user = await extractOptionalUser(req);
   res.json({
-    rules: db.getAlertRules(),
+    rules: db.getAlertRules(user?.uid),
     events: db.getExceedanceEvents(),
   });
 });
 
-apiRouter.post('/alerts', (req, res) => {
+apiRouter.post('/alerts', async (req, res) => {
   try {
+    const user = await extractOptionalUser(req);
     const { locationName, lat, lon, pollutant, operator, threshold, unit, severity, notificationChannel } = req.body;
-    if (!locationName || lat === undefined || lon === undefined || !pollutant || !threshold) {
+    if (!locationName || lat === undefined || lon === undefined || !pollutant || threshold === undefined) {
       return res.status(400).json({ error: 'Missing required alert rule parameters' });
     }
 
     const newRule = db.addAlertRule({
-      userId: 'usr_lead_01',
+      userId: user?.uid || 'system',
       locationName,
       lat: parseFloat(lat),
       lon: parseFloat(lon),
@@ -257,14 +287,42 @@ apiRouter.post('/alerts', (req, res) => {
   }
 });
 
-apiRouter.patch('/alerts/:id/toggle', (req, res) => {
-  const updated = db.toggleAlertRule(req.params.id);
+apiRouter.put('/alerts/:id', async (req, res) => {
+  try {
+    const user = await extractOptionalUser(req);
+    const { pollutant, operator, threshold, unit, severity, notificationChannel, active, locationName, lat, lon } = req.body;
+    const updates: any = {};
+    if (pollutant !== undefined) updates.pollutant = pollutant;
+    if (operator !== undefined) updates.operator = operator;
+    if (threshold !== undefined) updates.threshold = parseFloat(threshold);
+    if (unit !== undefined) updates.unit = unit;
+    if (severity !== undefined) updates.severity = severity;
+    if (notificationChannel !== undefined) updates.notificationChannel = notificationChannel;
+    if (active !== undefined) updates.active = Boolean(active);
+    if (locationName !== undefined) updates.locationName = locationName;
+    if (lat !== undefined) updates.lat = parseFloat(lat);
+    if (lon !== undefined) updates.lon = parseFloat(lon);
+
+    const updated = db.updateAlertRule(req.params.id, user?.uid, updates);
+    if (!updated) {
+      return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
+    }
+    res.json(updated);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to update alert rule' });
+  }
+});
+
+apiRouter.patch('/alerts/:id/toggle', async (req, res) => {
+  const user = await extractOptionalUser(req);
+  const updated = db.toggleAlertRule(req.params.id, user?.uid);
   if (!updated) return res.status(404).json({ error: 'Alert rule not found' });
   res.json(updated);
 });
 
-apiRouter.delete('/alerts/:id', (req, res) => {
-  const deleted = db.deleteAlertRule(req.params.id);
+apiRouter.delete('/alerts/:id', async (req, res) => {
+  const user = await extractOptionalUser(req);
+  const deleted = db.deleteAlertRule(req.params.id, user?.uid);
   if (!deleted) return res.status(404).json({ error: 'Alert rule not found' });
   res.json({ success: true });
 });
@@ -274,18 +332,20 @@ apiRouter.get('/alerts/events', (_req, res) => {
 });
 
 // Saved Locations
-apiRouter.get('/saved-locations', (_req, res) => {
-  res.json(db.getSavedLocations());
+apiRouter.get('/saved-locations', async (req, res) => {
+  const user = await extractOptionalUser(req);
+  res.json(db.getSavedLocations(user?.uid));
 });
 
-apiRouter.post('/saved-locations', (req, res) => {
+apiRouter.post('/saved-locations', async (req, res) => {
   try {
+    const user = await extractOptionalUser(req);
     const { name, lat, lon, country, stationId } = req.body;
     if (!name || lat === undefined || lon === undefined) {
       return res.status(400).json({ error: 'Missing location fields' });
     }
     const saved = db.addSavedLocation({
-      userId: 'usr_lead_01',
+      userId: user?.uid || 'system',
       name,
       lat: parseFloat(lat),
       lon: parseFloat(lon),
@@ -298,22 +358,25 @@ apiRouter.post('/saved-locations', (req, res) => {
   }
 });
 
-apiRouter.delete('/saved-locations/:id', (req, res) => {
-  const deleted = db.deleteSavedLocation(req.params.id);
+apiRouter.delete('/saved-locations/:id', async (req, res) => {
+  const user = await extractOptionalUser(req);
+  const deleted = db.deleteSavedLocation(req.params.id, user?.uid);
   if (!deleted) return res.status(404).json({ error: 'Location not found' });
   res.json({ success: true });
 });
 
 // Comparisons
-apiRouter.get('/comparisons', (_req, res) => {
-  res.json(db.getComparisonSessions());
+apiRouter.get('/comparisons', async (req, res) => {
+  const user = await extractOptionalUser(req);
+  res.json(db.getComparisonSessions(user?.uid));
 });
 
-apiRouter.post('/comparisons', (req, res) => {
+apiRouter.post('/comparisons', async (req, res) => {
   try {
+    const user = await extractOptionalUser(req);
     const { title, locations } = req.body;
     const session = db.saveComparisonSession({
-      userId: 'usr_lead_01',
+      userId: user?.uid || 'system',
       title: title || 'Comparison Session',
       locations: locations || [],
     });
@@ -329,130 +392,20 @@ function toSafeUser(user: User) {
   return safe;
 }
 
-// Extract authenticated user from Authorization header if present
-function getAuthUser(req: express.Request): User | null {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  const token = authHeader.substring(7).trim();
-  // Token format: jwt_session_<userId>_<timestamp>
-  const match = token.match(/^jwt_session_([^_]+_[^_]+_[^_]+)_/);
-  if (!match) {
-    // Check fallback usr_ format
-    const matchSimple = token.match(/^jwt_session_(usr_[^_]+)/);
-    if (!matchSimple) return null;
-    return db.getUserById(matchSimple[1]) || null;
-  }
-  return db.getUserById(match[1]) || null;
-}
-
-// Authentication endpoints
-apiRouter.post('/auth/register', (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      return res.status(400).json({ error: 'Valid operator name is required.' });
-    }
-    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ error: 'Valid institutional email address is required.' });
-    }
-    if (!password || typeof password !== 'string' || password.length < 6) {
-      return res.status(400).json({ error: 'Security passphrase must be at least 6 characters.' });
-    }
-
-    const existing = db.getUserByEmail(email);
-    if (existing) {
-      return res.status(409).json({ error: 'An operator account with this email address already exists.' });
-    }
-
-    const hashedPassword = hashPassword(password);
-    const user = db.createUser({
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      passwordHash: hashedPassword,
-      role: 'Environmental Systems Engineer',
-      apiKey: `eco_${Math.random().toString(36).substring(2, 12)}`,
+// Authentication endpoints: strictly synchronized with Firebase Authentication
+apiRouter.get('/auth/me', async (req, res) => {
+  const firebaseUser = await extractOptionalUser(req);
+  if (firebaseUser) {
+    const user = db.upsertFirebaseUser({
+      uid: firebaseUser.uid,
+      email: firebaseUser.email,
+      name: firebaseUser.name || (firebaseUser as any).displayName,
     });
-
-    const token = `jwt_session_${user.id}_${Date.now()}`;
-    res.status(201).json({
-      user: toSafeUser(user),
-      token,
-      message: 'Operator node provisioned and authenticated successfully.',
-    });
-  } catch (err: any) {
-    console.error('Registration error:', err);
-    res.status(500).json({ error: 'Internal error during node provisioning' });
+    return res.json({ user: toSafeUser(user) });
   }
-});
-
-apiRouter.post('/auth/login', (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password credentials are required.' });
-    }
-
-    const user = db.getUserByEmail(email.trim());
-    if (!user) {
-      return res.status(401).json({ error: 'No registered node found with this email address.' });
-    }
-
-    // Verify password against hash
-    if (user.passwordHash) {
-      const isValid = verifyPassword(password, user.passwordHash);
-      if (!isValid) {
-        return res.status(401).json({ error: 'Invalid security passphrase provided.' });
-      }
-    } else {
-      // Legacy seed record check
-      if (password !== 'ops-telemetry-2026' && password !== '••••••••••••') {
-        return res.status(401).json({ error: 'Invalid security passphrase provided.' });
-      }
-    }
-
-    const token = `jwt_session_${user.id}_${Date.now()}`;
-    res.json({
-      user: toSafeUser(user),
-      token,
-      message: 'Node operator authenticated successfully.',
-    });
-  } catch (err: any) {
-    console.error('Login error:', err);
-    res.status(500).json({ error: 'Internal authentication failure' });
-  }
-});
-
-apiRouter.post('/auth/reset-password', (req, res) => {
-  try {
-    const { email, newPassword } = req.body;
-    if (!email || !newPassword || newPassword.length < 6) {
-      return res.status(400).json({ error: 'Valid email and new password (min 6 chars) are required.' });
-    }
-    const user = db.getUserByEmail(email);
-    if (!user) {
-      return res.status(404).json({ error: 'No account registered under this email.' });
-    }
-    const newHash = hashPassword(newPassword);
-    db.updateUserPassword(email, newHash);
-    res.json({ success: true, message: 'Security passphrase successfully updated.' });
-  } catch (err: any) {
-    res.status(500).json({ error: 'Failed to reset password.' });
-  }
+  res.status(401).json({ error: 'Not authenticated. Missing or invalid Firebase ID token.' });
 });
 
 apiRouter.post('/auth/logout', (_req, res) => {
   res.json({ success: true, message: 'Session terminated. Operator logged out.' });
-});
-
-apiRouter.get('/auth/me', (req, res) => {
-  const authUser = getAuthUser(req);
-  if (authUser) {
-    return res.json({ user: toSafeUser(authUser) });
-  }
-  // Return default lead operator for seamless evaluation if requested without header
-  const defaultUser = db.getUsers()[0];
-  if (defaultUser) {
-    return res.json({ user: toSafeUser(defaultUser) });
-  }
-  res.status(401).json({ error: 'Not authenticated' });
 });

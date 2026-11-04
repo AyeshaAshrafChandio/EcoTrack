@@ -76,7 +76,7 @@ export const CompareView: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-surface pb-space-xl sm:pb-space-2xl pt-space-xs sm:pt-space-md min-h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="w-full bg-surface pb-space-xl sm:pb-space-2xl pt-space-xs sm:pt-space-md min-h-full">
       <div className="mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-space-lg">
         {/* Header & Continental Variance Strip */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low p-3 sm:p-5 rounded-2xl border border-surface-container shadow-md">

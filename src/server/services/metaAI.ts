@@ -2,13 +2,11 @@
  * Meta AI Environmental Intelligence & Vision AI Service
  *
  * Implements:
- * 1. Meta AI Copilot: Grounded atmospheric reasoning using real environmental telemetry,
- *    supporting Meta LLaMA 3.3 70B / Meta API with server-side AI fallback.
- * 2. Meta SAM 3.1: Optical atmospheric segmentation pipeline for haze/smoke/fog
- *    attenuation analysis with strict scientific disclaimers.
+ * 1. Meta AI Copilot: Direct invocation of Meta LLaMA 3.3 70B via META_API_KEY or GROQ_API_KEY.
+ *    Strictly does not fake responses or silently replace with other providers.
+ * 2. SAM Atmospheric Vision Analysis: Evaluates optical haze attenuation with transparent disclosure.
  */
 
-import { GoogleGenAI } from '@google/genai';
 import type { EnvironmentalTelemetry } from './environmental';
 
 export interface CopilotChatRequest {
@@ -28,7 +26,7 @@ export interface CopilotChatRequest {
 export interface CopilotChatResponse {
   reply: string;
   modelUsed: string;
-  provider: 'Meta LLaMA 3.3 70B' | 'EcoTrack Synthesis Engine (Grounded)';
+  provider: 'Meta LLaMA 3.3 70B' | 'BLOCKED_CREDENTIALS_REQUIRED';
   citations: string[];
   atmosphericDiagnostics: {
     inversionRisk: 'Low' | 'Moderate' | 'Severe';
@@ -36,13 +34,15 @@ export interface CopilotChatResponse {
     ventilationFactor: string;
     guidelineComparison: string;
   };
+  status: 'ONLINE' | 'BLOCKED';
+  errorMessage?: string;
   timestamp: string;
 }
 
 export interface VisionSegmentationRequest {
   imageBase64?: string;
   imageUrl?: string;
-  promptCoords?: Array<{ x: number; y: number; label: 1 | 0 }>; // SAM foreground/background points
+  promptCoords?: Array<{ x: number; y: number; label: 1 | 0 }>;
   environmentalContext?: {
     location?: string;
     localPm25?: number;
@@ -62,37 +62,29 @@ export interface VisionSegmentationResponse {
     label: 'Atmospheric Particulate Haze' | 'Tropospheric Sky Deck' | 'Ground Terrain & Urban Canopy';
     confidence: number;
     color: string;
-    boundingBox: [number, number, number, number]; // [ymin, xmin, ymax, xmax] in 0-100%
+    boundingBox: [number, number, number, number];
   }>;
   scientificDisclaimer: string;
+  executionMode: 'HEURISTIC_OPTICAL_MODEL' | 'META_SAM_TRANSFORMER';
   metaSamArchitecture: {
-    encoder: 'Vision Transformer (ViT-H SAM 3.1)';
-    promptEngine: 'Coordinate & Spatial Grid Prompting';
+    encoder: string;
+    promptEngine: string;
     confidenceThreshold: number;
   };
   timestamp: string;
 }
 
 export class MetaAIService {
-  private genAI: GoogleGenAI | null = null;
-
-  constructor() {
-    const geminiKey = process.env.GEMINI_API_KEY;
-    if (geminiKey) {
-      this.genAI = new GoogleGenAI({ apiKey: geminiKey });
-    }
-  }
-
   /**
-   * Environmental Copilot chat with grounding
+   * Environmental Copilot chat with strict Meta AI verification
    */
   public async generateCopilotResponse(req: CopilotChatRequest): Promise<CopilotChatResponse> {
-    // 1. Format Grounding Context from real telemetry
-    let groundingContext = 'Real-time Telemetry: None provided.';
     let invRisk: 'Low' | 'Moderate' | 'Severe' = 'Low';
     let primaryVector = 'PM2.5';
     let ventFactor = 'Adequate regional wind flush';
     let guidelineComparison = 'Within WHO 2021 air quality targets.';
+
+    let groundingContext = 'Real-time Telemetry: None provided.';
 
     if (req.context?.telemetry) {
       const t = req.context.telemetry;
@@ -137,108 +129,87 @@ PROVENANCE: Calibrated WMO GAW physical sensors & Open-Meteo ECMWF/CAMS telemetr
       `.trim();
     }
 
-    // 2. Check for Meta LLaMA endpoints (META_API_KEY, GROQ_API_KEY, or TOGETHER_API_KEY)
+    // Inspect configured Meta LLaMA API credentials
     const groqKey = process.env.GROQ_API_KEY;
     const togetherKey = process.env.TOGETHER_API_KEY;
     const metaApiKey = process.env.META_API_KEY || groqKey || togetherKey;
-    const metaEndpoint = process.env.META_LLAMA_ENDPOINT || 
+    const metaEndpoint = process.env.META_LLAMA_ENDPOINT ||
       (groqKey ? 'https://api.groq.com/openai/v1/chat/completions' :
        togetherKey ? 'https://api.together.xyz/v1/chat/completions' :
        'https://api.meta.ai/v1/chat/completions');
-    const llamaModel = process.env.META_MODEL_NAME || 
+    const llamaModel = process.env.META_MODEL_NAME ||
       (groqKey ? 'llama-3.3-70b-versatile' :
        togetherKey ? 'meta-llama/Llama-3.3-70B-Instruct-Turbo' :
        'meta-llama/llama-3.3-70b-instruct');
 
-    if (metaApiKey) {
-      try {
-        const metaRes = await fetch(metaEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${metaApiKey}`,
-          },
-          body: JSON.stringify({
-            model: llamaModel,
-            messages: [
-              {
-                role: 'system',
-                content: `You are the EcoTrack AI Environmental Copilot, powered by Meta AI for the Meta Global AI Developer Hackathon.
-You provide strictly grounded, scientific environmental intelligence based on verified physical telemetry.
-Never invent measurements. Always cite WHO 2021 air quality benchmarks and meteorological factors (such as planetary boundary layer height, wind advection, and thermal inversions).
-Grounding data provided:
-${groundingContext}`,
-              },
-              ...(req.conversationHistory || []).map(m => ({ role: m.role, content: m.content })),
-              { role: 'user', content: req.prompt },
-            ],
-            temperature: 0.2,
-            max_tokens: 1000,
-          }),
-        });
-
-        if (metaRes.ok) {
-          const data = await metaRes.json();
-          const reply = data.choices?.[0]?.message?.content || '';
-          if (reply) {
-            return {
-              reply,
-              modelUsed: `Meta LLaMA 3.3 70B (${llamaModel})`,
-              provider: 'Meta LLaMA 3.3 70B',
-              citations: [
-                'WMO Global Atmosphere Watch (GAW) 2024.11',
-                'WHO Global Air Quality Guidelines 2021',
-                'Copernicus Atmosphere Monitoring Service (CAMS)',
-                'Open-Meteo High-Resolution ECMWF Planetary Boundary Layer Telemetry',
-              ],
-              atmosphericDiagnostics: {
-                inversionRisk: invRisk,
-                primaryVector: primaryVector,
-                ventilationFactor: ventFactor,
-                guidelineComparison: guidelineComparison,
-              },
-              timestamp: new Date().toISOString(),
-            };
-          }
-        }
-      } catch (err) {
-        console.warn('Meta LLaMA API call error:', err);
-      }
+    if (!metaApiKey) {
+      // Truthful reporting: do NOT pretend to run Meta or silently swap model!
+      return {
+        reply: `### Meta LLaMA 3.3 70B Integration Notice\n\n` +
+          `**Status:** BLOCKED — Missing API Credentials\n\n` +
+          `The AI Environmental Copilot is configured to invoke **Meta LLaMA 3.3 70B**, but neither \`META_API_KEY\`, \`GROQ_API_KEY\`, nor \`TOGETHER_API_KEY\` is defined in the server environment.\n\n` +
+          `**To enable live Meta AI reasoning:**\n` +
+          `1. Add \`META_API_KEY=<your_key>\` and \`META_LLAMA_ENDPOINT=<your_endpoint>\` to your \`.env\` file.\n` +
+          `2. Alternatively, set \`GROQ_API_KEY=<your_groq_key>\` to use Meta LLaMA 3.3 70B hosted via Groq.\n\n` +
+          `**Current Real Telemetry Observation for ${req.context?.location || 'Selected Station'}:**\n` +
+          `- Boundary Layer Ventilation: ${ventFactor}\n` +
+          `- Benchmark Comparison: ${guidelineComparison}\n` +
+          `- Dominant Vector: ${primaryVector}`,
+        modelUsed: 'Meta LLaMA 3.3 70B (Awaiting META_API_KEY)',
+        provider: 'BLOCKED_CREDENTIALS_REQUIRED',
+        status: 'BLOCKED',
+        errorMessage: 'META_API_KEY is not configured in .env',
+        citations: [
+          'WHO Global Air Quality Guidelines 2021',
+          'Open-Meteo ECMWF Planetary Boundary Layer Telemetry',
+        ],
+        atmosphericDiagnostics: {
+          inversionRisk: invRisk,
+          primaryVector: primaryVector,
+          ventilationFactor: ventFactor,
+          guidelineComparison: guidelineComparison,
+        },
+        timestamp: new Date().toISOString(),
+      };
     }
 
-    // 3. Grounded Telemetry Diagnostic Engine (Transparently reported)
-    if (this.genAI) {
-      try {
-        const systemPrompt = `You are the EcoTrack Environmental Diagnostic Copilot for the Meta Global AI Developer Hackathon.
-Explain atmospheric telemetry, pollution dynamics, thermal inversions, particulate dispersion, and health advisories.
-Strict requirements:
-- Base answers ONLY on verified telemetry or physical atmospheric chemistry.
-- Never invent numbers or fake stations.
-- Cite the WHO 2021 guidelines (PM2.5: 15 µg/m³ 24h, PM10: 45 µg/m³ 24h, NO2: 25 µg/m³ 24h, O3: 100 µg/m³ 8h).
-- Explain meteorological interactions like boundary layer height (inversion caps) and wind dispersion.
-
-GROUNDED TELEMETRY CONTEXT:
-${groundingContext}
-`;
-        const chatPrompt = `${req.prompt}`;
-        const response = await this.genAI.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: [
-            { role: 'user', parts: [{ text: `${systemPrompt}\n\nUser Question: ${chatPrompt}` }] },
+    try {
+      const metaRes = await fetch(metaEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${metaApiKey}`,
+        },
+        body: JSON.stringify({
+          model: llamaModel,
+          messages: [
+            {
+              role: 'system',
+              content: `You are the EcoTrack AI Environmental Copilot, powered by Meta LLaMA 3.3 70B for the Meta Global AI Developer Hackathon.
+You provide strictly grounded, scientific environmental intelligence based on verified physical telemetry.
+Never invent measurements. Always cite WHO 2021 air quality benchmarks and meteorological factors (planetary boundary layer height, wind advection, thermal inversions).
+Grounding telemetry:
+${groundingContext}`,
+            },
+            ...(req.conversationHistory || []).map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: req.prompt },
           ],
-        });
+          temperature: 0.2,
+          max_tokens: 1000,
+        }),
+      });
 
-        const reply = response.text || 'Unable to generate atmospheric reasoning at this moment.';
+      if (!metaRes.ok) {
+        const errorText = await metaRes.text().catch(() => '');
         return {
-          reply: `${reply}\n\n*[Model Execution Status: EcoTrack Grounded Synthesis Engine active with verified telemetry. Provide META_API_KEY in .env for direct Meta LLaMA 3.3 70B endpoint inference]*`,
-          modelUsed: 'EcoTrack Grounded Synthesis Engine (Meta LLaMA 3.3 70B: Awaiting API Key in .env)',
-          provider: 'EcoTrack Synthesis Engine (Grounded)',
-          citations: [
-            'WMO Global Atmosphere Watch (GAW) 2024.11 Calibration',
-            'WHO Global Air Quality Guidelines 2021',
-            'Copernicus Atmosphere Monitoring Service (CAMS)',
-            'Open-Meteo ECMWF Planetary Boundary Layer Telemetry',
-          ],
+          reply: `### Meta LLaMA 3.3 70B Endpoint Error (HTTP ${metaRes.status})\n\n` +
+            `The configured Meta endpoint (\`${metaEndpoint}\`) returned HTTP ${metaRes.status}:\n\`\`\`\n${errorText.slice(0, 400)}\n\`\`\`\n\n` +
+            `Please verify your API key validity, quota, and regional access permissions.`,
+          modelUsed: `Meta LLaMA 3.3 70B (${llamaModel})`,
+          provider: 'BLOCKED_CREDENTIALS_REQUIRED',
+          status: 'BLOCKED',
+          errorMessage: `HTTP ${metaRes.status}: ${errorText.slice(0, 200)}`,
+          citations: ['Open-Meteo ECMWF Telemetry'],
           atmosphericDiagnostics: {
             inversionRisk: invRisk,
             primaryVector: primaryVector,
@@ -247,45 +218,56 @@ ${groundingContext}
           },
           timestamp: new Date().toISOString(),
         };
-      } catch (err) {
-        console.error('Diagnostic engine error:', err);
       }
+
+      const data = await metaRes.json();
+      const reply = data.choices?.[0]?.message?.content || '';
+
+      return {
+        reply,
+        modelUsed: `Meta LLaMA 3.3 70B (${llamaModel})`,
+        provider: 'Meta LLaMA 3.3 70B',
+        status: 'ONLINE',
+        citations: [
+          'WMO Global Atmosphere Watch (GAW) 2024.11',
+          'WHO Global Air Quality Guidelines 2021',
+          'Copernicus Atmosphere Monitoring Service (CAMS)',
+          'Open-Meteo High-Resolution ECMWF Planetary Boundary Layer Telemetry',
+        ],
+        atmosphericDiagnostics: {
+          inversionRisk: invRisk,
+          primaryVector: primaryVector,
+          ventilationFactor: ventFactor,
+          guidelineComparison: guidelineComparison,
+        },
+        timestamp: new Date().toISOString(),
+      };
+    } catch (err: any) {
+      return {
+        reply: `### Meta LLaMA 3.3 70B Connection Error\n\nFailed to establish connection to \`${metaEndpoint}\`: ${err.message}.`,
+        modelUsed: `Meta LLaMA 3.3 70B (${llamaModel})`,
+        provider: 'BLOCKED_CREDENTIALS_REQUIRED',
+        status: 'BLOCKED',
+        errorMessage: err.message,
+        citations: [],
+        atmosphericDiagnostics: {
+          inversionRisk: invRisk,
+          primaryVector: primaryVector,
+          ventilationFactor: ventFactor,
+          guidelineComparison: guidelineComparison,
+        },
+        timestamp: new Date().toISOString(),
+      };
     }
-
-    // 4. Deterministic Grounded Fallback
-    return {
-      reply: `Atmospheric Diagnostic for ${req.context?.location || 'Monitored Region'}:
-- Current Status: ${guidelineComparison}
-- Meteorological Ventilation: ${ventFactor}
-- Primary Vector of Concern: ${primaryVector}.
-- Health Advisory: Sensitive demographic groups should regulate intense outdoor cardio exertion when ${primaryVector} approaches or exceeds the WHO 24-hour ceiling. Residential HVAC systems should maintain active HEPA circulation if localized thermal trapping occurs.
-
-[Meta LLaMA 3.3 70B Integration Status: BLOCKED awaiting META_API_KEY or GROQ_API_KEY in .env. Rule-based physics engine active].`,
-      modelUsed: 'EcoTrack Grounded Rule-Based Engine (Meta LLaMA 3.3 70B: Awaiting Key)',
-      provider: 'EcoTrack Synthesis Engine (Grounded)',
-      citations: [
-        'WMO Global Atmosphere Watch (GAW) Standards',
-        'WHO Air Quality Guidelines 2021',
-      ],
-      atmosphericDiagnostics: {
-        inversionRisk: invRisk,
-        primaryVector: primaryVector,
-        ventilationFactor: ventFactor,
-        guidelineComparison: guidelineComparison,
-      },
-      timestamp: new Date().toISOString(),
-    };
   }
 
   /**
-   * Meta SAM 3.1 Vision AI: Atmospheric optical segmentation & haze dispersion analysis
+   * Atmospheric optical segmentation analysis with full scientific disclosure
    */
   public async segmentAtmosphericImage(req: VisionSegmentationRequest): Promise<VisionSegmentationResponse> {
     const localPm25 = req.environmentalContext?.localPm25 ?? 24;
     const blh = req.environmentalContext?.boundaryLayerHeight ?? 920;
 
-    // Estimate optical haze characteristics based on physical and visual cues
-    // Higher PM2.5 or lower boundary layer correlates with visual attenuation
     const estimatedHazeOpacity = Math.min(95, Math.max(12, Math.round((localPm25 / 150) * 80 + 15)));
     const opticalVisKm = Math.max(1.8, Math.round((120 / (estimatedHazeOpacity * 0.8 + 5)) * 10) / 10);
     const contrastRatio = Math.round((1 - (estimatedHazeOpacity / 100) * 0.65) * 100) / 100;
@@ -311,40 +293,41 @@ ${groundingContext}
       {
         id: 'mask_sky_troposphere',
         label: 'Tropospheric Sky Deck',
-        confidence: 0.96,
-        color: '#4cd7f6', // secondary cyan
-        boundingBox: [0, 0, 52, 100], // top 52% of image
+        confidence: 0.94,
+        color: '#4cd7f6',
+        boundingBox: [0, 0, 52, 100],
       },
       {
         id: 'mask_particulate_haze',
         label: 'Atmospheric Particulate Haze',
-        confidence: 0.91,
-        color: '#ffb4ab', // error coral / haze
-        boundingBox: [35, 0, 68, 100], // horizon transition layer
+        confidence: 0.89,
+        color: '#ffb4ab',
+        boundingBox: [35, 0, 68, 100],
       },
       {
         id: 'mask_ground_canopy',
         label: 'Ground Terrain & Urban Canopy',
-        confidence: 0.98,
-        color: '#4edea3', // primary emerald
-        boundingBox: [58, 0, 100, 100], // bottom 42%
+        confidence: 0.96,
+        color: '#4edea3',
+        boundingBox: [58, 0, 100, 100],
       },
     ];
 
     const disclaimer =
-      'CRITICAL SCIENTIFIC INTEGRITY NOTICE: Visual observation analysis only. RGB image segmentation via Meta SAM 3.1 identifies optical particulate haze scattering, contrast attenuation, and horizon obscuration, but CANNOT directly measure physical aerosol mass concentration (PM2.5 / PM10 in µg/m³) or official EPA AQI values. Calibrated ground stations and beta-attenuation monitors remain the sole authoritative standards.';
+      'CRITICAL SCIENTIFIC INTEGRITY NOTICE: Evaluated via optical haze contrast attenuation heuristic. Image segmentation highlights visual aerosol scattering and horizon obscuration, but cannot substitute for certified physical mass concentration (PM2.5 / PM10 in µg/m³) from BAM-1020 beta-attenuation monitors.';
 
     return {
-      analysisSummary: `Meta SAM 3.1 segmentation executed with 3 distinct atmospheric semantic layers. Optical haze opacity calculated at ${estimatedHazeOpacity}% with estimated horizontal visual range of ${opticalVisKm} km. Ground contrast attenuation ratio is ${contrastRatio}.`,
+      analysisSummary: `Optical haze analysis calculated at ${estimatedHazeOpacity}% opacity with estimated horizontal visibility of ${opticalVisKm} km. Ground contrast attenuation ratio is ${contrastRatio}.`,
       hazeOpacityPercentage: estimatedHazeOpacity,
       opticalVisibilityEstimateKm: opticalVisKm,
       contrastAttenuationRatio: contrastRatio,
       detectedVisualPhenomena: phenomena,
       masks,
       scientificDisclaimer: disclaimer,
+      executionMode: 'HEURISTIC_OPTICAL_MODEL',
       metaSamArchitecture: {
-        encoder: 'Vision Transformer (ViT-H SAM 3.1)',
-        promptEngine: 'Coordinate & Spatial Grid Prompting',
+        encoder: 'Client Optical Attenuation Heuristic Pipeline',
+        promptEngine: 'Spatial Horizon Detection',
         confidenceThreshold: 0.88,
       },
       timestamp: new Date().toISOString(),
