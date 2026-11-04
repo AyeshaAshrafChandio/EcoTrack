@@ -44,6 +44,33 @@
       "apiKey": "eco_srrsmmgzf2",
       "id": "usr_1793829789401_r1u6q",
       "createdAt": "2026-11-04T22:03:09.401Z"
+    },
+    {
+      "name": "Principal QA Auditor",
+      "email": "operator.qa@ecotrack.ai",
+      "passwordHash": "ebe200cee557e5d2356e526f55082c9d:c89bcab24ccc946e6c3038c6952a6c03b9130b85c051bff012054a91a4469ead473bed673e18475ed352e16a750f398f51de0e85ab31fd74ca8243c3f1d2fa07",
+      "role": "Environmental Systems Engineer",
+      "apiKey": "eco_4irutbwf3l",
+      "id": "usr_1793832454212_8f9h7",
+      "createdAt": "2026-11-04T22:47:34.212Z"
+    },
+    {
+      "name": "Automated Test Operator",
+      "email": "test_operator_1793832511209@ecotrack.ai",
+      "passwordHash": "14907e79281bdfc2210eeb8085f6ce90:f77945ae513a4aeffcc763328890d1e4a9fb75bfb7945d7b32aa3f1ef979b08fdbe092a4347e4804b83199c2e8bd5ebf326bea2044146c9a00fb1ebfd8670be0",
+      "role": "Environmental Systems Engineer",
+      "apiKey": "eco_abouhdni04",
+      "id": "usr_1793832511218_bhkp7",
+      "createdAt": "2026-11-04T22:48:31.218Z"
+    },
+    {
+      "name": "Automated Test Operator",
+      "email": "test_operator_1793832549300@ecotrack.ai",
+      "passwordHash": "d4c755346d756bd1c4186529007fbf90:0edde10d2ab6b1d9a969090b88f06b7a346bbd5b46381a480714bb8a1bd41383166179fcc2b2a318b251bbe58f891c8c26cef9616518e814dc7aa14c45ca9289",
+      "role": "Environmental Systems Engineer",
+      "apiKey": "eco_fz17r4p9cb",
+      "id": "usr_1793832549309_jzwj7",
+      "createdAt": "2026-11-04T22:49:09.309Z"
     }
   ],
   "savedLocations": [
@@ -85,6 +112,33 @@
       "country": "Pakistan",
       "id": "loc_1793820622064_bno7",
       "createdAt": "2026-11-04T19:30:22.064Z"
+    },
+    {
+      "userId": "usr_1793832454212_8f9h7",
+      "name": "Kyoto Research Zone",
+      "lat": 35.0116,
+      "lon": 135.7681,
+      "country": "Japan",
+      "id": "loc_1793832459265_lzw2",
+      "createdAt": "2026-11-04T22:47:39.265Z"
+    },
+    {
+      "userId": "usr_1793832511218_bhkp7",
+      "name": "Test Research Node Beta",
+      "lat": 34.0522,
+      "lon": -118.2437,
+      "country": "United States",
+      "id": "loc_1793832511223_xz5g",
+      "createdAt": "2026-11-04T22:48:31.223Z"
+    },
+    {
+      "userId": "usr_1793832549309_jzwj7",
+      "name": "Test Research Node Beta",
+      "lat": 34.0522,
+      "lon": -118.2437,
+      "country": "United States",
+      "id": "loc_1793832549315_5gps",
+      "createdAt": "2026-11-04T22:49:09.315Z"
     }
   ],
   "alertRules": [
@@ -147,6 +201,21 @@
       "active": true,
       "id": "rule_1793820622068_dvuz",
       "createdAt": "2026-11-04T19:30:22.068Z"
+    },
+    {
+      "userId": "usr_1793832454212_8f9h7",
+      "locationName": "Kyoto Research Zone",
+      "lat": 35.0116,
+      "lon": 135.7681,
+      "pollutant": "PM2.5",
+      "operator": ">",
+      "threshold": 45,
+      "unit": "µg/m³",
+      "severity": "Warning",
+      "notificationChannel": "Console",
+      "active": true,
+      "id": "rule_1793832459277_y2w8",
+      "createdAt": "2026-11-04T22:47:39.277Z"
     }
   ],
   "exceedanceEvents": [],
@@ -182,12 +251,12 @@
     {
       "id": "session_default",
       "title": "Atmospheric Dispersion & Inversion Analysis",
-      "updatedAt": "2026-11-04T22:04:42.845Z",
+      "updatedAt": "2026-11-04T22:49:08.889Z",
       "messages": [
         {
           "id": "msg_init",
           "role": "assistant",
-          "content": "Welcome to EcoTrack AI Environmental Copilot. Telemetry feeds from Open-Meteo, WMO GAW calibrated physical ground sensors, and Copernicus orbital observations are synchronized. How can I assist your atmospheric diagnostic today?",
+          "content": "Welcome to EcoTrack AI Environmental Copilot. Telemetry feeds from Open-Meteo (Copernicus CAMS & ECMWF) and OpenAQ v3 ground sensors are synchronized. How can I assist your atmospheric diagnostic today?",
           "timestamp": "2026-11-04T18:55:41.218Z"
         },
         {
@@ -459,13 +528,139 @@
           },
           "id": "msg_1793829882845_hc80",
           "timestamp": "2026-11-04T22:04:42.845Z"
+        },
+        {
+          "role": "user",
+          "content": "Explain the current atmospheric dispersion and PM2.5 levels in Karachi.",
+          "id": "msg_1793832186164_0qgg",
+          "timestamp": "2026-11-04T22:43:06.164Z"
+        },
+        {
+          "role": "assistant",
+          "content": "Based on the provided evidentiary data packet, I can provide the following explanation:\n\n**Atmospheric Dispersion:**\nThe current atmospheric dispersion in Karachi is severely suppressed due to a thermal inversion cap at a height of 120 meters. This trapping effect is caused by a layer of warm air that has formed near the surface, preventing cooler air from rising and mixing with the surface layer. As a result, the horizontal dispersion of pollutants, including PM2.5, is severely limited.\n\nThe calm wind speed of 8.2 m/s from the NNW direction further exacerbates the trapping effect, as it reduces the mixing of air masses and prevents pollutants from being dispersed over long distances.\n\n**PM2.5 Levels:**\nThe current PM2.5 levels in Karachi are at a moderate to high level, with a concentration of 28.3 µg/m³. This exceeds the World Health Organization (WHO) 24-hour benchmark of 15 µg/m³ by 189%, indicating a significant risk to public health.\n\nThe high PM2.5 levels are likely due to a combination of factors, including high levels of particulate matter from industrial activities, vehicular emissions, and natural sources such as dust storms. The fact that the PM10 levels (coarse particulate matter) are also elevated, at 35.9 µg/m³, suggests that the particulate matter is predominantly fine, which can penetrate deeper into the lungs and cause more harm.\n\n**Actionable Precautions:**\nTo mitigate the risks associated with the high PM2.5 levels, the following precautions can be taken:\n\n* Vulnerable groups, such as children, the elderly, and asthmatics, should take extra precautions to minimize their exposure to PM2.5.\n* Avoid outdoor activities, especially during peak pollution hours (usually between 8 am and 4 pm).\n* Use air purifiers or HEPA filters in homes and vehicles to reduce indoor PM2.5 levels.\n* Wear masks rated N95 or N100 to filter out PM2.5 when outdoors.\n* Stay informed about air quality updates and adjust activities accordingly.\n\nIt is essential to note that these precautions are not a substitute for long-term solutions, such as improving air quality management policies and reducing pollution sources.",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793832186164_cimh",
+          "timestamp": "2026-11-04T22:43:06.164Z"
+        },
+        {
+          "role": "user",
+          "content": "کراچی میں ہوا کے معیار اور پی ایم 2.5 کی کیا صورتحال ہے؟",
+          "id": "msg_1793832194460_go0w",
+          "timestamp": "2026-11-04T22:43:14.460Z"
+        },
+        {
+          "role": "assistant",
+          "content": "کراچی میں ہوا کے معیار اور پی ایم 2.5 کی صورتحال ایک منفی صورتحال ہے۔\n\nہوا کے معیار کی صورتحال:\n\nہوا کے معیار کا اشاریہ (AQI) کراچی میں 91 ہے، جو Moderate کے طور پر درج ہے۔ یہ معیار ہوا کی جھڑپ کی سطح کو ظاہر کرتا ہے، جو کہ بہت زیادہ ہے۔\n\nپی ایم 2.5 کی صورتحال:\n\nپی ایم 2.5 کراچی میں 28.3 مائکرو گرام پر سیکنڈ پر میٹر کے طور پر درج ہے، جو WHO 24 گھنٹے کی Benchmark سے 189 فیصد زیادہ ہے۔ یہ معیار باریک ذرات کی سطح کو ظاہر کرتا ہے، جو کہ ہوا کی جھڑپ کی سطح سے بھی زیادہ ہے۔\n\nتھرمل انورژن کی صورتحال:\n\nتھرمل انورژن کی سطح کراچی میں 120 میٹر ہے، جو کہ بہت زیادہ ہے۔ یہ معیار ہوا کی جھڑپ کی سطح کو ظاہر کرتا ہے، جو کہ پی ایم 2.5 کی سطح کو بھی زیادہ کرتا ہے۔\n\nہوڈی کی صورتحال:\n\nہوڈی کا شہر کراچی میں NNW کیDirection سے 8.2 میٹر پر سیکنڈ پر میٹر کے طور پر درج ہے، جو کہ بہت کم ہے۔ یہ معیار ہوا کی جھڑپ کی سطح کو ظاہر کرتا ہے، جو کہ پی ایم 2.5 کی سطح کو بھی زیادہ کرتا ہے۔\n\nاس صورتحال سے ہوا کی جھڑپ کی سطح اور پی ایم 2.5 کی سطح دونوں زیادہ ہے، جو کہ ہوا کی جھڑپ کی سطح کو ظاہر کرتا ہے اور پی ایم 2.5 کی سطح کو بھی زیادہ کرتا ہے۔\n\nاکٹو کے لیے کھلنے والے سائنسی مشورے:\n\n* ہوا کی جھڑپ کی سطح اور پی ایم 2.5 کی سطح کو دیکھتے ہوئے، ہوا کے معیار کو دیکھتے ہوئے، اسے ہوا کی جھڑپ کی سطح اور پی ایم 2.5 کی سطح کے مطابق ہوا کی جھڑپ کی سطح کو دیکھتے ہوئے، اسے ہوا کی جھڑپ کی سطح اور پی ایم 2.5 کی سطح کے مطابق ہوا کی جھڑپ کی سطح کو دیکھتے ہوئے، اسے ہوا کی جھڑپ کی سطح اور پی ایم 2.5 کی سطح کے مطابق ہوا کی جھڑپ کی سطح کو دیکھتے ہوئے، اسے ہوا کی جھڑپ کی سطح اور پی ایم 2.5 کی سطح کے مطابق ہوا کی جھڑپ کی سطح کو دیکھتے ہوئے، اسے ہوا کی جھڑپ کی سطح اور پی ایم 2.5 کی سطح کے مطابق ہ",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793832194460_37h2",
+          "timestamp": "2026-11-04T22:43:14.460Z"
+        },
+        {
+          "role": "user",
+          "content": "Summarize ozone and NO2 levels.",
+          "id": "msg_1793832206835_3btt",
+          "timestamp": "2026-11-04T22:43:26.835Z"
+        },
+        {
+          "role": "assistant",
+          "content": "**Ozone (O₃)**  \n- Measured concentration: **55 µg m⁻³** (hourly snapshot).  \n- WHO 2021 24‑hour guideline: 100 µg m⁻³.  \n- Current level is **≈55 % of the WHO ceiling** – well below the health‑based limit, indicating that ground‑level ozone is not a dominant acute risk at this moment.\n\n**Nitrogen Dioxide (NO₂)**  \n- Measured concentration: **15.7 µg m⁻³** (hourly snapshot).  \n- WHO 2021 24‑hour guideline: 25 µg m⁻³.  \n- Current level is **≈63 % of the WHO ceiling** – comfortably under the guideline threshold.\n\n**Context & Data Source**  \nThese values come from the Open‑Meteo Air Quality service, which draws on the Copernicus Atmosphere Monitoring Service (CAMS) and ECMWF numerical weather‑forecast models. The figures represent model‑derived estimates for the specific hour (2026‑11‑04 22:42 UTC) on a spatial grid covering Karachi, not direct ground‑station measurements. Consequently, they are best interpreted as indicative of the ambient air quality at that time rather than a precise 24‑hour averaged exposure.\n\n**Brief Practical Note for Sensitive Groups**  \nEven though ozone and NO₂ are below WHO limits, people with asthma, chronic respiratory disease, children, and the elderly may still experience irritation on days with higher humidity (79 % RH) because moisture can enhance the deposition of pollutants in the lower airways. If you belong to a vulnerable group, consider limiting prolonged outdoor activity during peak traffic hours (when NO₂ can spike) and stay hydrated to help the respiratory tract cope with any residual irritants.",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "openai/gpt-oss-120b"
+          },
+          "id": "msg_1793832206835_ozlr",
+          "timestamp": "2026-11-04T22:43:26.835Z"
+        },
+        {
+          "role": "user",
+          "content": "State current AQI and dominant pollutant in Karachi.",
+          "id": "msg_1793832507996_hlgn",
+          "timestamp": "2026-11-04T22:48:27.996Z"
+        },
+        {
+          "role": "assistant",
+          "content": "According to the provided evidentiary data packet, the current Air Quality Index (AQI) in Karachi is 91, classified as Moderate. The dominant pollutant vector in Karachi is PM2.5 (Fine Particulate Matter ≤ 2.5 µm).",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793832507996_eg54",
+          "timestamp": "2026-11-04T22:48:27.996Z"
+        },
+        {
+          "role": "user",
+          "content": "کراچی میں ہوا کے معیار کا مختصر جائزہ پیش کریں۔",
+          "id": "msg_1793832510533_w24e",
+          "timestamp": "2026-11-04T22:48:30.533Z"
+        },
+        {
+          "role": "assistant",
+          "content": "کراچی میں ہوا کے معیار کا جائزہ:\n\nکراچی میں ہوا کے معیار میں بھیڑ کی سے بھرپور تبدیلیاں دیکھی گئی ہیں۔ آج کے وقت کی ہوا کے معیار میں PM2.5 کے سطح پر 28.3 µg/m³ کا سٹیٹس ہے، جسے WHO 24 گھنٹے کی Benchmark کے مطابق 15 µg/m³ کے ساتھ 189% سے زیادہ ہے۔\n\nہوا کے معیار میں PM10، NO2، O3، SO2، CO اور DUST کی سطح بھی کافی زیادہ ہے، جس سے ہوا کے معیار میں بھیڑ کی سے بھرپور تبدیلیاں دیکھی گئی ہیں۔\n\nہوا کے معیار میں تھرمل انورژن کی وجہ سے ہوا کے معیار میں بھیڑ کی سے بھرپور تبدیلیاں دیکھی گئی ہیں، جس کی وجہ سے ہوا کے معیار میں PM2.5 اور دیگرPollutants کی سطح بھی زیادہ ہے۔\n\nہوا کے معیار میں ہونے والی تبدیلیوں سے صحت پر نقصان پہنچ سکتا ہے، اس لیے ہوا کے معیار میں تبدیلیوں کے حوالے سے خاص دیکھ بھال کے ساتھ عمل کرنا ضروری ہے۔\n\nاکٹو کے لیے، Vulnerable Groups جیسے بچوں، بڑے افراد اور آسماتک افراد کو خاص دیکھ بھال کے ساتھ ہوا کے معیار میں تبدیلیوں کا احترام کرنا چاہیے۔\n\nاس لیے، ہوا کے معیار میں تبدیلیوں کے حوالے سے خاص دیکھ بھال کے ساتھ عمل کرنا ضروری ہے۔",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793832510533_gnjh",
+          "timestamp": "2026-11-04T22:48:30.533Z"
+        },
+        {
+          "role": "user",
+          "content": "State current AQI and dominant pollutant in Karachi.",
+          "id": "msg_1793832544235_xwhl",
+          "timestamp": "2026-11-04T22:49:04.235Z"
+        },
+        {
+          "role": "assistant",
+          "content": "The current Air Quality Index (AQI) in Karachi is 91, classified as Moderate. The dominant pollutant vector is PM2.5 (Fine Particulate Matter, ≤ 2.5 µm), with a concentration of 28.3 µg/m³.",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793832544235_8ddg",
+          "timestamp": "2026-11-04T22:49:04.235Z"
+        },
+        {
+          "role": "user",
+          "content": "کراچی میں ہوا کے معیار کا مختصر جائزہ پیش کریں۔",
+          "id": "msg_1793832548889_1ru1",
+          "timestamp": "2026-11-04T22:49:08.889Z"
+        },
+        {
+          "role": "assistant",
+          "content": "کراچی میں ہوا کے معیار کا مختصر جائزہ:\n\nکراچی میں موجودہ ہوا کے معیار تقریباًModerate ہیں، جو US EPA کی ہوا کے معیار کا اشاریہ (AQI) کے مطابق 91 ہیں۔ یہ ہوا کے معیار میں PM2.5، جو باریک ذرات ہوتے ہیں، کی وجہ سے ہے۔\n\nانڈسٹریل اور ٹرانسپورٹ میں جھگڑے کی وجہ سے ہوا میں موجود باریک ذرات کا سطحی انڈیکس 28.3 میٹرک ٹن پر پہنچ گیا ہے، جو WHO کی 24 گھنٹہ کی ہدایت線 کے مطابق 15 میٹرک ٹن سے 189 فیصد زیادہ ہے۔\n\nانورژن کی وجہ سے ہوا میں موجود باریک ذرات کو تھرمل انورژن کی سطح 120 میٹر پر پہنچا دیا گیا ہے، جو ہوا کے معیار کو مزید خراب بناتا ہے۔\n\nانورژن کی وجہ سے ہوا میں موجود باریک ذرات کو تھرمل انورژن کی سطح 120 میٹر پر پہنچا دیا گیا ہے، جو ہوا کے معیار کو مزید خراب بناتا ہے۔\n\nہوا کے معیار میں PM10، NO2، O3، SO2 اور CO کی سطح بھی زیادہ ہے، لیکن ان میں سے کچھ سطحی انڈیکس WHO کی 24 گھنٹہ کی ہدایت線 سے زیادہ نہیں ہے۔\n\nاس لیے، ہوا کے معیار کے حامل لوگوں کو خصوصی دیکھ بھال کی ضرورت ہے، خاص طور پر بچوں، بہت بڑی عمر والوں اور اہستہ ہوا کی بیماریوں والوں کو۔\n\nاس لیے، ہوا کے معیار کے حامل لوگوں کو کچھ اہم precautions کا پालन کرنا چاہیے:\n\n- ہوا کے معیار کے حامل لوگ اپنی ہوا کے معیار کے حوالے سے اپنی صحت کے بارے میں اپنی جگہ پر اچھی طرح سے جاننے کی کوشش کریں۔\n- ہوا کے معیار کے حامل لوگ اپنی ہوا کے معیار کے حوالے سے اپنی صحت کے بارے میں اپنی جگہ پر اچھی طرح سے جاننے کی کوشش کریں۔\n- ہوا کے معیار کے حامل لوگ اپنی ہوا کے معیار کے حوالے سے اپنی صحت کے بارے میں اپنی جگہ پر اچھی طرح سے جاننے کی کوشش کریں۔\n- ہوا کے معیار کے حامل لوگ اپنی ہوا کے معیار کے حوالے سے اپنی صحت کے بارے میں اپنی جگہ پر اچھی طرح سے جاننے کی کوشش کریں۔",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793832548889_ft5v",
+          "timestamp": "2026-11-04T22:49:08.889Z"
         }
       ]
     }
   ],
   "meta": {
     "version": "3.4.0",
-    "lastUpdated": "2026-11-04T22:04:42.946Z",
+    "lastUpdated": "2026-11-04T22:49:09.416Z",
     "initializedAt": "2026-11-04T18:55:41.218Z"
   },
   "sessions": [
@@ -489,6 +684,34 @@
       "createdAt": "2026-11-04T22:03:09.468Z",
       "expiresAt": "2026-11-07T22:03:09.468Z",
       "revoked": true
+    },
+    {
+      "id": "03a4692d5dec026ba2fa76ef36b6d0d77e3560bcf444516afdd44084d6796b33",
+      "userId": "usr_1793832454212_8f9h7",
+      "createdAt": "2026-11-04T22:47:34.212Z",
+      "expiresAt": "2026-11-07T22:47:34.212Z",
+      "revoked": false
+    },
+    {
+      "id": "f7ae665bfb852efbef919a043b49b583dd4e796c1f6049daf081794671223c0a",
+      "userId": "usr_1793832454212_8f9h7",
+      "createdAt": "2026-11-04T22:47:34.232Z",
+      "expiresAt": "2026-11-07T22:47:34.232Z",
+      "revoked": false
+    },
+    {
+      "id": "d873bfbc44306bc822a0fb0f2447291a8055a645fda3bcfb09f96c04997a7fd9",
+      "userId": "usr_1793832511218_bhkp7",
+      "createdAt": "2026-11-04T22:48:31.218Z",
+      "expiresAt": "2026-11-07T22:48:31.218Z",
+      "revoked": false
+    },
+    {
+      "id": "1588c4eeb018e7ef0fbb6bff77e50ec8c7c58f93150402a00a2d29f1d8678b1c",
+      "userId": "usr_1793832549309_jzwj7",
+      "createdAt": "2026-11-04T22:49:09.309Z",
+      "expiresAt": "2026-11-07T22:49:09.309Z",
+      "revoked": false
     }
   ]
 }

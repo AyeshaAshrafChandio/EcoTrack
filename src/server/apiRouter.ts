@@ -481,6 +481,86 @@ apiRouter.get('/alerts/events', (_req, res) => {
   res.json(db.getExceedanceEvents());
 });
 
+// Real webhook delivery test endpoint
+apiRouter.post('/alerts/test-webhook', async (req, res) => {
+  try {
+    const { webhookUrl, locationName, pollutant, threshold, unit, severity } = req.body;
+    if (!webhookUrl || typeof webhookUrl !== 'string' || !webhookUrl.startsWith('http')) {
+      return res.status(400).json({ error: 'Valid HTTP or HTTPS webhook destination URL is required.' });
+    }
+
+    const testPayload = {
+      event: 'ECOTRACK_ALERT_WEBHOOK_VERIFICATION',
+      timestamp: new Date().toISOString(),
+      rule: {
+        locationName: locationName || 'Test Atmospheric Station',
+        pollutant: pollutant || 'PM2.5',
+        operator: '>',
+        threshold: threshold || 150.0,
+        unit: unit || 'µg/m³',
+        severity: severity || 'Critical',
+      },
+      telemetry: {
+        observedValue: (threshold || 150.0) + 14.5,
+        exceededBy: 14.5,
+        provenance: 'Copernicus CAMS & OpenAQ v3 Cross-Verification Engine',
+      },
+      dispatcher: 'EcoTrack Automated Real-Time Hazardous Atmospheric Alerting',
+    };
+
+    const startTime = Date.now();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    const targetRes = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'EcoTrack-Alert-Dispatcher/3.4',
+      },
+      body: JSON.stringify(testPayload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+    const latencyMs = Date.now() - startTime;
+    const responseText = await targetRes.text().catch(() => '');
+
+    res.json({
+      success: targetRes.ok,
+      status: targetRes.status,
+      statusText: targetRes.statusText,
+      latencyMs,
+      deliveredAt: new Date().toISOString(),
+      destination: webhookUrl,
+      payloadSent: testPayload,
+      targetResponsePreview: responseText.slice(0, 300),
+    });
+  } catch (err: any) {
+    res.status(502).json({
+      success: false,
+      error: `Webhook delivery failed: ${err.message}`,
+      destination: req.body.webhookUrl,
+      attemptedAt: new Date().toISOString(),
+    });
+  }
+});
+
+// Controlled local webhook receiver for loopback testing
+apiRouter.post('/alerts/webhook-receiver', (req, res) => {
+  res.status(200).json({
+    received: true,
+    message: 'EcoTrack Test Webhook successfully received and logged.',
+    timestamp: new Date().toISOString(),
+    event: req.body?.event || 'CUSTOM_PAYLOAD',
+    headers: {
+      'content-type': req.headers['content-type'],
+      'user-agent': req.headers['user-agent'],
+    },
+    body: req.body,
+  });
+});
+
 // 9. Saved Locations: user specific
 apiRouter.get('/saved-locations', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
   res.json(db.getSavedLocations(req.user!.id));

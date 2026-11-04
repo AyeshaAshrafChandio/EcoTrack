@@ -40,6 +40,42 @@ export const AlertsView: React.FC = () => {
   const [editWebhookUrl, setEditWebhookUrl] = useState('');
   const [editError, setEditError] = useState<string | null>(null);
 
+  // Webhook Testing State
+  const [testingWebhook, setTestingWebhook] = useState(false);
+  const [webhookTestStatus, setWebhookTestStatus] = useState<string | null>(null);
+
+  const handleTestWebhook = async (url: string) => {
+    if (!url || !url.startsWith('http')) {
+      setWebhookTestStatus('Error: Webhook URL must begin with http:// or https://');
+      return;
+    }
+    setTestingWebhook(true);
+    setWebhookTestStatus(null);
+    try {
+      const res = await fetch('/api/alerts/test-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          webhookUrl: url,
+          locationName: 'Alert Verification Site',
+          pollutant: 'PM2.5',
+          threshold: 150,
+          severity: 'Critical',
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setWebhookTestStatus(`✓ Verified: HTTP ${data.status} received (${data.latencyMs}ms latency)`);
+      } else {
+        setWebhookTestStatus(`✗ Delivery failed: ${data.error || `HTTP ${data.status}`}`);
+      }
+    } catch (err: any) {
+      setWebhookTestStatus(`✗ Connection failed: ${err.message}`);
+    } finally {
+      setTestingWebhook(false);
+    }
+  };
+
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3500);
@@ -578,19 +614,44 @@ export const AlertsView: React.FC = () => {
               </div>
 
               {newChannel === 'Webhook' && (
-                <div>
-                  <label className="block font-label-mono-sm text-[0.6875rem] text-on-surface-variant uppercase mb-1">
-                    Webhook Target URL
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://your-service.com/api/environmental-alert"
-                    value={newWebhookUrl}
-                    onChange={e => setNewWebhookUrl(e.target.value)}
-                    className="w-full p-2.5 rounded-lg bg-surface-container font-body-sm text-sm text-on-surface border border-surface-variant focus:outline-none placeholder:text-on-surface-variant/40"
-                  />
-                  <p className="font-body-sm text-[0.6875rem] text-on-surface-variant mt-1">
-                    Real-time JSON payload dispatched via automated HTTP POST when threshold evaluates true.
+                <div className="space-y-2 p-2.5 rounded-xl bg-surface-container/60 border border-surface-variant">
+                  <div className="flex items-center justify-between">
+                    <label className="block font-label-mono-sm text-[0.6875rem] text-on-surface-variant uppercase">
+                      Webhook Target URL
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setNewWebhookUrl(`${window.location.origin}/api/alerts/webhook-receiver`)}
+                      className="font-label-mono-sm text-[0.625rem] text-secondary hover:underline cursor-pointer"
+                    >
+                      Use Test Receiver
+                    </button>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="url"
+                      placeholder="https://your-service.com/api/environmental-alert"
+                      value={newWebhookUrl}
+                      onChange={e => setNewWebhookUrl(e.target.value)}
+                      className="flex-1 p-2 rounded-lg bg-surface-container font-body-sm text-xs text-on-surface border border-surface-variant focus:outline-none placeholder:text-on-surface-variant/40"
+                    />
+                    <button
+                      type="button"
+                      disabled={testingWebhook || !newWebhookUrl}
+                      onClick={() => handleTestWebhook(newWebhookUrl)}
+                      className="px-3 py-1.5 rounded-lg bg-secondary text-on-secondary font-label-mono-sm text-xs font-semibold hover:bg-secondary-fixed transition-colors disabled:opacity-50 cursor-pointer shrink-0 flex items-center gap-1"
+                    >
+                      {testingWebhook && <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>}
+                      <span>Test URL</span>
+                    </button>
+                  </div>
+                  {webhookTestStatus && (
+                    <div className={`text-[0.6875rem] font-label-mono-sm p-1.5 rounded ${webhookTestStatus.startsWith('✓') ? 'bg-primary/10 text-primary' : 'bg-error-container/40 text-on-error-container'}`}>
+                      {webhookTestStatus}
+                    </div>
+                  )}
+                  <p className="font-body-sm text-[0.625rem] text-on-surface-variant leading-relaxed">
+                    Automated HTTP POST delivers JSON hazard payload with observed pollutant value and threshold.
                   </p>
                 </div>
               )}
@@ -725,19 +786,44 @@ export const AlertsView: React.FC = () => {
               </div>
 
               {editChannel === 'Webhook' && (
-                <div>
-                  <label className="block font-label-mono-sm text-[0.6875rem] text-on-surface-variant uppercase mb-1">
-                    Webhook Target URL
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://your-service.com/api/environmental-alert"
-                    value={editWebhookUrl}
-                    onChange={e => setEditWebhookUrl(e.target.value)}
-                    className="w-full p-2.5 rounded-lg bg-surface-container font-body-sm text-sm text-on-surface border border-surface-variant focus:outline-none placeholder:text-on-surface-variant/40"
-                  />
-                  <p className="font-body-sm text-[0.6875rem] text-on-surface-variant mt-1">
-                    Real-time JSON payload dispatched via automated HTTP POST when threshold evaluates true.
+                <div className="space-y-2 p-2.5 rounded-xl bg-surface-container/60 border border-surface-variant">
+                  <div className="flex items-center justify-between">
+                    <label className="block font-label-mono-sm text-[0.6875rem] text-on-surface-variant uppercase">
+                      Webhook Target URL
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setEditWebhookUrl(`${window.location.origin}/api/alerts/webhook-receiver`)}
+                      className="font-label-mono-sm text-[0.625rem] text-secondary hover:underline cursor-pointer"
+                    >
+                      Use Test Receiver
+                    </button>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="url"
+                      placeholder="https://your-service.com/api/environmental-alert"
+                      value={editWebhookUrl}
+                      onChange={e => setEditWebhookUrl(e.target.value)}
+                      className="flex-1 p-2 rounded-lg bg-surface-container font-body-sm text-xs text-on-surface border border-surface-variant focus:outline-none placeholder:text-on-surface-variant/40"
+                    />
+                    <button
+                      type="button"
+                      disabled={testingWebhook || !editWebhookUrl}
+                      onClick={() => handleTestWebhook(editWebhookUrl)}
+                      className="px-3 py-1.5 rounded-lg bg-secondary text-on-secondary font-label-mono-sm text-xs font-semibold hover:bg-secondary-fixed transition-colors disabled:opacity-50 cursor-pointer shrink-0 flex items-center gap-1"
+                    >
+                      {testingWebhook && <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>}
+                      <span>Test URL</span>
+                    </button>
+                  </div>
+                  {webhookTestStatus && (
+                    <div className={`text-[0.6875rem] font-label-mono-sm p-1.5 rounded ${webhookTestStatus.startsWith('✓') ? 'bg-primary/10 text-primary' : 'bg-error-container/40 text-on-error-container'}`}>
+                      {webhookTestStatus}
+                    </div>
+                  )}
+                  <p className="font-body-sm text-[0.625rem] text-on-surface-variant leading-relaxed">
+                    Automated HTTP POST delivers JSON hazard payload with observed pollutant value and threshold.
                   </p>
                 </div>
               )}

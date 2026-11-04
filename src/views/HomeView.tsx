@@ -115,7 +115,7 @@ export const HomeView: React.FC = () => {
               </h1>
 
               <p className="font-body-lg text-xs sm:text-sm md:text-base text-on-surface-variant max-w-2xl leading-relaxed">
-                Global real-time air quality telemetry coupled with Copernicus satellite remote sensing, calibrated physical ground sensors, and grounded Meta AI predictive reasoning.
+                Global real-time air quality telemetry from Copernicus CAMS numerical models, verified OpenAQ physical ground monitors, and evidence-grounded Meta AI predictive reasoning.
               </p>
 
               {/* Primary Call to Actions */}
@@ -195,41 +195,41 @@ export const HomeView: React.FC = () => {
             {/* Hero Geospatial Visual & Vision AI Telemetry Card (Cols 8-12) */}
             <div className="relative lg:col-span-5 w-full">
               <div className="relative overflow-hidden rounded-2xl bg-surface-container-high p-3 sm:p-space-md shadow-2xl border border-surface-container">
-                {/* Satellite Feed Header */}
+                {/* Visual Context Feed Header */}
                 <div className="mb-2 sm:mb-space-sm flex items-center justify-between">
                   <div className="flex items-center gap-1.5 min-w-0 pr-2">
-                    <span className="material-symbols-outlined text-secondary text-[18px] sm:text-[20px] shrink-0">satellite_alt</span>
+                    <span className="material-symbols-outlined text-secondary text-[18px] sm:text-[20px] shrink-0">image_search</span>
                     <span className="font-label-ui text-xs sm:text-label-ui text-on-surface font-semibold truncate">
-                      TROPOMI NO2 TROPOSPHERIC COLUMN
+                      QUALITATIVE SITE VISUAL CONTEXT
                     </span>
                   </div>
                   <span className="rounded bg-surface-container-lowest px-2 py-0.5 font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-primary shrink-0">
-                    ORBIT: 41,209
+                    CAMS 0.1° GRID
                   </span>
                 </div>
 
-                {/* Visual Imagery Showcase with Meta SAM 3.1 Segmentation Overlay */}
+                {/* Visual Imagery Showcase */}
                 <div
                   className="relative h-56 sm:h-64 md:h-72 w-full overflow-hidden rounded-xl bg-surface-container-lowest group cursor-pointer"
                   onClick={() => setActiveView('ai-copilot')}
                 >
                   <img
                     className="h-full w-full object-cover opacity-80 transition-transform duration-500 group-hover:scale-105"
-                    alt="Copernicus Sentinel-5P high-resolution atmospheric false-color visualization"
+                    alt="Outdoor environmental site visual reference"
                     src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
                   />
-                  {/* Optical Haze Contrast Overlay (SAM 3.1 Inference Blocked) */}
+                  {/* Qualitative Context Notice */}
                   <div className="absolute inset-x-4 sm:inset-x-8 inset-y-6 sm:inset-y-10 rounded-lg bg-secondary/15 backdrop-blur-[2px] transition-all border border-secondary/40">
                     <div className="absolute -top-3 left-2 sm:left-3 rounded bg-secondary/90 px-1.5 sm:px-2 py-0.5 font-label-mono-sm text-[0.55rem] sm:text-[0.625rem] font-bold text-on-secondary truncate max-w-[90%]">
-                      ATMOSPHERIC OPTICAL HAZE [CONTRAST HEURISTIC]
+                      ATMOSPHERIC OPTICAL CONTEXT [QUALITATIVE ONLY]
                     </div>
                     <div className="absolute bottom-2 right-2 rounded bg-surface-container-lowest/80 px-1.5 sm:px-2 py-0.5 font-label-mono-sm text-[0.55rem] sm:text-[0.6rem] text-on-surface">
-                      DIFFUSION: 247° @ 14.2 KT
+                      RGB PIXELS ≠ MASS CONCENTRATION
                     </div>
                   </div>
                   <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded bg-surface-container-lowest/90 px-2 py-0.5 font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-outline">
-                    <span className="h-1.5 w-1.5 rounded-full bg-outline"></span>
-                    <span>SAM 3.1: BLOCKED (NO ENDPOINT)</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary"></span>
+                    <span>PHYSICAL SENSORS OR CAMS REQUIRED FOR AQI</span>
                   </div>
                 </div>
 
@@ -287,12 +287,12 @@ export const HomeView: React.FC = () => {
             </div>
             <div className="flex items-center gap-2.5 p-2">
               <div className="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-tertiary-container/20 text-tertiary">
-                <span className="material-symbols-outlined text-[20px] sm:text-[24px]">satellite_alt</span>
+                <span className="material-symbols-outlined text-[20px] sm:text-[24px]">air</span>
               </div>
               <div className="min-w-0">
                 <div className="font-data-metric-lg text-lg sm:text-2xl font-bold text-on-surface truncate">ECMWF / CAMS</div>
                 <div className="font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant truncate">
-                  Copernicus Satellite Mesh
+                  Numerical Model Grids
                 </div>
               </div>
             </div>
@@ -326,7 +326,7 @@ export const HomeView: React.FC = () => {
                 Featured Live Planetary Atmospheric Grid
               </h2>
               <p className="font-body-md text-xs sm:text-sm text-on-surface-variant max-w-2xl">
-                Real-time multispectral sensor observations across five continental zones, calibrated with US-EPA and WHO 2021 air quality thresholds.
+                Real-time atmospheric model telemetry across global coordinates, harmonized with US-EPA and WHO 2021 air quality thresholds.
               </p>
             </div>
             <div className="flex items-center gap-2 self-start md:self-auto">
@@ -442,17 +442,17 @@ export const HomeView: React.FC = () => {
             <div className="p-4 sm:p-5 rounded-xl bg-surface-container-low border border-surface-container hover:border-primary/50 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-3">
-                  <span className="material-symbols-outlined text-[24px] sm:text-[28px]">satellite_alt</span>
+                  <span className="material-symbols-outlined text-[24px] sm:text-[28px]">air</span>
                 </div>
                 <h3 className="font-headline-md text-base sm:text-lg font-bold text-on-surface mb-1.5">
-                  Copernicus Sentinel-5P
+                  Copernicus CAMS &amp; ECMWF
                 </h3>
                 <p className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
-                  Daily planetary scans capturing tropospheric NO2, SO2, and aerosol optical depth via the high-resolution TROPOMI instrument.
+                  High-resolution numerical atmospheric transport models forecasting PM2.5, PM10, ozone, and boundary layer thermodynamics.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-surface-container flex items-center justify-between text-primary font-label-mono-sm text-[0.625rem]">
-                <span>RES: 3.5 × 5.5 KM</span>
+                <span>RES: 0.1° (~11 KM)</span>
                 <span className="material-symbols-outlined text-[15px]">verified</span>
               </div>
             </div>
@@ -464,15 +464,15 @@ export const HomeView: React.FC = () => {
                   <span className="material-symbols-outlined text-[24px] sm:text-[28px]">visibility</span>
                 </div>
                 <h3 className="font-headline-md text-base sm:text-lg font-bold text-on-surface mb-1.5">
-                  Meta SAM 3.1 Vision AI
+                  Visual Site Context Inspection
                 </h3>
                 <p className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
-                  Segment Anything Model adapted for atmospheric optical telemetry. Distinguishes particulate haze plumes, smoke opacity, and radiation fog.
+                  Qualitative inspection of outdoor photography for optical obscuration and horizon contrast. Strictly discloses RGB pixels cannot measure mass concentration.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-surface-container flex items-center justify-between text-secondary font-label-mono-sm text-[0.625rem]">
-                <span>ViT-H TRANSFORMER</span>
-                <span className="material-symbols-outlined text-[15px]">memory</span>
+                <span>QUALITATIVE CONTEXT</span>
+                <span className="material-symbols-outlined text-[15px]">image_search</span>
               </div>
             </div>
 
@@ -483,14 +483,14 @@ export const HomeView: React.FC = () => {
                   <span className="material-symbols-outlined text-[24px] sm:text-[28px]">psychology</span>
                 </div>
                 <h3 className="font-headline-md text-base sm:text-lg font-bold text-on-surface mb-1.5">
-                  Meta LLaMA 3.3 70B
+                  Meta Llama 3.2 3B Instruct
                 </h3>
                 <p className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
-                  Retrieval-augmented generation grounding inquiries in atmospheric physics: boundary layer height caps, oxidation, and WHO targets.
+                  Evidence-grounded inference hosted via Cloudflare Workers AI free tier, Groq Cloud LPU hardware, or local Ollama instances. Supports English and Urdu.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-surface-container flex items-center justify-between text-tertiary font-label-mono-sm text-[0.625rem]">
-                <span>GROUNDED RAG</span>
+                <span>GROUNDED TELEMETRY</span>
                 <span className="material-symbols-outlined text-[15px]">smart_toy</span>
               </div>
             </div>
@@ -502,14 +502,14 @@ export const HomeView: React.FC = () => {
                   <span className="material-symbols-outlined text-[24px] sm:text-[28px]">sensors</span>
                 </div>
                 <h3 className="font-headline-md text-base sm:text-lg font-bold text-on-surface mb-1.5">
-                  Calibrated Ground Nodes
+                  OpenAQ v3 Ground Monitors
                 </h3>
                 <p className="font-body-sm text-xs text-on-surface-variant leading-relaxed">
-                  Direct physical reference instrumentation including BAM-1020 beta-attenuation monitors from EPA AirNow, OpenAQ v3, and national hubs.
+                  Direct physical reference and community monitoring instruments from the OpenAQ v3 REST API, capturing EPA and national hub observations.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-surface-container flex items-center justify-between text-primary font-label-mono-sm text-[0.625rem]">
-                <span>EPA 40 CFR 58</span>
+                <span>EPA &amp; WHO BENCHMARKS</span>
                 <span className="material-symbols-outlined text-[15px]">rule</span>
               </div>
             </div>

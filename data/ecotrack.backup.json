@@ -221,7 +221,7 @@
         {
           "id": "msg_init",
           "role": "assistant",
-          "content": "Welcome to EcoTrack AI Environmental Copilot. Telemetry feeds from Open-Meteo, WMO GAW calibrated physical ground sensors, and Copernicus orbital observations are synchronized. How can I assist your atmospheric diagnostic today?",
+          "content": "Welcome to EcoTrack AI Environmental Copilot. Telemetry feeds from Open-Meteo (Copernicus CAMS & ECMWF) and OpenAQ v3 ground sensors are synchronized. How can I assist your atmospheric diagnostic today?",
           "timestamp": "2026-11-04T18:55:41.218Z"
         },
         {

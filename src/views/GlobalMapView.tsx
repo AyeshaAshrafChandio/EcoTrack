@@ -419,9 +419,9 @@ export const GlobalMapView: React.FC = () => {
       return (
         <div className="flex flex-col items-center justify-center h-full p-6 text-center text-on-surface-variant">
           <span className="material-symbols-outlined text-[32px] text-outline mb-2">public</span>
-          <div className="font-headline-md text-base text-on-surface">Select a Ground Node</div>
+          <div className="font-headline-md text-base text-on-surface">Select a Forecast Node or Ground Sensor</div>
           <p className="font-body-sm text-xs mt-1">
-            Tap any active node halo on the global canvas to inspect live telemetry.
+            Tap any active forecast node or physical sensor on the global canvas to inspect live telemetry.
           </p>
         </div>
       );
