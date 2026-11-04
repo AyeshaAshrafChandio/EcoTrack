@@ -13,6 +13,7 @@ export const AlertsView: React.FC = () => {
     updateAlertRule,
     deleteAlertRule,
     stations,
+    promptSignIn,
   } = useApp();
 
   const [filterSeverity, setFilterSeverity] = useState<'All' | 'Critical' | 'Warning' | 'Advisory'>('All');
@@ -151,11 +152,10 @@ export const AlertsView: React.FC = () => {
           <button
             onClick={() => {
               if (!currentUser) {
-                showToast('Please sign in to configure customized alert thresholds.');
-                setActiveView('auth');
-              } else {
-                setShowCreateModal(true);
+                setActiveView('auth', 'alerts');
+                return;
               }
+              setShowCreateModal(true);
             }}
             className="flex items-center justify-center gap-1.5 px-4 py-2 sm:py-2.5 rounded-xl bg-primary text-on-primary font-label-ui text-xs sm:text-sm font-semibold shadow-md hover:bg-primary-fixed transition-colors cursor-pointer self-start sm:self-auto shrink-0"
           >
@@ -174,7 +174,7 @@ export const AlertsView: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => setActiveView('auth')}
+              onClick={() => setActiveView('auth', 'alerts')}
               className="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-ui text-xs font-semibold hover:bg-primary-fixed transition-colors cursor-pointer self-start sm:self-auto shrink-0 shadow-sm"
             >
               Sign In to Personalize
@@ -370,7 +370,13 @@ export const AlertsView: React.FC = () => {
 
                 <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
                   <button
-                    onClick={() => handleToggle(rule.id)}
+                    onClick={() => {
+                      if (!currentUser) {
+                        setActiveView('auth', 'alerts');
+                        return;
+                      }
+                      handleToggle(rule.id);
+                    }}
                     className={`px-3 py-1 rounded font-label-mono-sm text-xs font-semibold transition-colors cursor-pointer ${
                       rule.active
                         ? 'bg-primary/20 text-primary border border-primary/40'
@@ -382,8 +388,7 @@ export const AlertsView: React.FC = () => {
                   <button
                     onClick={() => {
                       if (!currentUser) {
-                        showToast('Please sign in to modify alert thresholds.');
-                        setActiveView('auth');
+                        setActiveView('auth', 'alerts');
                         return;
                       }
                       setEditingRule(rule);
@@ -401,7 +406,13 @@ export const AlertsView: React.FC = () => {
                     <span className="material-symbols-outlined text-[18px]">edit</span>
                   </button>
                   <button
-                    onClick={() => handleDelete(rule.id)}
+                    onClick={() => {
+                      if (!currentUser) {
+                        setActiveView('auth', 'alerts');
+                        return;
+                      }
+                      handleDelete(rule.id);
+                    }}
                     aria-label="Delete rule"
                     title="Delete rule"
                     className="p-1 rounded text-on-surface-variant hover:text-error transition-colors cursor-pointer"

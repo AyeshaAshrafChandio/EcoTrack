@@ -39,7 +39,7 @@ export const AuthView: React.FC = () => {
 
     try {
       await loginWithEmail(email.trim(), password);
-      const destName = returnToView === 'alerts' ? 'alerts ledger' : returnToView === 'copilot' || returnToView === 'ai-copilot' ? 'AI copilot' : 'environmental dashboard';
+      const destName = returnToView === 'alerts' ? 'alerts ledger' : returnToView === 'ai-copilot' ? 'AI copilot' : 'environmental dashboard';
       setStatusMsg({ text: `Authentication successful! Returning to ${destName}...`, type: 'success' });
     } catch (err: any) {
       setStatusMsg({ text: formatFirebaseAuthError(err), type: 'error' });
@@ -53,7 +53,7 @@ export const AuthView: React.FC = () => {
     setStatusMsg(null);
     try {
       await loginWithGoogle();
-      const destName = returnToView === 'alerts' ? 'alerts ledger' : returnToView === 'copilot' || returnToView === 'ai-copilot' ? 'AI copilot' : 'environmental dashboard';
+      const destName = returnToView === 'alerts' ? 'alerts ledger' : returnToView === 'ai-copilot' ? 'AI copilot' : 'environmental dashboard';
       setStatusMsg({ text: `Google authentication successful! Returning to ${destName}...`, type: 'success' });
     } catch (err: any) {
       setStatusMsg({ text: formatFirebaseAuthError(err), type: 'error' });
@@ -375,7 +375,7 @@ export const AuthView: React.FC = () => {
               Need to provision a new research node?{' '}
               <button
                 type="button"
-                onClick={() => setActiveView('register')}
+                onClick={() => setActiveView('register', returnToView || undefined)}
                 className="text-primary hover:underline font-semibold cursor-pointer"
               >
                 Sign up here (Screen 8)

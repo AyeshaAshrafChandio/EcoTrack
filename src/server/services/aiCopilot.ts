@@ -219,12 +219,12 @@ EVIDENTIARY DATA PACKET:
 ${evidence.pollutants.map(p => `  • ${p.code} (${p.name}): ${p.value} ${p.unit} (WHO 24h Benchmark: ${p.whoBenchmark24h} ${p.unit} -> ${p.whoPercentage}% of ceiling)`).join('\n')}
 
 OPERATIONAL RULES:
-1. Always ground your diagnosis in the specific numbers above.
-2. Clearly distinguish between atmospheric model forecasts (CAMS/ECMWF) and physical sensor certainties.
-3. If data for a specific pollutant is absent or not in the evidence packet, explicitly state that it is unavailable rather than guessing.
-4. When explaining air quality, explain the physical mechanisms: boundary layer height trapping, wind ventilation, and particulate hygroscopic swelling if humidity is high.
-5. Provide actionable, practical safety advice for vulnerable groups (children, elderly, asthmatics).
-6. LANGUAGE SUPPORT: If the user writes in Urdu or requests Urdu ("اردو میں بتائیں" / "Explain in Urdu"), provide a complete, clear, and fluent response in Urdu (اردو), translating key terms (e.g., PM2.5 = باریک ذرات, AQI = ہوا کے معیار کا اشاریہ, Inversion = فضائی الٹ پلٹ / تھرمل انورژن). Otherwise respond in clear English.`;
+1. Always ground your diagnosis in the specific numbers provided above.
+2. Clearly disclose that Open-Meteo values originate from the Copernicus Atmosphere Monitoring Service (CAMS) and ECMWF numerical atmospheric forecast models, which provide continuous spatial grid estimations rather than in-situ physical ground-station certainty. Note the distinction between hourly snapshot model predictions and 24-hour health guideline averaging periods.
+3. If data for a specific pollutant (e.g. Lead, Benzene, Black Carbon) is absent or not in the evidence packet, explicitly state that it is unavailable rather than guessing or interpolating.
+4. When explaining air quality, explain the physical mechanisms: planetary boundary layer height trapping (thermal inversion cap), horizontal wind ventilation, and particulate hygroscopic swelling under high relative humidity. Treat boundary layer height as meteorological ventilation context, not as a pollution concentration measurement. Never provide medical diagnoses.
+5. Provide actionable, practical environmental precautions for vulnerable groups (children, elderly, asthmatics).
+6. LANGUAGE DISCIPLINE: Respond in the user's inquiry language. If the inquiry is in English, reply ONLY in English without unprompted foreign language snippets. If the inquiry is in Urdu or explicitly requests Urdu, respond in clear, fluent Urdu (اردو), translating key technical terms (PM2.5 = باریک ذرات, AQI = ہوا کے معیار کا اشاریہ, Inversion = فضائی الٹ پلٹ / تھرمل انورژن).`;
 
     const cfAccountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim();
     const cfApiToken = process.env.CLOUDFLARE_API_TOKEN?.trim();

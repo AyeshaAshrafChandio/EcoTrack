@@ -10,16 +10,21 @@ export const DashboardView: React.FC = () => {
     stations,
     selectCity,
     setActiveView,
+    saveLocation,
+    savedLocations,
+    currentUser,
+    promptSignIn,
   } = useApp();
 
   const [activePollutantTab, setActivePollutantTab] = useState<'PM2.5' | 'PM10' | 'NO2' | 'O3' | 'SO2' | 'CO'>('PM2.5');
   const [groundStations, setGroundStations] = useState<any[]>([]);
   const [loadingGround, setLoadingGround] = useState<boolean>(false);
+  const [saveLocationSuccess, setSaveLocationSuccess] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
     setLoadingGround(true);
-    fetch(`/api/environment/openaq?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&radius=35000`)
+    fetch(`/api/environment/openaq?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&radius=25000`)
       .then(r => r.json())
       .then(data => {
         if (isMounted) {
@@ -118,6 +123,48 @@ export const DashboardView: React.FC = () => {
             >
               <span className="material-symbols-outlined text-[16px] text-primary">sync</span>
               <span>SYNC LIVE</span>
+            </button>
+
+            {/* Save Node to Operator Profile */}
+            <button
+              onClick={async () => {
+                if (!currentUser) {
+                  setActiveView('auth', 'dashboard');
+                  return;
+                }
+                const res = await saveLocation(t.location.name, t.location.latitude, t.location.longitude, t.location.country);
+                if (res.success) {
+                  setSaveLocationSuccess(true);
+                  setTimeout(() => setSaveLocationSuccess(false), 3000);
+                }
+              }}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-bright font-label-mono-sm text-xs text-on-surface transition-colors cursor-pointer"
+              title="Save location node to personal monitoring roster"
+            >
+              <span className={`material-symbols-outlined text-[16px] ${saveLocationSuccess ? 'text-primary' : 'text-secondary'}`}>
+                {saveLocationSuccess ? 'bookmark_added' : 'bookmark_add'}
+              </span>
+              <span>{saveLocationSuccess ? 'SAVED' : 'SAVE NODE'}</span>
+            </button>
+
+            {/* Saved Locations Selector / Auth Redirect */}
+            <button
+              onClick={() => {
+                if (!currentUser) {
+                  setActiveView('auth', 'dashboard');
+                  return;
+                }
+                if (savedLocations.length > 0) {
+                  const nextIdx = (savedLocations.findIndex(l => l.name === selectedLocation.name) + 1) % savedLocations.length;
+                  const target = savedLocations[nextIdx];
+                  selectCity(target.name, target.lat, target.lon);
+                }
+              }}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-bright font-label-mono-sm text-xs text-on-surface transition-colors cursor-pointer"
+              title={currentUser ? `Cycle Saved Nodes (${savedLocations.length})` : 'Sign in to access personal saved locations'}
+            >
+              <span className="material-symbols-outlined text-[16px] text-primary">bookmarks</span>
+              <span>{currentUser ? `SAVED (${savedLocations.length})` : 'SAVED NODES'}</span>
             </button>
 
             <button

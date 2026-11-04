@@ -407,7 +407,8 @@ class Database {
     if (userId) {
       return this.data.savedLocations.filter(loc => loc.userId === userId || loc.userId === 'system');
     }
-    return this.data.savedLocations;
+    // Guest access: return only default system benchmark locations
+    return this.data.savedLocations.filter(loc => loc.userId === 'system');
   }
 
   public addSavedLocation(loc: Omit<SavedLocation, 'id' | 'createdAt'>): SavedLocation {
@@ -442,11 +443,17 @@ class Database {
   }
 
   // --- Alert Rules ---
+  public getAllActiveRulesForEvaluation(): AlertRule[] {
+    // Internal method for background threshold checking across all nodes
+    return this.data.alertRules.filter(r => r.active);
+  }
+
   public getAlertRules(userId?: string): AlertRule[] {
     if (userId) {
       return this.data.alertRules.filter(r => r.userId === userId || r.userId === 'system');
     }
-    return this.data.alertRules;
+    // Guest access: return ONLY default system benchmark rules, never private user rules
+    return this.data.alertRules.filter(r => r.userId === 'system');
   }
 
   public addAlertRule(rule: Omit<AlertRule, 'id' | 'createdAt'>): AlertRule {

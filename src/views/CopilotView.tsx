@@ -38,7 +38,7 @@ interface ChatMessage {
 }
 
 export const CopilotView: React.FC = () => {
-  const { currentTelemetry, selectedLocation } = useApp();
+  const { currentTelemetry, selectedLocation, getIdToken, currentUser, setActiveView } = useApp();
 
   const [activeTab, setActiveTab] = useState<'copilot' | 'visual-inspection'>('copilot');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -137,9 +137,13 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
     setImageAnalysisError(null);
 
     try {
+      const token = await getIdToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch('/api/copilot/analyze-image', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           imageData: inspectedImage,
           locationContext: {
@@ -181,9 +185,13 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
     setIsGenerating(true);
 
     try {
+      const token = await getIdToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch('/api/copilot/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           prompt: text,
           preferredProvider,

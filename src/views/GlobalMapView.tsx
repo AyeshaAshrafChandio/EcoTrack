@@ -42,7 +42,7 @@ export const GlobalMapView: React.FC = () => {
     let isCancelled = false;
     const fetchOpenaq = async () => {
       try {
-        const res = await fetch(`/api/environment/openaq?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&radiusKm=120`);
+        const res = await fetch(`/api/environment/openaq?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&radius=25000`);
         if (!res.ok) return;
         const data = await res.json();
         if (!isCancelled && Array.isArray(data.stations)) {

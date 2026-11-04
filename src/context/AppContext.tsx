@@ -91,36 +91,44 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
-function parseViewFromUrl(): AppView {
+function parseViewAndReturnFromUrl(): { view: AppView; returnTo: AppView | null } {
   try {
-    // 1. Check window.location.hash (#/dashboard, #dashboard, etc.)
-    const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase().trim();
-    if (hash === 'login' || hash === 'auth') return 'auth';
-    if (hash === 'signup' || hash === 'register') return 'register';
-    if (hash === 'map') return 'global-map';
-    if (hash === 'copilot') return 'ai-copilot';
-    if (VALID_VIEWS.includes(hash as AppView)) {
-      return hash as AppView;
+    let raw = '';
+    if (window.location.hash) {
+      raw = window.location.hash.replace(/^#\/?/, '').trim();
+    } else if (window.location.pathname) {
+      raw = window.location.pathname.replace(/^\//, '').trim();
     }
 
-    // 2. Check window.location.pathname (/dashboard, /map, /copilot, etc.)
-    const pathname = window.location.pathname.replace(/^\//, '').toLowerCase().trim();
-    if (pathname === 'login' || pathname === 'auth') return 'auth';
-    if (pathname === 'signup' || pathname === 'register') return 'register';
-    if (pathname === 'map' || pathname === 'global-map') return 'global-map';
-    if (pathname === 'copilot' || pathname === 'ai-copilot') return 'ai-copilot';
-    if (VALID_VIEWS.includes(pathname as AppView)) {
-      return pathname as AppView;
+    const [pathPart, queryPart] = raw.split('?');
+    const path = pathPart.toLowerCase();
+
+    let returnTo: AppView | null = null;
+    const searchParams = new URLSearchParams(queryPart || window.location.search);
+    const rt = searchParams.get('returnTo')?.toLowerCase();
+    if (rt && VALID_VIEWS.includes(rt as AppView)) {
+      returnTo = rt as AppView;
     }
-  } catch (e) {
-    // ignore
+
+    let view: AppView = 'home';
+    if (path === 'login' || path === 'auth') view = 'auth';
+    else if (path === 'signup' || path === 'register') view = 'register';
+    else if (path === 'map' || path === 'global-map') view = 'global-map';
+    else if (path === 'copilot' || path === 'ai-copilot') view = 'ai-copilot';
+    else if (VALID_VIEWS.includes(path as AppView)) {
+      view = path as AppView;
+    }
+
+    return { view, returnTo };
+  } catch {
+    return { view: 'home', returnTo: null };
   }
-  return 'home';
 }
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [activeView, setActiveViewState] = useState<AppView>(parseViewFromUrl);
-  const [returnToView, setReturnToView] = useState<AppView | null>(null);
+  const initialNav = parseViewAndReturnFromUrl();
+  const [activeView, setActiveViewState] = useState<AppView>(initialNav.view);
+  const [returnToView, setReturnToView] = useState<AppView | null>(initialNav.returnTo);
   const [authPrompt, setAuthPrompt] = useState<{ isOpen: boolean; title: string; message: string; returnTo?: AppView } | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<{ name: string; lat: number; lon: number }>({
     name: 'Karachi, Pakistan',
@@ -152,14 +160,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   });
   const [authLoading, setAuthLoading] = useState<boolean>(true);
 
-  // Non-intrusive prompt helper
+  // Non-intrusive prompt helper (falls back to direct auth redirection)
   const promptSignIn = (options: { title: string; message: string; returnTo?: AppView }) => {
-    setAuthPrompt({
-      isOpen: true,
-      title: options.title,
-      message: options.message,
-      returnTo: options.returnTo || activeView,
-    });
+    setActiveView('auth', options.returnTo || activeView);
   };
 
   const closeAuthPrompt = () => {
@@ -169,29 +172,37 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Synchronize browser history and hash routing across all screens
   const setActiveView = (view: AppView, returnTo?: AppView) => {
     setActiveViewState(view);
-    if (returnTo) {
+    if (returnTo !== undefined) {
       setReturnToView(returnTo);
     }
-    const targetHash = `#/${view}`;
+    const targetHash = returnTo && (view === 'auth' || view === 'register')
+      ? `#/${view}?returnTo=${returnTo}`
+      : `#/${view}`;
     if (window.location.hash !== targetHash) {
-      window.history.pushState({ view }, '', targetHash);
+      window.history.pushState({ view, returnTo }, '', targetHash);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
     const handlePopState = () => {
-      const parsed = parseViewFromUrl();
-      setActiveViewState(parsed);
+      const parsed = parseViewAndReturnFromUrl();
+      setActiveViewState(parsed.view);
+      if (parsed.returnTo) {
+        setReturnToView(parsed.returnTo);
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('hashchange', handlePopState);
 
-    const initialView = parseViewFromUrl();
-    if (window.location.hash !== `#/${initialView}`) {
-      window.history.replaceState({ view: initialView }, '', `#/${initialView}`);
+    const initial = parseViewAndReturnFromUrl();
+    const initialHash = initial.returnTo && (initial.view === 'auth' || initial.view === 'register')
+      ? `#/${initial.view}?returnTo=${initial.returnTo}`
+      : `#/${initial.view}`;
+    if (window.location.hash !== initialHash) {
+      window.history.replaceState({ view: initial.view, returnTo: initial.returnTo }, '', initialHash);
     }
 
     return () => {
@@ -200,40 +211,62 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
   }, []);
 
-  // Firebase auth state listener
+  // Auth state listener & token verification on load / refresh
   useEffect(() => {
-    if (isFirebaseConfigured && auth) {
-      const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-        setFirebaseUser(fbUser);
-        if (fbUser) {
-          const mapped: OperatorUser = {
-            id: fbUser.uid,
-            name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Firebase Operator',
-            email: fbUser.email || '',
-            role: 'Verified Institutional Operator',
-            provider: 'firebase',
-          };
-          setCurrentUser(mapped);
-          localStorage.setItem('eco_operator_user', JSON.stringify(mapped));
-        } else {
-          // If no Firebase user, check if local operator session was active
-          const localUser = localStorage.getItem('eco_operator_user');
-          if (localUser) {
-            try {
-              setCurrentUser(JSON.parse(localUser));
-            } catch {
-              setCurrentUser(null);
-            }
+    async function initAuth() {
+      if (isFirebaseConfigured && auth) {
+        const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+          setFirebaseUser(fbUser);
+          if (fbUser) {
+            const token = await fbUser.getIdToken().catch(() => null);
+            if (token) localStorage.setItem('eco_operator_token', token);
+            const mapped: OperatorUser = {
+              id: fbUser.uid,
+              name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Firebase Operator',
+              email: fbUser.email || '',
+              role: 'Verified Institutional Operator',
+              provider: 'firebase',
+            };
+            setCurrentUser(mapped);
+            localStorage.setItem('eco_operator_user', JSON.stringify(mapped));
           } else {
-            setCurrentUser(null);
+            await verifyStoredLocalSession();
           }
-        }
+          setAuthLoading(false);
+        });
+        return () => unsubscribe();
+      } else {
+        await verifyStoredLocalSession();
         setAuthLoading(false);
-      });
-      return () => unsubscribe();
-    } else {
-      setAuthLoading(false);
+      }
     }
+
+    async function verifyStoredLocalSession() {
+      const token = localStorage.getItem('eco_operator_token');
+      if (token) {
+        try {
+          const res = await fetch('/api/auth/me', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setCurrentUser(data.user);
+            localStorage.setItem('eco_operator_user', JSON.stringify(data.user));
+            return;
+          }
+        } catch (e) {
+          console.warn('Network issue verifying session:', e);
+        }
+        // If token was rejected by backend
+        localStorage.removeItem('eco_operator_token');
+        localStorage.removeItem('eco_operator_user');
+        setCurrentUser(null);
+      } else {
+        setCurrentUser(null);
+      }
+    }
+
+    initAuth();
   }, []);
 
   const getIdToken = async (): Promise<string | null> => {
@@ -462,11 +495,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   ): Promise<{ success: boolean; error?: string }> => {
     const token = await getIdToken();
     if (!token) {
-      promptSignIn({
-        title: 'Sign in to Save Locations',
-        message: 'Personal monitoring nodes and custom cities are tied to your operator account. Sign in or register to keep them synchronized.',
-        returnTo: activeView,
-      });
+      setActiveView('auth', activeView);
       return { success: false, error: 'Authentication required. Please sign in to save personal locations.' };
     }
 
@@ -493,6 +522,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const deleteSavedLocation = async (id: string): Promise<{ success: boolean; error?: string }> => {
     const token = await getIdToken();
     if (!token) {
+      setActiveView('auth', activeView);
       return { success: false, error: 'Authentication required to remove saved locations.' };
     }
 
@@ -595,20 +625,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return;
       }
 
-      // Demo/Judge instant operator sign in
-      const demoUser: OperatorUser = {
-        id: `usr_operator_${Date.now()}`,
-        name: 'Lead Environmental Analyst',
-        email: 'analyst@ecotrack.local',
-        role: 'Verified Environmental Systems Engineer',
-        provider: 'local_oauth_demo',
-      };
-      const token = `eco_session_${demoUser.id}_demo`;
-      localStorage.setItem('eco_operator_token', token);
-      localStorage.setItem('eco_operator_user', JSON.stringify(demoUser));
-      setCurrentUser(demoUser);
-      setReturnToView(null);
-      setActiveView(destView);
+      throw new Error('Google Sign-In requires Firebase Authentication to be configured. Please register or sign in with your institutional email passphrase.');
     } finally {
       setAuthLoading(false);
     }
@@ -619,10 +636,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       await sendPasswordResetEmail(auth, email);
       return;
     }
-    throw new Error('Firebase Auth is not yet bound to an active project. Use email passphrase login or Google authentication.');
+    throw new Error('Firebase Auth is not yet bound to an active project. Use email passphrase login or register a new account.');
   };
 
   const logout = async (): Promise<void> => {
+    try {
+      const token = localStorage.getItem('eco_operator_token');
+      if (token) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      }
+    } catch {}
+
     if (isFirebaseConfigured && auth) {
       await firebaseSignOut(auth).catch(() => {});
     }

@@ -85,7 +85,10 @@ export class OpenAQService {
       };
     }
 
-    const cacheKey = `${lat.toFixed(3)}_${lon.toFixed(3)}_${radiusMeters}_${limit}`;
+    const clampedRadius = Math.min(25000, Math.max(100, Math.round(radiusMeters)));
+    const formattedLat = Number(lat.toFixed(4));
+    const formattedLon = Number(lon.toFixed(4));
+    const cacheKey = `${formattedLat}_${formattedLon}_${clampedRadius}_${limit}`;
     const cached = openAQCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return cached.data;
@@ -95,7 +98,7 @@ export class OpenAQService {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000);
 
-      const url = `https://api.openaq.org/v3/locations?coordinates=${lat},${lon}&radius=${radiusMeters}&limit=${limit}`;
+      const url = `https://api.openaq.org/v3/locations?coordinates=${formattedLat},${formattedLon}&radius=${clampedRadius}&limit=${limit}`;
 
       const res = await fetch(url, {
         headers: {
@@ -108,6 +111,7 @@ export class OpenAQService {
       clearTimeout(timeout);
 
       if (!res.ok) {
+        const errText = await res.text().catch(() => '');
         if (res.status === 401 || res.status === 403) {
           return {
             stations: [],
@@ -116,7 +120,7 @@ export class OpenAQService {
         }
         return {
           stations: [],
-          status: `OPENAQ_API_ERROR: HTTP ${res.status}`,
+          status: `OPENAQ_API_ERROR: HTTP ${res.status}${errText ? ` - ${errText.slice(0, 100)}` : ''}`,
         };
       }
 

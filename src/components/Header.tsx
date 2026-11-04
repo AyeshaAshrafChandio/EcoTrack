@@ -299,10 +299,11 @@ export const Header: React.FC = () => {
             </div>
 
             {/* Quick Auth Buttons (Desktop) if not logged in */}
+            {/* Quick Auth Buttons (Desktop) if not logged in */}
             {!currentUser && (
               <div className="hidden sm:flex items-center gap-1.5">
                 <button
-                  onClick={() => setActiveView('auth')}
+                  onClick={() => setActiveView('auth', activeView)}
                   className={`px-3 py-1.5 rounded-lg font-label-ui text-xs font-semibold transition-colors cursor-pointer ${
                     activeView === 'auth'
                       ? 'bg-primary text-on-primary'
@@ -312,7 +313,7 @@ export const Header: React.FC = () => {
                   Sign In
                 </button>
                 <button
-                  onClick={() => setActiveView('register')}
+                  onClick={() => setActiveView('register', activeView)}
                   className={`px-3 py-1.5 rounded-lg font-label-ui text-xs font-semibold transition-colors cursor-pointer ${
                     activeView === 'register'
                       ? 'bg-secondary text-on-secondary'
@@ -384,7 +385,7 @@ export const Header: React.FC = () => {
                         <span className="material-symbols-outlined text-[18px]">space_dashboard</span>
                         Live Dashboard
                       </span>
-                      <span className="font-label-mono-sm text-[0.625rem] text-secondary">ACTIVE</span>
+                      <span className="font-label-mono-sm text-[0.625rem] text-secondary">VIEW</span>
                     </button>
 
                     <button
@@ -399,6 +400,23 @@ export const Header: React.FC = () => {
                         Alert Rules
                       </span>
                       <span className="font-label-mono-sm text-[0.625rem] text-primary">MANAGE</span>
+                    </button>
+
+                    {/* Account Settings / Profile */}
+                    <button
+                      onClick={() => {
+                        setActiveView('auth', activeView);
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full text-left flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-body-sm text-xs transition-colors cursor-pointer"
+                    >
+                      <span className="flex items-center gap-space-xs">
+                        <span className="material-symbols-outlined text-[18px]">manage_accounts</span>
+                        Account Settings &amp; Profile
+                      </span>
+                      <span className="font-label-mono-sm text-[0.625rem] text-outline">
+                        {currentUser ? 'ACTIVE' : 'SIGN IN'}
+                      </span>
                     </button>
 
                     {currentUser ? (
@@ -420,7 +438,7 @@ export const Header: React.FC = () => {
                       <>
                         <button
                           onClick={() => {
-                            setActiveView('auth');
+                            setActiveView('auth', activeView);
                             setShowUserMenu(false);
                           }}
                           className="w-full text-left flex items-center justify-between px-3 py-2 rounded text-primary hover:bg-surface-container font-body-sm text-xs transition-colors cursor-pointer font-semibold border-t border-surface-container mt-1 pt-2"
@@ -433,7 +451,7 @@ export const Header: React.FC = () => {
                         </button>
                         <button
                           onClick={() => {
-                            setActiveView('register');
+                            setActiveView('register', activeView);
                             setShowUserMenu(false);
                           }}
                           className="w-full text-left flex items-center justify-between px-3 py-2 rounded text-secondary hover:bg-surface-container font-body-sm text-xs transition-colors cursor-pointer font-semibold"
@@ -508,7 +526,7 @@ export const Header: React.FC = () => {
                 );
               })}
 
-              {currentUser && (
+              {currentUser ? (
                 <div className="mt-2 pt-3 border-t border-surface-container">
                   <div className="px-3 py-1 font-label-mono-sm text-[0.625rem] text-on-surface-variant truncate">
                     Logged in as: <strong className="text-primary">{currentUser.email}</strong>
@@ -524,6 +542,32 @@ export const Header: React.FC = () => {
                     <span className="material-symbols-outlined text-[16px]">logout</span>
                     <span>Sign Out</span>
                   </button>
+                </div>
+              ) : (
+                <div className="mt-2 pt-3 border-t border-surface-container flex flex-col gap-2">
+                  <div className="px-3 py-1 font-label-mono-sm text-[0.625rem] text-secondary">
+                    GUEST OPERATOR (OPEN ACCESS ACTIVE)
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        setActiveView('auth', activeView);
+                        setShowMobileNav(false);
+                      }}
+                      className="px-3 py-2 rounded-lg bg-surface-container text-on-surface font-label-ui text-xs font-semibold hover:bg-surface-bright text-center cursor-pointer"
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      onClick={() => {
+                        setActiveView('register', activeView);
+                        setShowMobileNav(false);
+                      }}
+                      className="px-3 py-2 rounded-lg bg-primary text-on-primary font-label-ui text-xs font-semibold hover:bg-primary-fixed text-center cursor-pointer"
+                    >
+                      Sign Up
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

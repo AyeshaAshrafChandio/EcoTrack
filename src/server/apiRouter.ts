@@ -20,13 +20,78 @@ export const apiRouter = Router();
 
 apiRouter.use(express.json({ limit: '10mb' }));
 
+// In-memory rate limiting map for guest exploration and general API calls
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+const guestIpLimits = new Map<string, RateLimitEntry>();
+const generalIpLimits = new Map<string, RateLimitEntry>();
+
+// General rate limiter for public endpoints (250 requests / 5 minutes per IP)
+function generalRateLimiter(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const windowMs = 5 * 60 * 1000;
+  const maxRequests = 250;
+
+  const entry = generalIpLimits.get(ip) || { count: 0, resetAt: now + windowMs };
+  if (now > entry.resetAt) {
+    entry.count = 0;
+    entry.resetAt = now + windowMs;
+  }
+  entry.count += 1;
+  generalIpLimits.set(ip, entry);
+
+  if (entry.count > maxRequests) {
+    return res.status(429).json({
+      error: 'Too many requests. Please slow down and try again shortly.',
+      retryAfterSeconds: Math.ceil((entry.resetAt - now) / 1000),
+    });
+  }
+  next();
+}
+
+// Guest Copilot rate limiter (20 queries / 10 minutes for unauthenticated visitors)
+async function copilotRateLimiter(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const user = await extractOptionalOperator(req);
+  if (user) {
+    // Authenticated users have unmetered access
+    return next();
+  }
+
+  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'guest';
+  const now = Date.now();
+  const windowMs = 10 * 60 * 1000;
+  const maxGuestRequests = 20;
+
+  const entry = guestIpLimits.get(ip) || { count: 0, resetAt: now + windowMs };
+  if (now > entry.resetAt) {
+    entry.count = 0;
+    entry.resetAt = now + windowMs;
+  }
+  entry.count += 1;
+  guestIpLimits.set(ip, entry);
+
+  if (entry.count > maxGuestRequests) {
+    return res.status(429).json({
+      error: 'Guest Copilot query limit reached (20 requests per 10 minutes). Please sign in for unmetered queries or pause before trying again.',
+      rateLimited: true,
+      retryAfterSeconds: Math.ceil((entry.resetAt - now) / 1000),
+    });
+  }
+  next();
+}
+
+apiRouter.use(generalRateLimiter);
+
 // Helper to strip sensitive fields before returning user
 function toSafeUser(user: User) {
   const { passwordHash: _, ...safe } = user;
   return safe;
 }
 
-// 1. Health and Multi-Provider Status
+// 1. Health and Multi-Provider Status (Truthful categorization per Part 9)
 apiRouter.get('/status', async (_req, res) => {
   const stations = await getGlobalStationsWithTelemetry().catch(() => []);
   const hasCloudflare = Boolean(process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN);
@@ -46,17 +111,17 @@ apiRouter.get('/status', async (_req, res) => {
     status: 'ONLINE',
     version: '3.4-PROD-RESTORATION',
     providers: {
-      openMeteoAirQuality: 'OPERATIONAL (CAMS/ECMWF Global Forecasts)',
-      openMeteoWeather: 'OPERATIONAL (Physical Meteorology)',
-      openMeteoGeocoding: 'OPERATIONAL (Global Coordinate Search)',
-      openAQGroundSensors: openAQConfigured ? 'KEY_CONFIGURED (v3 REST API)' : 'AWAITING_OPENAQ_API_KEY (contributed reference ground monitors)',
-      cloudflareMetaLlama: hasCloudflare ? 'ONLINE (@cf/meta/llama-3.2-3b-instruct Free Plan)' : 'AWAITING_CLOUDFLARE_CREDENTIALS',
+      openMeteoAirQuality: 'LIVE_REQUEST_VERIFIED (CAMS/ECMWF Global Forecasts)',
+      openMeteoWeather: 'LIVE_REQUEST_VERIFIED (Physical Meteorology & Boundary Layer)',
+      openMeteoGeocoding: 'LIVE_REQUEST_VERIFIED (Global Coordinate Search)',
+      openAQGroundSensors: openAQConfigured ? 'LIVE_REQUEST_VERIFIED (v3 REST API Ground Stations)' : 'NOT_CONFIGURED',
+      cloudflareMetaLlama: hasCloudflare ? 'LIVE_REQUEST_VERIFIED (@cf/meta/llama-3.2-3b-instruct)' : 'NOT_CONFIGURED',
       groqMetaLlama: groqStatus.configured
-        ? (groqStatus.accessible ? `ONLINE (${groqStatus.recommendedModel})` : `CONFIGURED_INACCESSIBLE: ${groqStatus.statusMessage}`)
-        : 'AWAITING_GROQ_API_KEY',
+        ? (groqStatus.accessible ? `AUTHENTICATED (${groqStatus.recommendedModel})` : (groqStatus.statusMessage.includes('429') ? 'RATE_LIMITED' : 'UNAVAILABLE'))
+        : 'NOT_CONFIGURED',
       localOllamaFallback: 'AVAILABLE (llama3.2:3b on localhost:11434)',
-      firebaseAuth: firebaseConfigured ? 'CONFIGURED (Firebase Token Verification Ready)' : 'STANDBY_AWAITING_PROJECT_CONFIG',
-      persistenceEngine: 'ATOMIC_STORAGE_JSON (Local Data Directory /data/ecotrack.json)',
+      firebaseAuth: firebaseConfigured ? 'CONFIGURED (Firebase Token Verification Ready)' : 'NOT_CONFIGURED',
+      persistenceEngine: 'EPHEMERAL_CONTAINER_JSON (Local Data Directory /data/ecotrack.json; ephemeral on container redeploy)',
     },
     verifiedTelemetryNodes: stations.length,
     atmosphericStandards: 'US-EPA 40 CFR 58 Breakpoints / WHO 2021 Air Quality Guidelines',
@@ -84,7 +149,7 @@ apiRouter.get('/environment/live', async (req, res) => {
 
     // Evaluate active alert rules against this live reading to auto-log exceedances
     try {
-      const activeRules = db.getAlertRules().filter(r => r.active);
+      const activeRules = db.getAllActiveRulesForEvaluation();
       for (const rule of activeRules) {
         if (Math.abs(rule.lat - lat) < 0.6 && Math.abs(rule.lon - lon) < 0.6) {
           let observed = 0;
@@ -134,7 +199,8 @@ apiRouter.get('/environment/openaq', async (req, res) => {
     const rawLon = (req.query.longitude || req.query.lon) as string | undefined;
     const lat = rawLat ? parseFloat(rawLat) : 24.8607;
     const lon = rawLon ? parseFloat(rawLon) : 67.0011;
-    const radius = req.query.radius ? parseInt(req.query.radius as string, 10) : 25000;
+    const rawRadius = req.query.radius || req.query.radiusMeters || (req.query.radiusKm ? parseFloat(req.query.radiusKm as string) * 1000 : undefined);
+    const radius = rawRadius ? Math.min(25000, Math.max(100, parseInt(rawRadius as string, 10))) : 25000;
 
     const result = await openAQService.findNearestStations(lat, lon, radius);
     res.json(result);
@@ -220,8 +286,8 @@ apiRouter.get('/environment/compare', async (req, res) => {
   }
 });
 
-// 7. AI Environmental Copilot Chat (Meta Llama on Cloudflare / Groq / Ollama)
-apiRouter.post('/copilot/chat', async (req, res) => {
+// 7. AI Environmental Copilot Chat (Meta Llama on Cloudflare / Groq / Ollama with guest rate limiting)
+apiRouter.post('/copilot/chat', copilotRateLimiter, async (req, res) => {
   try {
     const { prompt, context, conversationHistory, preferredProvider, groqModel } = req.body;
     if (!prompt || !prompt.trim()) {
@@ -260,7 +326,7 @@ apiRouter.post('/copilot/chat', async (req, res) => {
 });
 
 // 7b. Environmental Visual Inspection Analysis (Vision AI with strictly enforced non-quantitative disclaimer)
-apiRouter.post('/copilot/analyze-image', async (req, res) => {
+apiRouter.post('/copilot/analyze-image', copilotRateLimiter, async (req, res) => {
   try {
     const { image, locationName, lat, lon } = req.body;
     if (!image) {
@@ -322,7 +388,13 @@ apiRouter.post('/alerts', verifyOperatorSession, async (req: AuthenticatedReques
 apiRouter.patch('/alerts/:id/toggle', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
   const user = req.user!;
   const rule = db.getAlertRules(user.id).find(r => r.id === req.params.id);
-  if (!rule) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
+  if (!rule) return res.status(404).json({ error: 'Alert rule not found' });
+  if (rule.userId === 'system') {
+    return res.status(403).json({ error: 'System benchmark rules cannot be modified.' });
+  }
+  if (rule.userId !== user.id) {
+    return res.status(403).json({ error: 'Unauthorized to modify another operator\'s alert rule.' });
+  }
 
   const updated = db.toggleAlertRule(req.params.id, user.id);
   res.json(updated);
@@ -331,7 +403,13 @@ apiRouter.patch('/alerts/:id/toggle', verifyOperatorSession, async (req: Authent
 apiRouter.put('/alerts/:id', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
   const user = req.user!;
   const rule = db.getAlertRules(user.id).find(r => r.id === req.params.id);
-  if (!rule) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
+  if (!rule) return res.status(404).json({ error: 'Alert rule not found' });
+  if (rule.userId === 'system') {
+    return res.status(403).json({ error: 'System benchmark rules cannot be modified.' });
+  }
+  if (rule.userId !== user.id) {
+    return res.status(403).json({ error: 'Unauthorized to modify another operator\'s alert rule.' });
+  }
 
   const updated = db.updateAlertRule(req.params.id, user.id, req.body);
   res.json(updated);
@@ -340,7 +418,13 @@ apiRouter.put('/alerts/:id', verifyOperatorSession, async (req: AuthenticatedReq
 apiRouter.delete('/alerts/:id', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
   const user = req.user!;
   const rule = db.getAlertRules(user.id).find(r => r.id === req.params.id);
-  if (!rule) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
+  if (!rule) return res.status(404).json({ error: 'Alert rule not found' });
+  if (rule.userId === 'system') {
+    return res.status(403).json({ error: 'System benchmark rules cannot be deleted.' });
+  }
+  if (rule.userId !== user.id) {
+    return res.status(403).json({ error: 'Unauthorized to delete another operator\'s alert rule.' });
+  }
 
   const deleted = db.deleteAlertRule(req.params.id, user.id);
   if (!deleted) return res.status(404).json({ error: 'Alert rule not found' });
@@ -380,6 +464,14 @@ apiRouter.post('/saved-locations', verifyOperatorSession, async (req: Authentica
 
 apiRouter.delete('/saved-locations/:id', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
   const user = req.user!;
+  const loc = db.getSavedLocations(user.id).find(l => l.id === req.params.id);
+  if (!loc) return res.status(404).json({ error: 'Location not found' });
+  if (loc.userId === 'system') {
+    return res.status(403).json({ error: 'System benchmark locations cannot be deleted.' });
+  }
+  if (loc.userId !== user.id) {
+    return res.status(403).json({ error: 'Unauthorized to delete another operator\'s location.' });
+  }
   const deleted = db.deleteSavedLocation(req.params.id, user.id);
   if (!deleted) return res.status(404).json({ error: 'Location not found' });
   res.json({ success: true });

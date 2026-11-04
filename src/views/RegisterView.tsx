@@ -5,6 +5,7 @@ import { formatFirebaseAuthError } from '../firebase';
 export const RegisterView: React.FC = () => {
   const {
     setActiveView,
+    returnToView,
     registerWithEmail,
     loginWithGoogle,
     currentUser,
@@ -47,13 +48,6 @@ export const RegisterView: React.FC = () => {
     try {
       const displayName = orgName.trim() ? `${operatorName.trim()} (${orgName.trim()})` : operatorName.trim();
       await registerWithEmail(email.trim(), password, displayName);
-      setStatusMsg({
-        text: 'Operator account provisioned successfully! Connecting node to telemetry mesh...',
-        type: 'success',
-      });
-      setTimeout(() => {
-        setActiveView('dashboard');
-      }, 800);
     } catch (err: any) {
       setStatusMsg({ text: formatFirebaseAuthError(err), type: 'error' });
     } finally {
@@ -66,13 +60,6 @@ export const RegisterView: React.FC = () => {
     setStatusMsg(null);
     try {
       await loginWithGoogle();
-      setStatusMsg({
-        text: 'Google operator registration successful! Connecting node...',
-        type: 'success',
-      });
-      setTimeout(() => {
-        setActiveView('dashboard');
-      }, 700);
     } catch (err: any) {
       setStatusMsg({ text: formatFirebaseAuthError(err), type: 'error' });
     } finally {
@@ -359,7 +346,7 @@ export const RegisterView: React.FC = () => {
               Already have an operator account?{' '}
               <button
                 type="button"
-                onClick={() => setActiveView('auth')}
+                onClick={() => setActiveView('auth', returnToView || undefined)}
                 className="text-primary hover:underline font-semibold cursor-pointer"
               >
                 Sign in here (Screen 7)
