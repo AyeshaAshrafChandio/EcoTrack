@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { Router } from 'express';
 import express from 'express';
 import { db, hashPassword, verifyPassword, type User } from './db';
@@ -105,7 +107,14 @@ apiRouter.get('/status', async (_req, res) => {
     recommendedModel: 'llama-3.3-70b-versatile',
   }));
   const openAQConfigured = openAQService.isKeyConfigured();
-  const firebaseConfigured = Boolean(process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID);
+  let firebaseConfigured = Boolean(process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID);
+  if (!firebaseConfigured) {
+    try {
+      if (fs.existsSync(path.resolve(process.cwd(), 'firebase-applet-config.json'))) {
+        firebaseConfigured = true;
+      }
+    } catch {}
+  }
 
   res.json({
     status: 'ONLINE',
@@ -193,7 +202,7 @@ apiRouter.get('/environment/live', async (req, res) => {
 });
 
 // 3. OpenAQ v3 Physical Ground Stations
-apiRouter.get('/environment/openaq', async (req, res) => {
+apiRouter.get(['/environment/openaq', '/environment/openaq/stations'], async (req, res) => {
   try {
     const rawLat = (req.query.latitude || req.query.lat) as string | undefined;
     const rawLon = (req.query.longitude || req.query.lon) as string | undefined;
@@ -328,16 +337,31 @@ apiRouter.post('/copilot/chat', copilotRateLimiter, async (req, res) => {
 // 7b. Environmental Visual Inspection Analysis (Vision AI with strictly enforced non-quantitative disclaimer)
 apiRouter.post('/copilot/analyze-image', copilotRateLimiter, async (req, res) => {
   try {
-    const { image, locationName, lat, lon } = req.body;
+    const image = req.body.image || req.body.imageData;
     if (!image) {
       return res.status(400).json({ error: 'Image data is required' });
     }
 
+    const locationName = req.body.locationName || req.body.locationContext?.name || 'Monitored Site';
+    const lat = req.body.lat !== undefined
+      ? parseFloat(req.body.lat)
+      : (req.body.locationContext?.lat !== undefined ? parseFloat(req.body.locationContext.lat) : 24.8607);
+    const lon = req.body.lon !== undefined
+      ? parseFloat(req.body.lon)
+      : (req.body.locationContext?.lon !== undefined ? parseFloat(req.body.locationContext.lon) : 67.0011);
+    const telemetry = req.body.locationContext?.telemetry;
+
     const result = await aiCopilotService.analyzeImageContext({
       image,
-      locationName: locationName || 'Monitored Site',
-      lat: lat !== undefined ? parseFloat(lat) : 24.8607,
-      lon: lon !== undefined ? parseFloat(lon) : 67.0011,
+      locationName,
+      lat,
+      lon,
+      locationContext: {
+        name: locationName,
+        lat,
+        lon,
+        telemetry,
+      },
     });
 
     res.json(result);

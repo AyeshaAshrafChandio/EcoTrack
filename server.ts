@@ -2,12 +2,23 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { apiRouter } from './src/server/apiRouter';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
+  const isTsx = process.execArgv.some(a => a.includes('tsx')) || process.env.TSX_ACTIVE === 'true';
+  if (!isTsx) {
+    const { spawn } = await import('node:child_process');
+    const child = spawn('npx', ['tsx', __filename, ...process.argv.slice(2)], {
+      stdio: 'inherit',
+      env: { ...process.env, TSX_ACTIVE: 'true' },
+    });
+    child.on('exit', (code) => process.exit(code ?? 0));
+    return;
+  }
+
+  const { apiRouter } = await import('./src/server/apiRouter');
   const app = express();
 
   // Parse port from environment variable or CLI arguments (--port 3000 or -p 3000)

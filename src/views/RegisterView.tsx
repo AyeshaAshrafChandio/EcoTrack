@@ -60,6 +60,8 @@ export const RegisterView: React.FC = () => {
     setStatusMsg(null);
     try {
       await loginWithGoogle();
+      const destName = returnToView === 'alerts' ? 'alerts ledger' : returnToView === 'ai-copilot' ? 'AI copilot' : 'environmental dashboard';
+      setStatusMsg({ text: `Google account verified! Entering ${destName}...`, type: 'success' });
     } catch (err: any) {
       setStatusMsg({ text: formatFirebaseAuthError(err), type: 'error' });
     } finally {

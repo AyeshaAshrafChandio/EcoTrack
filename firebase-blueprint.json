@@ -1,0 +1,38 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Registered operator user profile",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase user UID"
+        },
+        "email": {
+          "type": "string",
+          "description": "User institutional email address"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Operator display name"
+        },
+        "role": {
+          "type": "string",
+          "description": "Operator role"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Profile creation timestamp"
+        }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Operator profiles collection"
+    }
+  }
+}

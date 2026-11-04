@@ -6,6 +6,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
@@ -215,6 +217,39 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     async function initAuth() {
       if (isFirebaseConfigured && auth) {
+        // Handle redirect result if user returned from Google redirect flow
+        try {
+          const redirectResult = await getRedirectResult(auth);
+          if (redirectResult?.user) {
+            const fbUser = redirectResult.user;
+            const token = await fbUser.getIdToken().catch(() => null);
+            if (token) localStorage.setItem('eco_operator_token', token);
+            const mapped: OperatorUser = {
+              id: fbUser.uid,
+              name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Google Operator',
+              email: fbUser.email || '',
+              role: 'Verified Institutional Operator',
+              provider: 'google.com',
+            };
+            setCurrentUser(mapped);
+            setFirebaseUser(fbUser);
+            localStorage.setItem('eco_operator_user', JSON.stringify(mapped));
+            
+            // Sync with backend
+            if (token) {
+              fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+            }
+
+            const savedDest = sessionStorage.getItem('eco_redirect_dest') as AppView | null;
+            if (savedDest) {
+              sessionStorage.removeItem('eco_redirect_dest');
+              setActiveView(savedDest);
+            }
+          }
+        } catch (redirErr) {
+          console.warn('Redirect result check notice:', redirErr);
+        }
+
         const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
           setFirebaseUser(fbUser);
           if (fbUser) {
@@ -225,10 +260,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
               name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Firebase Operator',
               email: fbUser.email || '',
               role: 'Verified Institutional Operator',
-              provider: 'firebase',
+              provider: fbUser.providerData?.[0]?.providerId || 'firebase',
             };
             setCurrentUser(mapped);
             localStorage.setItem('eco_operator_user', JSON.stringify(mapped));
+
+            // Sync with backend session
+            if (token) {
+              fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+            }
           } else {
             await verifyStoredLocalSession();
           }
@@ -256,6 +296,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           }
         } catch (e) {
           console.warn('Network issue verifying session:', e);
+          const savedUser = localStorage.getItem('eco_operator_user');
+          if (savedUser) {
+            try {
+              setCurrentUser(JSON.parse(savedUser));
+              return;
+            } catch {}
+          }
         }
         // If token was rejected by backend
         localStorage.removeItem('eco_operator_token');
@@ -619,9 +666,52 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       if (isFirebaseConfigured && auth) {
         const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-        setReturnToView(null);
-        setActiveView(destView);
+        provider.setCustomParameters({
+          prompt: 'select_account',
+        });
+
+        try {
+          const result = await signInWithPopup(auth, provider);
+          if (result?.user) {
+            const fbUser = result.user;
+            const token = await fbUser.getIdToken();
+            if (token) localStorage.setItem('eco_operator_token', token);
+            const mapped: OperatorUser = {
+              id: fbUser.uid,
+              name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Google Operator',
+              email: fbUser.email || '',
+              role: 'Verified Institutional Operator',
+              provider: 'google.com',
+            };
+            setCurrentUser(mapped);
+            setFirebaseUser(fbUser);
+            localStorage.setItem('eco_operator_user', JSON.stringify(mapped));
+
+            // Sync with backend session to persist operator profile
+            try {
+              if (token) {
+                await fetch('/api/auth/me', {
+                  headers: { Authorization: `Bearer ${token}` },
+                });
+              }
+            } catch (syncErr) {
+              console.warn('Backend session sync notice:', syncErr);
+            }
+
+            setReturnToView(null);
+            setActiveView(destView);
+            return;
+          }
+        } catch (popupErr: any) {
+          // If popup is blocked by browser within iframe, fallback to redirect flow
+          if (popupErr?.code === 'auth/popup-blocked' || popupErr?.code === 'auth/cancelled-popup-request') {
+            console.warn('Popup blocked in iframe, triggering redirect flow:', popupErr);
+            sessionStorage.setItem('eco_redirect_dest', destView);
+            await signInWithRedirect(auth, provider);
+            return;
+          }
+          throw popupErr;
+        }
         return;
       }
 
@@ -655,6 +745,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
     localStorage.removeItem('eco_operator_token');
     localStorage.removeItem('eco_operator_user');
+    sessionStorage.removeItem('eco_redirect_dest');
     setCurrentUser(null);
     setFirebaseUser(null);
     setSavedLocations([]);
