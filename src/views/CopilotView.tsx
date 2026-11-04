@@ -63,7 +63,7 @@ Ask me any diagnostic question regarding atmospheric dispersion, boundary layer 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const [visionResult, setVisionResult] = useState<any>({
-    analysisSummary: 'Meta SAM 3.1 segmentation executed with 3 distinct atmospheric semantic layers. Optical haze opacity calculated at 28% with estimated horizontal visual range of 14.2 km. Ground contrast attenuation ratio is 0.82.',
+    analysisSummary: 'Atmospheric optical contrast analysis executed via client-side Michelson luminance attenuation heuristic. Real Meta SAM 3.1 ViT-H model inference is BLOCKED (no endpoint provisioned). Optical haze opacity calculated at 28% with estimated horizontal visual range of 14.2 km. Ground contrast attenuation ratio is 0.82.',
     hazeOpacityPercentage: 28,
     opticalVisibilityEstimateKm: 14.2,
     contrastAttenuationRatio: 0.82,
@@ -73,12 +73,12 @@ Ask me any diagnostic question regarding atmospheric dispersion, boundary layer 
       'Unrestricted Horizontal Visual Horizon',
     ],
     masks: [
-      { id: '1', label: 'Tropospheric Sky Deck', confidence: 0.96, color: '#4cd7f6' },
-      { id: '2', label: 'Atmospheric Particulate Haze', confidence: 0.91, color: '#ffb4ab' },
-      { id: '3', label: 'Ground Terrain & Urban Canopy', confidence: 0.98, color: '#4edea3' },
+      { id: '1', label: 'Tropospheric Sky Deck (Optical Boundary)', confidence: 0.96, color: '#4cd7f6' },
+      { id: '2', label: 'Atmospheric Particulate Haze (Optical Boundary)', confidence: 0.91, color: '#ffb4ab' },
+      { id: '3', label: 'Ground Terrain & Canopy (Optical Boundary)', confidence: 0.98, color: '#4edea3' },
     ],
     scientificDisclaimer:
-      'CRITICAL SCIENTIFIC INTEGRITY NOTICE: Visual context only — not an AQI measurement. RGB image segmentation identifies optical particulate haze scattering, contrast attenuation, and horizon obscuration, but CANNOT directly measure physical aerosol mass concentration (PM2.5 / PM10 in µg/m³) or official EPA AQI values. Calibrated ground stations remain the sole authoritative standards.',
+      'CRITICAL SCIENTIFIC INTEGRITY NOTICE: Visual context only — not an AQI measurement. Client-side RGB pixel luminance and Michelson contrast heuristics identify horizon obscuration, but CANNOT directly measure physical aerosol mass concentration (PM2.5 / PM10 in µg/m³) or substitute for SAM 3.1 deep inference. Calibrated ground stations remain the sole authoritative standards.',
   });
 
   const handleImageFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -394,7 +394,7 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
               }`}
             >
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">visibility</span>
-              <span>Meta SAM 3.1</span>
+              <span>Vision Analysis (Optical)</span>
             </button>
           </div>
         </div>
@@ -524,9 +524,9 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                 </div>
               </div>
             ) : (
-              /* Meta SAM 3.1 Vision AI Panel */
+              /* Atmospheric Optical Vision Analysis Panel (SAM 3.1 BLOCKED) */
               <div className="rounded-2xl bg-surface-container-low border border-surface-container shadow-xl p-4 sm:p-5 space-y-3 sm:space-y-4">
-                {/* Mandatory Scientific Disclaimer Banner */}
+                {/* Status Notice Banner */}
                 <div className="flex items-center justify-between flex-wrap gap-2 px-3 py-2 rounded-xl bg-secondary-container/30 border border-secondary/30 text-secondary">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[18px]">verified</span>
@@ -534,18 +534,23 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                       Visual context only — not an AQI measurement.
                     </span>
                   </div>
-                  <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant">
-                    Standard: Optical Haze Attenuation
+                  <span className="font-label-mono-sm text-[0.625rem] text-error font-semibold bg-error/10 px-2 py-0.5 rounded">
+                    SAM 3.1 ViT-H: BLOCKED (No inference endpoint provisioned)
                   </span>
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <h3 className="font-headline-md text-base sm:text-headline-md font-bold text-on-surface">
-                      Meta SAM 3.1 Atmospheric Vision Segmentation
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-headline-md text-base sm:text-headline-md font-bold text-on-surface">
+                        Atmospheric Optical Haze Analysis
+                      </h3>
+                      <span className="px-2 py-0.5 rounded bg-surface-container text-outline font-label-mono-sm text-[0.625rem] uppercase font-bold">
+                        Optical Heuristic (Non-AI)
+                      </span>
+                    </div>
                     <p className="font-body-sm text-xs text-on-surface-variant">
-                      Vision Transformer (ViT-H) decomposing particulate haze, aerosol plumes, and tropospheric sky.
+                      RGB luminance attenuation &amp; Michelson contrast analysis. Real-time SAM 3.1 model weights/API are not provisioned in this environment.
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -570,9 +575,9 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                       className="px-3.5 py-2 rounded-lg bg-secondary text-on-secondary font-label-ui text-xs sm:text-sm font-bold shadow hover:bg-secondary-fixed transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
                     >
                       <span className="material-symbols-outlined text-[16px]">
-                        {visionAnalyzing ? 'progress_activity' : 'segment'}
+                        {visionAnalyzing ? 'progress_activity' : 'contrast'}
                       </span>
-                      <span>{visionAnalyzing ? 'SEGMENTING...' : 'RUN SAM 3.1'}</span>
+                      <span>{visionAnalyzing ? 'ANALYZING...' : 'RUN OPTICAL HEURISTIC (NON-AI)'}</span>
                     </button>
                   </div>
                 </div>
@@ -592,26 +597,26 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                     className="w-full h-full object-cover"
                   />
 
-                  {/* SAM 3.1 Mask Overlays */}
+                  {/* Optical Mask Overlays */}
                   <div className="absolute inset-0 pointer-events-none">
                     {/* Sky deck mask */}
                     <div className="absolute top-0 left-0 right-0 h-[48%] bg-cyan-400/20 border-b border-cyan-400/60 backdrop-blur-[1px] flex items-start p-2">
                       <span className="font-label-mono-sm text-[0.55rem] sm:text-[0.625rem] px-1.5 sm:px-2 py-0.5 rounded bg-cyan-900/80 text-cyan-200 truncate">
-                        SAM 3.1: Sky Deck [0.96 Conf]
+                        Optical Boundary: Sky Deck (Heuristic)
                       </span>
                     </div>
 
                     {/* Particulate haze plume mask */}
                     <div className="absolute top-[38%] left-[6%] right-[6%] h-[28%] bg-rose-500/25 border border-dashed border-rose-400/70 rounded-lg flex items-center justify-center p-1">
                       <span className="font-label-mono-sm text-[0.55rem] sm:text-[0.625rem] px-1.5 sm:px-2 py-0.5 rounded bg-rose-950/80 text-rose-200 text-center truncate">
-                        SAM 3.1: Particulate Haze Layer [0.91 Conf] • Opacity {visionResult.hazeOpacityPercentage}%
+                        Optical Contrast: Particulate Haze Band • Opacity {visionResult.hazeOpacityPercentage}%
                       </span>
                     </div>
 
                     {/* Ground terrain mask */}
                     <div className="absolute bottom-0 left-0 right-0 h-[38%] bg-emerald-500/15 border-t border-emerald-400/60 flex items-end p-2">
                       <span className="font-label-mono-sm text-[0.55rem] sm:text-[0.625rem] px-1.5 sm:px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-200 truncate">
-                        SAM 3.1: Ground Canopy [0.98 Conf]
+                        Optical Boundary: Ground &amp; Canopy (Heuristic)
                       </span>
                     </div>
                   </div>

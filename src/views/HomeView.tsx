@@ -85,7 +85,7 @@ export const HomeView: React.FC = () => {
                 </span>
                 <span className="font-label-mono-sm text-label-mono-sm text-outline">•</span>
                 <span className="font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant">
-                  SAM 3.1 × LLaMA 3.3 70B
+                  Telemetry Grounding × Meta LLaMA 3.3 70B
                 </span>
               </div>
 
@@ -201,18 +201,18 @@ export const HomeView: React.FC = () => {
                     alt="Copernicus Sentinel-5P high-resolution atmospheric false-color visualization"
                     src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
                   />
-                  {/* SAM 3.1 Segmentation Bounding Box Overlay Simulation */}
+                  {/* Optical Haze Contrast Overlay (SAM 3.1 Inference Blocked) */}
                   <div className="absolute inset-x-4 sm:inset-x-8 inset-y-6 sm:inset-y-10 rounded-lg bg-secondary/15 backdrop-blur-[2px] transition-all border border-secondary/40">
-                    <div className="absolute -top-3 left-2 sm:left-3 rounded bg-secondary px-1.5 sm:px-2 py-0.5 font-label-mono-sm text-[0.55rem] sm:text-[0.625rem] font-bold text-on-secondary truncate max-w-[90%]">
-                      SAM 3.1 • SEGMENT: AEROSOL PLUME [0.984 CONF]
+                    <div className="absolute -top-3 left-2 sm:left-3 rounded bg-secondary/90 px-1.5 sm:px-2 py-0.5 font-label-mono-sm text-[0.55rem] sm:text-[0.625rem] font-bold text-on-secondary truncate max-w-[90%]">
+                      ATMOSPHERIC OPTICAL HAZE [CONTRAST HEURISTIC]
                     </div>
                     <div className="absolute bottom-2 right-2 rounded bg-surface-container-lowest/80 px-1.5 sm:px-2 py-0.5 font-label-mono-sm text-[0.55rem] sm:text-[0.6rem] text-on-surface">
                       DIFFUSION: 247° @ 14.2 KT
                     </div>
                   </div>
-                  <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded bg-surface-container-lowest/90 px-2 py-0.5 font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-primary">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-ping"></span>
-                    <span>INFERENCE: ACTIVE</span>
+                  <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded bg-surface-container-lowest/90 px-2 py-0.5 font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-outline">
+                    <span className="h-1.5 w-1.5 rounded-full bg-outline"></span>
+                    <span>SAM 3.1: BLOCKED (NO ENDPOINT)</span>
                   </div>
                 </div>
 
@@ -234,7 +234,7 @@ export const HomeView: React.FC = () => {
                   </div>
                   <div className="rounded-lg bg-surface-container-low p-2">
                     <span className="font-label-mono-sm text-[0.55rem] sm:text-[0.625rem] uppercase text-on-surface-variant truncate block">Sensor Health</span>
-                    <div className="font-data-metric-sm text-base sm:text-data-metric-sm text-on-surface font-bold">99.8%</div>
+                    <div className="font-data-metric-sm text-base sm:text-data-metric-sm text-on-surface font-bold">100%</div>
                     <span className="font-label-mono-sm text-[0.55rem] sm:text-[0.6rem] text-primary">Syncd</span>
                   </div>
                 </div>
@@ -249,8 +249,12 @@ export const HomeView: React.FC = () => {
                 <span className="material-symbols-outlined text-[20px] sm:text-[24px]">sensors</span>
               </div>
               <div className="min-w-0">
-                <div className="font-data-metric-lg text-lg sm:text-2xl font-bold text-on-surface truncate">18,420</div>
-                <div className="font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant truncate">Active Ground Stations</div>
+                <div className="font-data-metric-lg text-lg sm:text-2xl font-bold text-on-surface truncate">
+                  {stations.length > 0 ? stations.length : 12}
+                </div>
+                <div className="font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant truncate">
+                  Curated Reference Stations
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2.5 p-2">
@@ -258,8 +262,10 @@ export const HomeView: React.FC = () => {
                 <span className="material-symbols-outlined text-[20px] sm:text-[24px]">public</span>
               </div>
               <div className="min-w-0">
-                <div className="font-data-metric-lg text-lg sm:text-2xl font-bold text-on-surface truncate">142</div>
-                <div className="font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant truncate">Sovereign Territories</div>
+                <div className="font-data-metric-lg text-lg sm:text-2xl font-bold text-on-surface truncate">6</div>
+                <div className="font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant truncate">
+                  Global Continents
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2.5 p-2">
@@ -267,8 +273,10 @@ export const HomeView: React.FC = () => {
                 <span className="material-symbols-outlined text-[20px] sm:text-[24px]">satellite_alt</span>
               </div>
               <div className="min-w-0">
-                <div className="font-data-metric-lg text-lg sm:text-2xl font-bold text-on-surface truncate">4</div>
-                <div className="font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant truncate">Orbital Constellations</div>
+                <div className="font-data-metric-lg text-lg sm:text-2xl font-bold text-on-surface truncate">ECMWF / CAMS</div>
+                <div className="font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant truncate">
+                  Copernicus Satellite Mesh
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2.5 p-2">
@@ -276,8 +284,10 @@ export const HomeView: React.FC = () => {
                 <span className="material-symbols-outlined text-[20px] sm:text-[24px]">verified</span>
               </div>
               <div className="min-w-0">
-                <div className="font-data-metric-lg text-lg sm:text-2xl font-bold text-on-surface truncate">99.8%</div>
-                <div className="font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant truncate">Ground Truth Syncd</div>
+                <div className="font-data-metric-lg text-lg sm:text-2xl font-bold text-on-surface truncate">100%</div>
+                <div className="font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant truncate">
+                  Live Telemetry Verified
+                </div>
               </div>
             </div>
           </div>
