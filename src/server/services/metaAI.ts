@@ -2,12 +2,25 @@
  * Meta AI Environmental Intelligence & Vision AI Service
  *
  * Implements:
- * 1. Meta AI Copilot: Direct invocation of Meta LLaMA 3.3 70B via META_API_KEY or GROQ_API_KEY.
- *    Strictly does not fake responses or silently replace with other providers.
- * 2. SAM Atmospheric Vision Analysis: Evaluates optical haze attenuation with transparent disclosure.
+ * 1. Meta AI Copilot via Groq Cloud LPU Engine:
+ *    - Priority Model: meta-models/muse-spark-open (Meta's reasoning & agentic MoE model)
+ *    - Open-Weights Fallback: llama-3.3-70b-versatile (Meta's 70B open weight) for text/reasoning
+ *    - Multimodal Vision: llama-3.2-11b-vision-preview (Meta's vision open weight) for images
+ *    - Real Tool Calling: Grounded execution of live Open-Meteo & ECMWF/CAMS physical telemetry
+ * 2. Transparent attribution:
+ *    - Model Creator: Meta
+ *    - Inference Provider: Groq Cloud
+ *    - License: Meta Llama 3 Community License / Open Weights
+ * 3. Vision AI:
+ *    - Multimodal visual reasoning with Meta Vision on Groq
+ *    - Optical haze & Michelson contrast heuristics with full scientific disclosure
  */
 
-import type { EnvironmentalTelemetry } from './environmental';
+import {
+  type EnvironmentalTelemetry,
+  fetchLiveEnvironment,
+  searchLocations,
+} from './environmental';
 
 export interface CopilotChatRequest {
   prompt: string;
@@ -18,15 +31,27 @@ export interface CopilotChatRequest {
     telemetry?: EnvironmentalTelemetry;
   };
   conversationHistory?: Array<{
-    role: 'user' | 'assistant' | 'system';
+    role: 'user' | 'assistant' | 'system' | 'tool';
     content: string;
+    name?: string;
+    tool_call_id?: string;
   }>;
+  attachedImage?: string; // Base64 or URL
+}
+
+export interface ToolExecutionRecord {
+  toolName: string;
+  arguments: any;
+  resultSummary: string;
+  timestamp: string;
 }
 
 export interface CopilotChatResponse {
   reply: string;
   modelUsed: string;
-  provider: 'Meta LLaMA 3.3 70B' | 'BLOCKED_CREDENTIALS_REQUIRED';
+  modelCreator: 'Meta';
+  provider: 'Groq Cloud LPU Engine' | 'Meta Model API' | 'BLOCKED_CREDENTIALS_REQUIRED';
+  license: string;
   citations: string[];
   atmosphericDiagnostics: {
     inversionRisk: 'Low' | 'Moderate' | 'Severe';
@@ -34,6 +59,8 @@ export interface CopilotChatResponse {
     ventilationFactor: string;
     guidelineComparison: string;
   };
+  toolsExecuted?: ToolExecutionRecord[];
+  museSparkOpenTestStatus?: string;
   status: 'ONLINE' | 'BLOCKED';
   errorMessage?: string;
   timestamp: string;
@@ -57,6 +84,7 @@ export interface VisionSegmentationResponse {
   opticalVisibilityEstimateKm: number;
   contrastAttenuationRatio: number;
   detectedVisualPhenomena: string[];
+  aiVisionInsights?: string;
   masks: Array<{
     id: string;
     label: 'Atmospheric Particulate Haze' | 'Tropospheric Sky Deck' | 'Ground Terrain & Urban Canopy';
@@ -65,18 +93,52 @@ export interface VisionSegmentationResponse {
     boundingBox: [number, number, number, number];
   }>;
   scientificDisclaimer: string;
-  executionMode: 'HEURISTIC_OPTICAL_MODEL' | 'META_SAM_TRANSFORMER';
-  metaSamArchitecture: {
-    encoder: string;
-    promptEngine: string;
-    confidenceThreshold: number;
-  };
+  executionMode: 'META_VISION_GROQ_MULTIMODAL' | 'HEURISTIC_OPTICAL_MODEL';
+  modelUsed?: string;
+  modelCreator?: 'Meta';
+  inferenceProvider?: string;
+  status: 'ONLINE' | 'BLOCKED_CREDENTIALS_REQUIRED';
   timestamp: string;
 }
 
+// Tool Definitions for Meta Models (OpenAI-compatible function calling format)
+const COPILOT_TOOLS = [
+  {
+    type: 'function',
+    function: {
+      name: 'get_environmental_telemetry',
+      description:
+        'Fetch real-time atmospheric, air quality (AQI, PM2.5, PM10, NO2, O3, SO2, CO) and meteorological telemetry (temperature, wind, planetary boundary layer height) for any latitude and longitude or city name.',
+      parameters: {
+        type: 'object',
+        properties: {
+          lat: { type: 'number', description: 'Latitude coordinate' },
+          lon: { type: 'number', description: 'Longitude coordinate' },
+          locationName: { type: 'string', description: 'City or station name' },
+        },
+        required: ['lat', 'lon'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'search_locations',
+      description: 'Search for cities and air quality stations by name to resolve coordinates.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: "Search query e.g. 'Reykjavik', 'London', 'Tokyo'" },
+        },
+        required: ['query'],
+      },
+    },
+  },
+];
+
 export class MetaAIService {
   /**
-   * Environmental Copilot chat with strict Meta AI verification
+   * Environmental Copilot chat with strict Meta AI verification & tool calling
    */
   public async generateCopilotResponse(req: CopilotChatRequest): Promise<CopilotChatResponse> {
     let invRisk: 'Low' | 'Moderate' | 'Severe' = 'Low';
@@ -129,36 +191,30 @@ PROVENANCE: Calibrated WMO GAW physical sensors & Open-Meteo ECMWF/CAMS telemetr
       `.trim();
     }
 
-    // Inspect configured Meta LLaMA API credentials
     const groqKey = process.env.GROQ_API_KEY;
-    const togetherKey = process.env.TOGETHER_API_KEY;
-    const metaApiKey = process.env.META_API_KEY || groqKey || togetherKey;
-    const metaEndpoint = process.env.META_LLAMA_ENDPOINT ||
-      (groqKey ? 'https://api.groq.com/openai/v1/chat/completions' :
-       togetherKey ? 'https://api.together.xyz/v1/chat/completions' :
-       'https://api.meta.ai/v1/chat/completions');
-    const llamaModel = process.env.META_MODEL_NAME ||
-      (groqKey ? 'llama-3.3-70b-versatile' :
-       togetherKey ? 'meta-llama/Llama-3.3-70B-Instruct-Turbo' :
-       'meta-llama/llama-3.3-70b-instruct');
+    const directMetaKey = process.env.META_API_KEY;
+    const apiKey = groqKey || directMetaKey;
 
-    if (!metaApiKey) {
-      // Truthful reporting: do NOT pretend to run Meta or silently swap model!
+    if (!apiKey) {
+      // Truthful disclosure: do NOT fake AI output or substitute simulated data
       return {
-        reply: `### Meta LLaMA 3.3 70B Integration Notice\n\n` +
-          `**Status:** BLOCKED — Missing API Credentials\n\n` +
-          `The AI Environmental Copilot is configured to invoke **Meta LLaMA 3.3 70B**, but neither \`META_API_KEY\`, \`GROQ_API_KEY\`, nor \`TOGETHER_API_KEY\` is defined in the server environment.\n\n` +
-          `**To enable live Meta AI reasoning:**\n` +
-          `1. Add \`META_API_KEY=<your_key>\` and \`META_LLAMA_ENDPOINT=<your_endpoint>\` to your \`.env\` file.\n` +
-          `2. Alternatively, set \`GROQ_API_KEY=<your_groq_key>\` to use Meta LLaMA 3.3 70B hosted via Groq.\n\n` +
-          `**Current Real Telemetry Observation for ${req.context?.location || 'Selected Station'}:**\n` +
+        reply: `### Meta Model Verification Notice\n\n` +
+          `**Status:** BLOCKED — Awaiting \`GROQ_API_KEY\`\n\n` +
+          `The EcoTrack Copilot is configured to run Meta models via **Groq Cloud LPU Hardware** (Meta Muse Spark Open / Meta LLaMA 3.3 70B & LLaMA 3.2 Vision), but \`GROQ_API_KEY\` is not set in the server environment.\n\n` +
+          `**Credentials Setup Guide:**\n` +
+          `1. Get a key at **[https://console.groq.com/keys](https://console.groq.com/keys)**.\n` +
+          `2. Add \`GROQ_API_KEY=<your_groq_key>\` into your \`.env\` file.\n` +
+          `3. Restart the server.\n\n` +
+          `**Current Real Telemetry for ${req.context?.location || 'Selected Station'}:**\n` +
           `- Boundary Layer Ventilation: ${ventFactor}\n` +
           `- Benchmark Comparison: ${guidelineComparison}\n` +
           `- Dominant Vector: ${primaryVector}`,
-        modelUsed: 'Meta LLaMA 3.3 70B (Awaiting META_API_KEY)',
+        modelUsed: 'Meta Open-Weights (Awaiting GROQ_API_KEY)',
+        modelCreator: 'Meta',
         provider: 'BLOCKED_CREDENTIALS_REQUIRED',
+        license: 'Meta Llama 3 Community License / Open Weights',
         status: 'BLOCKED',
-        errorMessage: 'META_API_KEY is not configured in .env',
+        errorMessage: 'GROQ_API_KEY is not configured in .env',
         citations: [
           'WHO Global Air Quality Guidelines 2021',
           'Open-Meteo ECMWF Planetary Boundary Layer Telemetry',
@@ -173,42 +229,108 @@ PROVENANCE: Calibrated WMO GAW physical sensors & Open-Meteo ECMWF/CAMS telemetr
       };
     }
 
+    const isDirectMeta = Boolean(!groqKey && directMetaKey);
+    const endpoint = isDirectMeta
+      ? (process.env.META_LLAMA_ENDPOINT || 'https://api.meta.ai/v1/chat/completions')
+      : 'https://api.groq.com/openai/v1/chat/completions';
+
+    // Model testing priority:
+    // 1. meta-models/muse-spark-open (Meta's reasoning & agentic MoE model on Groq)
+    // 2. llama-3.3-70b-versatile (Meta's premier 70B text reasoning model on Groq)
+    // 3. llama-3.2-11b-vision-preview (Meta's multimodal vision model on Groq if image attached)
+    const preferredCandidate = process.env.META_MODEL_NAME || (req.attachedImage ? 'llama-3.2-11b-vision-preview' : 'meta-models/muse-spark-open');
+    const fallbackCandidate = req.attachedImage ? 'llama-3.2-11b-vision-preview' : 'llama-3.3-70b-versatile';
+
+    const systemPrompt = `You are the EcoTrack AI Environmental Intelligence Copilot for the Meta Global AI Developer Hackathon.
+Model Creator: Meta.
+Inference Engine: Groq Cloud LPU.
+You provide strictly scientific, empirical environmental diagnostics grounded in verified physical sensor telemetry.
+Never invent measurements. Always analyze meteorological factors: planetary boundary layer height (thermal inversion cap), wind advection, aerosol speciation, and WHO 2021 benchmarks.
+Use tools when requested or when precise local telemetry for other cities or stations is needed.
+Real-Time Grounding for current context:
+${groundingContext}`;
+
+    // Prepare message payload
+    const initialMessages: any[] = [
+      { role: 'system', content: systemPrompt },
+      ...(req.conversationHistory || []).map(m => {
+        if (m.role === 'tool') {
+          return { role: 'tool', tool_call_id: m.tool_call_id, content: m.content };
+        }
+        return { role: m.role, content: m.content };
+      }),
+    ];
+
+    if (req.attachedImage) {
+      initialMessages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: req.prompt },
+          { type: 'image_url', image_url: { url: req.attachedImage } },
+        ],
+      });
+    } else {
+      initialMessages.push({ role: 'user', content: req.prompt });
+    }
+
+    const executedTools: ToolExecutionRecord[] = [];
+    let museSparkStatus = 'Tested: Initiating test of meta-models/muse-spark-open...';
+    let chosenModel = preferredCandidate;
+
     try {
-      const metaRes = await fetch(metaEndpoint, {
+      // First attempt with preferred model (Muse Spark Open)
+      let response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${metaApiKey}`,
+          'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: llamaModel,
-          messages: [
-            {
-              role: 'system',
-              content: `You are the EcoTrack AI Environmental Copilot, powered by Meta LLaMA 3.3 70B for the Meta Global AI Developer Hackathon.
-You provide strictly grounded, scientific environmental intelligence based on verified physical telemetry.
-Never invent measurements. Always cite WHO 2021 air quality benchmarks and meteorological factors (planetary boundary layer height, wind advection, thermal inversions).
-Grounding telemetry:
-${groundingContext}`,
-            },
-            ...(req.conversationHistory || []).map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: req.prompt },
-          ],
+          model: chosenModel,
+          messages: initialMessages,
+          tools: COPILOT_TOOLS,
           temperature: 0.2,
-          max_tokens: 1000,
+          max_tokens: 1200,
         }),
       });
 
-      if (!metaRes.ok) {
-        const errorText = await metaRes.text().catch(() => '');
+      // If Muse Spark Open is not accessible (e.g. preview restricted or 404), gracefully fallback to Llama 3.3 70B
+      if (!response.ok && chosenModel === 'meta-models/muse-spark-open') {
+        const errText = await response.text().catch(() => '');
+        museSparkStatus = `meta-models/muse-spark-open returned HTTP ${response.status} (${errText.slice(0, 150)}). Fallback engaged: Meta LLaMA 3.3 70B.`;
+        chosenModel = fallbackCandidate;
+
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: chosenModel,
+            messages: initialMessages,
+            tools: COPILOT_TOOLS,
+            temperature: 0.2,
+            max_tokens: 1200,
+          }),
+        });
+      } else if (response.ok && chosenModel === 'meta-models/muse-spark-open') {
+        museSparkStatus = 'meta-models/muse-spark-open is ONLINE and authorized on GroqCloud.';
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
         return {
-          reply: `### Meta LLaMA 3.3 70B Endpoint Error (HTTP ${metaRes.status})\n\n` +
-            `The configured Meta endpoint (\`${metaEndpoint}\`) returned HTTP ${metaRes.status}:\n\`\`\`\n${errorText.slice(0, 400)}\n\`\`\`\n\n` +
-            `Please verify your API key validity, quota, and regional access permissions.`,
-          modelUsed: `Meta LLaMA 3.3 70B (${llamaModel})`,
-          provider: 'BLOCKED_CREDENTIALS_REQUIRED',
+          reply: `### Meta Model Inference Notice (HTTP ${response.status})\n\n` +
+            `The inference request to Groq Cloud (\`${chosenModel}\`) returned HTTP ${response.status}:\n\`\`\`\n${errorText.slice(0, 300)}\n\`\`\`\n\n` +
+            `Please verify your \`GROQ_API_KEY\` validity and quota.`,
+          modelUsed: `Meta (${chosenModel})`,
+          modelCreator: 'Meta',
+          provider: 'Groq Cloud LPU Engine',
+          license: 'Meta Llama 3 Community License / Open Weights',
           status: 'BLOCKED',
-          errorMessage: `HTTP ${metaRes.status}: ${errorText.slice(0, 200)}`,
+          museSparkOpenTestStatus: museSparkStatus,
+          errorMessage: `HTTP ${response.status}: ${errorText.slice(0, 150)}`,
           citations: ['Open-Meteo ECMWF Telemetry'],
           atmosphericDiagnostics: {
             inversionRisk: invRisk,
@@ -220,14 +342,96 @@ ${groundingContext}`,
         };
       }
 
-      const data = await metaRes.json();
-      const reply = data.choices?.[0]?.message?.content || '';
+      let data = await response.json();
+      let assistantMessage = data.choices?.[0]?.message;
+
+      // Handle Tool Calling loop (Function Calling)
+      if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0) {
+        const currentMessages = [...initialMessages, assistantMessage];
+
+        for (const toolCall of assistantMessage.tool_calls) {
+          const fnName = toolCall.function.name;
+          let fnArgs: any = {};
+          try {
+            fnArgs = JSON.parse(toolCall.function.arguments);
+          } catch (e) {
+            fnArgs = {};
+          }
+
+          let toolOutput = '';
+
+          if (fnName === 'get_environmental_telemetry') {
+            const telemetry = await fetchLiveEnvironment(fnArgs.lat, fnArgs.lon, fnArgs.locationName);
+            toolOutput = JSON.stringify({
+              location: telemetry.location.name,
+              overallAqi: telemetry.overallAqi,
+              aqiCategory: telemetry.aqiCategory,
+              dominantPollutant: telemetry.dominantPollutant,
+              pm25: telemetry.pollutants['PM2.5']?.value,
+              pm10: telemetry.pollutants['PM10']?.value,
+              boundaryLayerHeightMeters: telemetry.weather.boundaryLayerHeight,
+              windSpeedMs: telemetry.weather.windSpeed,
+              windDirection: telemetry.weather.windDirectionCompass,
+              temperatureC: telemetry.weather.temperature,
+            });
+
+            executedTools.push({
+              toolName: 'get_environmental_telemetry',
+              arguments: fnArgs,
+              resultSummary: `Retrieved live telemetry for ${telemetry.location.name}: AQI ${telemetry.overallAqi} (${telemetry.dominantPollutant}), BLH ${telemetry.weather.boundaryLayerHeight}m.`,
+              timestamp: new Date().toISOString(),
+            });
+          } else if (fnName === 'search_locations') {
+            const searchRes = await searchLocations(fnArgs.query);
+            toolOutput = JSON.stringify(searchRes.slice(0, 5));
+
+            executedTools.push({
+              toolName: 'search_locations',
+              arguments: fnArgs,
+              resultSummary: `Resolved ${searchRes.length} matching station nodes for query "${fnArgs.query}".`,
+              timestamp: new Date().toISOString(),
+            });
+          }
+
+          currentMessages.push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            content: toolOutput,
+          });
+        }
+
+        // Second inference call with tool observations fed back
+        const followUpResponse = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: chosenModel,
+            messages: currentMessages,
+            temperature: 0.2,
+            max_tokens: 1200,
+          }),
+        });
+
+        if (followUpResponse.ok) {
+          const followUpData = await followUpResponse.json();
+          assistantMessage = followUpData.choices?.[0]?.message;
+        }
+      }
+
+      const replyContent = assistantMessage?.content || 'No response generated by Meta model.';
 
       return {
-        reply,
-        modelUsed: `Meta LLaMA 3.3 70B (${llamaModel})`,
-        provider: 'Meta LLaMA 3.3 70B',
+        reply: replyContent,
+        modelUsed: `Meta (${chosenModel})`,
+        modelCreator: 'Meta',
+        provider: isDirectMeta ? 'Meta Model API' : 'Groq Cloud LPU Engine',
+        license: 'Meta Llama 3 Community License / Open Weights',
         status: 'ONLINE',
+        museSparkOpenTestStatus: museSparkStatus,
+        toolsExecuted: executedTools.length > 0 ? executedTools : undefined,
         citations: [
           'WMO Global Atmosphere Watch (GAW) 2024.11',
           'WHO Global Air Quality Guidelines 2021',
@@ -244,9 +448,11 @@ ${groundingContext}`,
       };
     } catch (err: any) {
       return {
-        reply: `### Meta LLaMA 3.3 70B Connection Error\n\nFailed to establish connection to \`${metaEndpoint}\`: ${err.message}.`,
-        modelUsed: `Meta LLaMA 3.3 70B (${llamaModel})`,
-        provider: 'BLOCKED_CREDENTIALS_REQUIRED',
+        reply: `### Meta Model Connection Notice\n\nFailed to establish connection to \`${endpoint}\`: ${err.message}.`,
+        modelUsed: `Meta (${chosenModel})`,
+        modelCreator: 'Meta',
+        provider: isDirectMeta ? 'Meta Model API' : 'Groq Cloud LPU Engine',
+        license: 'Meta Llama 3 Community License / Open Weights',
         status: 'BLOCKED',
         errorMessage: err.message,
         citations: [],
@@ -262,7 +468,7 @@ ${groundingContext}`,
   }
 
   /**
-   * Atmospheric optical segmentation analysis with full scientific disclosure
+   * Atmospheric optical segmentation & vision analysis
    */
   public async segmentAtmosphericImage(req: VisionSegmentationRequest): Promise<VisionSegmentationResponse> {
     const localPm25 = req.environmentalContext?.localPm25 ?? 24;
@@ -316,20 +522,69 @@ ${groundingContext}`,
     const disclaimer =
       'CRITICAL SCIENTIFIC INTEGRITY NOTICE: Evaluated via optical haze contrast attenuation heuristic. Image segmentation highlights visual aerosol scattering and horizon obscuration, but cannot substitute for certified physical mass concentration (PM2.5 / PM10 in µg/m³) from BAM-1020 beta-attenuation monitors.';
 
+    // Multimodal AI Vision inference via Groq Meta Vision
+    const groqKey = process.env.GROQ_API_KEY;
+    let aiVisionInsights: string | undefined = undefined;
+    let executionMode: VisionSegmentationResponse['executionMode'] = 'HEURISTIC_OPTICAL_MODEL';
+    let visionModelUsed = 'Client Optical Michelson Heuristic Pipeline';
+
+    if (groqKey && (req.imageBase64 || req.imageUrl)) {
+      const imgTarget = req.imageBase64 || req.imageUrl;
+      try {
+        const visionRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${groqKey}`,
+          },
+          body: JSON.stringify({
+            model: 'llama-3.2-11b-vision-preview',
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text:
+                      'Analyze this environmental/disaster image scientifically. Identify visible atmospheric haze, smoke plumes, cloud layers, geographic terrain, visual contrast degradation, and emergency hazards.',
+                  },
+                  {
+                    type: 'image_url',
+                    image_url: { url: imgTarget },
+                  },
+                ],
+              },
+            ],
+            temperature: 0.2,
+            max_tokens: 500,
+          }),
+        });
+
+        if (visionRes.ok) {
+          const vData = await visionRes.json();
+          aiVisionInsights = vData.choices?.[0]?.message?.content;
+          executionMode = 'META_VISION_GROQ_MULTIMODAL';
+          visionModelUsed = 'Meta LLaMA 3.2 11B Vision (Groq LPU)';
+        }
+      } catch (vErr) {
+        console.warn('Groq Meta Vision inference notice:', vErr);
+      }
+    }
+
     return {
       analysisSummary: `Optical haze analysis calculated at ${estimatedHazeOpacity}% opacity with estimated horizontal visibility of ${opticalVisKm} km. Ground contrast attenuation ratio is ${contrastRatio}.`,
       hazeOpacityPercentage: estimatedHazeOpacity,
       opticalVisibilityEstimateKm: opticalVisKm,
       contrastAttenuationRatio: contrastRatio,
       detectedVisualPhenomena: phenomena,
+      aiVisionInsights,
       masks,
       scientificDisclaimer: disclaimer,
-      executionMode: 'HEURISTIC_OPTICAL_MODEL',
-      metaSamArchitecture: {
-        encoder: 'Client Optical Attenuation Heuristic Pipeline',
-        promptEngine: 'Spatial Horizon Detection',
-        confidenceThreshold: 0.88,
-      },
+      executionMode,
+      modelUsed: visionModelUsed,
+      modelCreator: 'Meta',
+      inferenceProvider: groqKey ? 'Groq Cloud LPU Engine' : 'Client Browser Heuristic',
+      status: groqKey ? 'ONLINE' : 'BLOCKED_CREDENTIALS_REQUIRED',
       timestamp: new Date().toISOString(),
     };
   }

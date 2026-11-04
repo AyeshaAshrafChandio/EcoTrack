@@ -21,6 +21,7 @@ apiRouter.use(express.json({ limit: '10mb' }));
 
 // Health and provider status
 apiRouter.get('/status', async (_req, res) => {
+  const stations = await getGlobalStationsWithTelemetry().catch(() => []);
   res.json({
     status: 'ONLINE',
     version: '3.4-AI',
@@ -29,12 +30,12 @@ apiRouter.get('/status', async (_req, res) => {
       openMeteoWeather: 'OPERATIONAL',
       openMeteoGeocoding: 'OPERATIONAL',
       copernicusAtmosphere: 'OPERATIONAL',
-      openaqV3: process.env.OPENAQ_API_KEY ? 'AUTHENTICATED' : 'BLOCKED_NO_API_KEY',
-      metaAI: process.env.META_API_KEY ? 'AUTHENTICATED' : 'BLOCKED_NO_API_KEY',
+      openaqV3: process.env.OPENAQ_API_KEY ? 'AUTHENTICATED' : 'PUBLIC_OPEN_ACCESS',
+      metaAI: (process.env.META_API_KEY || process.env.GROQ_API_KEY) ? 'AUTHENTICATED' : 'BLOCKED_NO_API_KEY',
       firebaseAuth: isFirebaseAdminInitialized ? 'ACTIVE' : 'READY_AWAITING_PROJECT_ID',
       database: 'LOCAL_JSON_PERSISTENCE (PostgreSQL not connected)',
     },
-    activeSensors: 18420,
+    verifiedStationNodes: stations.length,
     calibrationStandard: 'US-EPA 40 CFR 58 / WHO 2021',
     timestamp: new Date().toISOString(),
   });
@@ -201,7 +202,7 @@ apiRouter.get('/environment/compare', async (req, res) => {
 // Meta AI Copilot Chat
 apiRouter.post('/copilot/chat', async (req, res) => {
   try {
-    const { prompt, context, conversationHistory } = req.body;
+    const { prompt, context, conversationHistory, attachedImage } = req.body;
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
@@ -210,6 +211,7 @@ apiRouter.post('/copilot/chat', async (req, res) => {
       prompt,
       context,
       conversationHistory,
+      attachedImage,
     });
 
     // Record in database session

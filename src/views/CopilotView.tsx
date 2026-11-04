@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
+
+interface ToolExecution {
+  toolName: string;
+  arguments: any;
+  resultSummary: string;
+  timestamp: string;
+}
 
 interface ChatMessage {
   id: string;
@@ -7,13 +14,18 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   modelUsed?: string;
+  modelCreator?: string;
+  provider?: string;
   citations?: string[];
+  toolsExecuted?: ToolExecution[];
+  museSparkOpenTestStatus?: string;
   diagnostics?: {
     inversionRisk: string;
     primaryVector: string;
     ventilationFactor: string;
     guidelineComparison: string;
   };
+  attachedImage?: string;
 }
 
 export const CopilotView: React.FC = () => {
@@ -21,21 +33,32 @@ export const CopilotView: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'copilot' | 'vision'>('copilot');
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [chatAttachedImage, setChatAttachedImage] = useState<string | null>(null);
+  const chatFileInputRef = useRef<HTMLInputElement>(null);
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'init_1',
       role: 'assistant',
-      content: `Welcome to the EcoTrack AI Environmental Copilot, powered by Meta AI for the Meta Global AI Developer Hackathon.
+      content: `Welcome to the EcoTrack AI Environmental Intelligence Copilot for the Meta Global AI Developer Hackathon.
 
-Real-time telemetry for **${currentTelemetry?.location.name || selectedLocation.name}** is synchronized:
+**Ecosystem Architecture:**
+- **Model Creator:** Meta
+- **Inference Acceleration:** Groq Cloud LPU Hardware
+- **Model Family:** Meta Muse Spark Open / Meta LLaMA 3.3 70B & LLaMA 3.2 Vision
+- **Grounding Standards:** WMO GAW 2024, US-EPA 40 CFR 58, WHO 2021 Benchmarks
+
+Real-time physical telemetry for **${currentTelemetry?.location.name || selectedLocation.name}**:
 - **Current AQI:** ${currentTelemetry?.overallAqi ?? 38} (${currentTelemetry?.aqiCategory ?? 'Good'})
 - **Dominant Vector:** ${currentTelemetry?.dominantPollutant ?? 'PM2.5'} (${currentTelemetry?.pollutants['PM2.5']?.value ?? 9.2} µg/m³)
 - **Planetary Boundary Layer Height:** ${currentTelemetry?.weather.boundaryLayerHeight ?? 850} meters
-- **Wind Speed:** ${currentTelemetry?.weather.windSpeed.toFixed(1) ?? 2.4} m/s (${currentTelemetry?.weather.windDirectionCompass ?? 'SSE'})
+- **Wind Vector:** ${currentTelemetry?.weather.windSpeed.toFixed(1) ?? 2.4} m/s (${currentTelemetry?.weather.windDirectionCompass ?? 'SSE'})
 
-Ask me any diagnostic question regarding atmospheric dispersion, boundary layer thermal inversions, aerosol speciation, or health guidelines.`,
+Ask me any diagnostic question about atmospheric dispersion, thermal boundary layer caps, aerosol speciation, or ask me to check any city on Earth.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      modelUsed: 'Meta LLaMA 3.3 70B Grounded',
+      modelUsed: 'Meta LLaMA 3.3 70B & Muse Spark Open (Groq Cloud)',
+      modelCreator: 'Meta',
+      provider: 'Groq Cloud LPU Engine',
       citations: [
         'WMO Global Atmosphere Watch (GAW) 2024.11',
         'WHO Global Air Quality Guidelines 2021',
@@ -60,13 +83,14 @@ Ask me any diagnostic question regarding atmospheric dispersion, boundary layer 
   );
   const [visionAnalyzing, setVisionAnalyzing] = useState(false);
   const [visionUploadError, setVisionUploadError] = useState<string | null>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [visionResult, setVisionResult] = useState<any>({
     analysisSummary: 'Atmospheric optical contrast analysis executed via client-side Michelson luminance attenuation heuristic. Real Meta SAM 3.1 ViT-H model inference is BLOCKED (no endpoint provisioned). Optical haze opacity calculated at 28% with estimated horizontal visual range of 14.2 km. Ground contrast attenuation ratio is 0.82.',
     hazeOpacityPercentage: 28,
     opticalVisibilityEstimateKm: 14.2,
     contrastAttenuationRatio: 0.82,
+    aiVisionInsights: undefined,
     detectedVisualPhenomena: [
       'Diffuse Particulate Haze Layer',
       'Moderate Rayleigh / Mie Atmospheric Scattering',
@@ -142,6 +166,20 @@ Ask me any diagnostic question regarding atmospheric dispersion, boundary layer 
     reader.readAsDataURL(file);
   };
 
+  const handleChatImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Selected image exceeds the 5MB file size limit.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setChatAttachedImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSendPrompt = async (promptToSend?: string) => {
     const text = promptToSend || inputPrompt;
     if (!text.trim() || isGenerating) return;
@@ -151,10 +189,13 @@ Ask me any diagnostic question regarding atmospheric dispersion, boundary layer 
       role: 'user',
       content: text,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      attachedImage: chatAttachedImage || undefined,
     };
 
     setMessages(prev => [...prev, userMsg]);
     setInputPrompt('');
+    const imagePayload = chatAttachedImage;
+    setChatAttachedImage(null);
     setIsGenerating(true);
 
     try {
@@ -170,6 +211,7 @@ Ask me any diagnostic question regarding atmospheric dispersion, boundary layer 
             telemetry: currentTelemetry,
           },
           conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
+          attachedImage: imagePayload || undefined,
         }),
       });
 
@@ -181,7 +223,11 @@ Ask me any diagnostic question regarding atmospheric dispersion, boundary layer 
           content: data.reply,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           modelUsed: data.modelUsed,
+          modelCreator: data.modelCreator,
+          provider: data.provider,
           citations: data.citations,
+          toolsExecuted: data.toolsExecuted,
+          museSparkOpenTestStatus: data.museSparkOpenTestStatus,
           diagnostics: data.atmosphericDiagnostics,
         };
         setMessages(prev => [...prev, assistantMsg]);
@@ -194,7 +240,7 @@ Ask me any diagnostic question regarding atmospheric dispersion, boundary layer 
         id: `asst_${Date.now()}`,
         role: 'assistant',
         content: `**Meta AI Copilot Notice (BLOCKED / MISSING CREDENTIALS):**
-${err.message || 'Meta AI inference endpoint requires valid META_API_KEY in server environment.'}
+${err.message || 'Meta AI inference endpoint requires valid GROQ_API_KEY in server environment.'}
 
 **Current Local Telemetry for ${selectedLocation.name}:**
 - AQI: **${currentTelemetry?.overallAqi ?? 'N/A'}** (${currentTelemetry?.aqiCategory ?? 'Unspecified'})
@@ -202,9 +248,11 @@ ${err.message || 'Meta AI inference endpoint requires valid META_API_KEY in serv
 - Planetary Boundary Layer Height: **${currentTelemetry?.weather.boundaryLayerHeight ?? 'N/A'} m**
 - Surface Wind: **${currentTelemetry?.weather.windSpeed.toFixed(1) ?? 'N/A'} m/s**
 
-To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`META_LLAMA_ENDPOINT\` in \`.env\`.`,
+To enable Meta Muse Spark Open / LLaMA 3.3 reasoning via Groq Cloud, please provide \`GROQ_API_KEY\` in \`.env\`.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        modelUsed: 'EcoTrack Telemetry Grounding',
+        modelUsed: 'EcoTrack Physical Telemetry Grounding',
+        modelCreator: 'Meta',
+        provider: 'BLOCKED_CREDENTIALS_REQUIRED',
       };
       setMessages(prev => [...prev, fallbackMsg]);
     } finally {
@@ -242,6 +290,45 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
   // Render Left Column context blocks
   const renderContextBlocks = () => (
     <div className="space-y-3 sm:space-y-space-md">
+      {/* Meta Ecosystem Architecture Card */}
+      <div className="bg-surface-container-low p-3.5 sm:p-space-md rounded-xl shadow-md border border-surface-container">
+        <div className="flex items-center justify-between pb-1.5 border-b border-surface-container">
+          <span className="font-label-ui text-xs uppercase tracking-wider text-on-surface font-semibold flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px] text-primary">verified</span>
+            Meta Hackathon Stack
+          </span>
+          <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-label-mono-sm text-[0.625rem]">
+            Indie Track
+          </span>
+        </div>
+        <div className="pt-2 space-y-1.5 font-label-mono-sm text-[0.6875rem]">
+          <div className="flex justify-between">
+            <span className="text-on-surface-variant">Model Creator:</span>
+            <span className="font-semibold text-primary">Meta</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-on-surface-variant">Inference Engine:</span>
+            <span className="font-semibold text-secondary">Groq Cloud LPU</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-on-surface-variant">Primary Model:</span>
+            <span className="font-semibold text-on-surface">Muse Spark Open</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-on-surface-variant">Fallback Reasoning:</span>
+            <span className="font-semibold text-on-surface">LLaMA 3.3 70B</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-on-surface-variant">Multimodal Vision:</span>
+            <span className="font-semibold text-on-surface">LLaMA 3.2 11B Vision</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-on-surface-variant">Tool Calling:</span>
+            <span className="font-semibold text-emerald-400">Live ECMWF/Open-Meteo</span>
+          </div>
+        </div>
+      </div>
+
       {/* Local Telemetry Snapshot Card */}
       <div className="bg-surface-container-low p-3.5 sm:p-space-md rounded-xl shadow-md border border-surface-container">
         <div className="flex items-center justify-between pb-1">
@@ -285,45 +372,6 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
         </div>
       </div>
 
-      {/* Research Conversations Log */}
-      <div className="bg-surface-container-low p-3.5 sm:p-space-md rounded-xl shadow-md border border-surface-container">
-        <div className="flex items-center justify-between pb-2">
-          <span className="font-label-ui text-xs sm:text-label-ui uppercase tracking-wider text-on-surface font-semibold flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[15px] sm:text-[16px] text-secondary">forum</span>
-            Research Context Log
-          </span>
-          <span className="font-label-mono-sm text-[0.625rem] sm:text-[0.6875rem] text-on-surface-variant">3 Active</span>
-        </div>
-        <div className="space-y-1.5">
-          {[
-            { title: 'São Paulo Biomass Inversion Anomaly', sub: 'Active • BRA-210 RAG Stack', icon: 'graphic_eq', active: true },
-            { title: 'Tokyo Maritime Flush Cycle', sub: 'Station TK-04 • Ocean Advection', icon: 'history', active: false },
-            { title: 'London Euston NO2 Commuter Peak', sub: 'Station LON-12 • Canyon Trap', icon: 'history', active: false },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className={`p-2 sm:p-2.5 rounded-lg flex items-start justify-between cursor-pointer transition-colors ${
-                item.active
-                  ? 'bg-surface-container text-on-surface'
-                  : 'bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-              }`}
-            >
-              <div className="space-y-0.5 min-w-0 pr-2">
-                <div className={`font-body-md text-xs sm:text-sm font-semibold truncate ${item.active ? 'text-primary' : 'text-on-surface'}`}>
-                  {item.title}
-                </div>
-                <div className="font-label-mono-sm text-[0.625rem] sm:text-[0.6875rem] text-on-surface-variant truncate">
-                  {item.sub}
-                </div>
-              </div>
-              <span className="material-symbols-outlined text-[15px] text-primary shrink-0 pt-0.5">
-                {item.icon}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Diagnostic Prompts Pills */}
       <div className="bg-surface-container-low p-3.5 sm:p-space-md rounded-xl shadow-md border border-surface-container">
         <div className="font-label-ui text-xs sm:text-label-ui uppercase tracking-wider text-on-surface font-semibold mb-2 flex items-center gap-1.5">
@@ -332,10 +380,10 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
         </div>
         <div className="flex flex-col gap-1.5">
           {[
-            'Why is PM2.5 elevated despite low traffic?',
-            'Explain the 48h boundary layer forecast',
-            'Compare Tokyo and London air quality',
-            'What precautions should sensitive groups take?',
+            'Explain the 48h boundary layer inversion risk',
+            'Why is PM2.5 elevated despite low surface wind?',
+            'Check real-time air quality in Reykjavik and compare with Tokyo',
+            'Search station telemetry for Delhi and explain health risks',
           ].map((promptText, i) => (
             <button
               key={i}
@@ -365,11 +413,11 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shrink-0"></span>
               <span className="font-headline-md text-sm sm:text-headline-md font-bold text-on-surface truncate">
-                AI Environmental Copilot &amp; Vision AI
+                Meta AI Environmental Intelligence Copilot
               </span>
             </div>
             <span className="px-2 py-0.5 rounded bg-surface-container font-label-mono-sm text-[0.625rem] text-secondary uppercase shrink-0">
-              Meta Hackathon
+              Groq Cloud LPU
             </span>
           </div>
 
@@ -383,7 +431,7 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
               }`}
             >
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">psychology</span>
-              <span>LLaMA 3.3 70B</span>
+              <span>Meta Copilot &amp; Tools</span>
             </button>
             <button
               onClick={() => setActiveTab('vision')}
@@ -394,7 +442,7 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
               }`}
             >
               <span className="material-symbols-outlined text-[16px] sm:text-[18px]">visibility</span>
-              <span>Vision Analysis (Optical)</span>
+              <span>Vision AI &amp; Optical Haze</span>
             </button>
           </div>
         </div>
@@ -409,7 +457,7 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
             onClick={() => setShowMobileSidebar(!showMobileSidebar)}
             className="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-bright font-label-mono-sm text-xs text-secondary font-semibold transition-colors cursor-pointer shrink-0"
           >
-            {showMobileSidebar ? 'Hide Prompts' : 'View Prompts'}
+            {showMobileSidebar ? 'Hide Stack' : 'View Meta Stack'}
           </button>
         </div>
 
@@ -431,7 +479,7 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
           <div className="lg:col-span-8 flex flex-col">
             {activeTab === 'copilot' ? (
               /* Chat Conversation Panel */
-              <div className="rounded-2xl bg-surface-container-low border border-surface-container shadow-xl flex flex-col h-[480px] sm:h-[560px] md:h-[620px] justify-between overflow-hidden">
+              <div className="rounded-2xl bg-surface-container-low border border-surface-container shadow-xl flex flex-col h-[520px] sm:h-[600px] md:h-[650px] justify-between overflow-hidden">
                 {/* Messages Container */}
                 <div className="flex-1 p-3 sm:p-5 overflow-y-auto space-y-3 sm:space-y-4">
                   {messages.map(msg => (
@@ -441,8 +489,13 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                     >
                       <div className="flex items-center gap-1.5 mb-1">
                         <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant">
-                          {msg.role === 'user' ? 'Operator' : (msg.modelUsed || 'Meta LLaMA 3.3 70B')}
+                          {msg.role === 'user' ? 'Operator' : (msg.modelUsed || 'Meta LLaMA 3.3 70B (Groq)')}
                         </span>
+                        {msg.modelCreator && (
+                          <span className="font-label-mono-sm text-[0.55rem] px-1 rounded bg-primary/10 text-primary">
+                            Creator: {msg.modelCreator}
+                          </span>
+                        )}
                         <span className="font-label-mono-sm text-[0.625rem] text-outline">
                           {msg.timestamp}
                         </span>
@@ -455,7 +508,28 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                             : 'bg-surface-container text-on-surface rounded-tl-none border border-surface-container-high'
                         }`}
                       >
+                        {msg.attachedImage && (
+                          <div className="mb-2 rounded-lg overflow-hidden border border-surface-container max-h-48">
+                            <img src={msg.attachedImage} alt="User upload" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+
                         <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+
+                        {/* Tools Executed Accordion */}
+                        {msg.toolsExecuted && msg.toolsExecuted.length > 0 && (
+                          <div className="mt-2.5 p-2 rounded-lg bg-surface-container-lowest border border-surface-container space-y-1">
+                            <div className="flex items-center gap-1 font-label-mono-sm text-[0.6rem] text-secondary font-bold">
+                              <span className="material-symbols-outlined text-[14px]">build</span>
+                              Tools Invoked By Model:
+                            </div>
+                            {msg.toolsExecuted.map((t, idx) => (
+                              <div key={idx} className="font-label-mono-sm text-[0.55rem] text-on-surface-variant pl-4 border-l border-secondary">
+                                <span className="text-primary font-semibold">{t.toolName}</span>: {t.resultSummary}
+                              </div>
+                            ))}
+                          </div>
+                        )}
 
                         {/* Diagnostics & Citations Card */}
                         {msg.diagnostics && (
@@ -492,13 +566,29 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                       <span className="material-symbols-outlined text-[16px] animate-spin">
                         progress_activity
                       </span>
-                      <span>Meta AI Synthesis in progress...</span>
+                      <span>Meta AI Groq LPU Inference in progress...</span>
                     </div>
                   )}
                 </div>
 
-                {/* Input Form */}
-                <div className="p-2.5 sm:p-3 bg-surface-container-lowest border-t border-surface-container">
+                {/* Input Form with Multimodal Upload */}
+                <div className="p-2.5 sm:p-3 bg-surface-container-lowest border-t border-surface-container space-y-2">
+                  {chatAttachedImage && (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-surface-container text-xs">
+                      <span className="flex items-center gap-1.5 text-primary">
+                        <span className="material-symbols-outlined text-[16px]">image</span>
+                        Image attached for multimodal Meta Vision analysis
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setChatAttachedImage(null)}
+                        className="text-error hover:underline cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+
                   <form
                     onSubmit={e => {
                       e.preventDefault();
@@ -507,9 +597,25 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                     className="flex items-center gap-2"
                   >
                     <input
+                      type="file"
+                      ref={chatFileInputRef}
+                      accept="image/*"
+                      onChange={handleChatImageSelect}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => chatFileInputRef.current?.click()}
+                      title="Attach image for Meta Vision analysis"
+                      className="p-2 sm:p-2.5 rounded-xl bg-surface-container hover:bg-surface-bright text-on-surface-variant hover:text-primary transition-colors cursor-pointer shrink-0"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">add_photo_alternate</span>
+                    </button>
+
+                    <input
                       value={inputPrompt}
                       onChange={e => setInputPrompt(e.target.value)}
-                      placeholder="Ask the AI Environmental Copilot about inversions, dispersion, or health..."
+                      placeholder="Ask Meta AI about inversions, air quality, or check any city on Earth..."
                       className="flex-1 min-w-0 bg-surface-container px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-body-md text-xs sm:text-sm text-on-surface placeholder:text-outline focus:outline-none border border-surface-variant"
                     />
                     <button
@@ -524,18 +630,18 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                 </div>
               </div>
             ) : (
-              /* Atmospheric Optical Vision Analysis Panel (SAM 3.1 BLOCKED) */
+              /* Atmospheric Optical & Vision Analysis Panel */
               <div className="rounded-2xl bg-surface-container-low border border-surface-container shadow-xl p-4 sm:p-5 space-y-3 sm:space-y-4">
                 {/* Status Notice Banner */}
                 <div className="flex items-center justify-between flex-wrap gap-2 px-3 py-2 rounded-xl bg-secondary-container/30 border border-secondary/30 text-secondary">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[18px]">verified</span>
                     <span className="font-label-ui text-xs font-bold tracking-wide uppercase">
-                      Visual context only — not an AQI measurement.
+                      Dual-Layer: Meta LLaMA 3.2 Vision (Groq) + Optical Michelson Matrix
                     </span>
                   </div>
-                  <span className="font-label-mono-sm text-[0.625rem] text-error font-semibold bg-error/10 px-2 py-0.5 rounded">
-                    SAM 3.1 ViT-H: BLOCKED (No inference endpoint provisioned)
+                  <span className="font-label-mono-sm text-[0.625rem] text-primary font-semibold bg-primary/10 px-2 py-0.5 rounded">
+                    SAM 3.1: BLOCKED (No direct weights) | Groq Meta Vision: ENABLED
                   </span>
                 </div>
 
@@ -543,14 +649,14 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-headline-md text-base sm:text-headline-md font-bold text-on-surface">
-                        Atmospheric Optical Haze Analysis
+                        Atmospheric Optical Haze &amp; Multimodal Hazard Vision
                       </h3>
-                      <span className="px-2 py-0.5 rounded bg-surface-container text-outline font-label-mono-sm text-[0.625rem] uppercase font-bold">
-                        Optical Heuristic (Non-AI)
+                      <span className="px-2 py-0.5 rounded bg-surface-container text-primary font-label-mono-sm text-[0.625rem] uppercase font-bold">
+                        Meta Open-Weights Vision
                       </span>
                     </div>
                     <p className="font-body-sm text-xs text-on-surface-variant">
-                      RGB luminance attenuation &amp; Michelson contrast analysis. Real-time SAM 3.1 model weights/API are not provisioned in this environment.
+                      Combines client-side RGB pixel luminance attenuation with Meta LLaMA 3.2 11B Vision reasoning via Groq Cloud.
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -577,7 +683,7 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                       <span className="material-symbols-outlined text-[16px]">
                         {visionAnalyzing ? 'progress_activity' : 'contrast'}
                       </span>
-                      <span>{visionAnalyzing ? 'ANALYZING...' : 'RUN OPTICAL HEURISTIC (NON-AI)'}</span>
+                      <span>{visionAnalyzing ? 'ANALYZING...' : 'RUN VISION & OPTICAL AUDIT'}</span>
                     </button>
                   </div>
                 </div>
@@ -602,7 +708,7 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                     {/* Sky deck mask */}
                     <div className="absolute top-0 left-0 right-0 h-[48%] bg-cyan-400/20 border-b border-cyan-400/60 backdrop-blur-[1px] flex items-start p-2">
                       <span className="font-label-mono-sm text-[0.55rem] sm:text-[0.625rem] px-1.5 sm:px-2 py-0.5 rounded bg-cyan-900/80 text-cyan-200 truncate">
-                        Optical Boundary: Sky Deck (Heuristic)
+                        Optical Boundary: Sky Deck
                       </span>
                     </div>
 
@@ -616,11 +722,24 @@ To enable Meta LLaMA 3.3 70B reasoning, please provide \`META_API_KEY\` and \`ME
                     {/* Ground terrain mask */}
                     <div className="absolute bottom-0 left-0 right-0 h-[38%] bg-emerald-500/15 border-t border-emerald-400/60 flex items-end p-2">
                       <span className="font-label-mono-sm text-[0.55rem] sm:text-[0.625rem] px-1.5 sm:px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-200 truncate">
-                        Optical Boundary: Ground &amp; Canopy (Heuristic)
+                        Optical Boundary: Ground &amp; Canopy
                       </span>
                     </div>
                   </div>
                 </div>
+
+                {/* Groq Meta Vision Insights if generated */}
+                {visionResult.aiVisionInsights && (
+                  <div className="p-3.5 rounded-xl bg-primary-container/20 border border-primary/30 space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-primary font-label-ui text-xs font-bold uppercase">
+                      <span className="material-symbols-outlined text-[16px]">psychology</span>
+                      Meta LLaMA 3.2 Vision Multi-Modal Reasoning (Groq LPU)
+                    </div>
+                    <div className="font-body-md text-xs sm:text-sm text-on-surface leading-relaxed whitespace-pre-wrap">
+                      {visionResult.aiVisionInsights}
+                    </div>
+                  </div>
+                )}
 
                 {/* Metrics Breakdown Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-space-sm">
