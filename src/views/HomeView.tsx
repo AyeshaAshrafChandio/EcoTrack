@@ -5,7 +5,7 @@ export const HomeView: React.FC = () => {
   const { setActiveView, selectCity, stations, currentTelemetry } = useApp();
   const [scanQuery, setScanQuery] = useState('');
 
-  const handleScan = (e: React.FormEvent) => {
+  const handleScan = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!scanQuery.trim()) return;
 
@@ -16,28 +16,45 @@ export const HomeView: React.FC = () => {
       const lon = parseFloat(coordMatch[2]);
       selectCity(`Coordinates (${lat.toFixed(2)}, ${lon.toFixed(2)})`, lat, lon);
       setActiveView('dashboard');
-    } else {
-      const found = stations.find(s =>
-        s.city.toLowerCase().includes(scanQuery.toLowerCase()) ||
-        s.country.toLowerCase().includes(scanQuery.toLowerCase())
-      );
-      if (found) {
-        selectCity(`${found.city}, ${found.country}`, found.lat, found.lon);
-        setActiveView('dashboard');
-      } else {
-        selectCity(scanQuery, 35.6895, 139.6917);
-        setActiveView('dashboard');
-      }
+      return;
     }
+
+    const found = stations.find(s =>
+      s.city.toLowerCase().includes(scanQuery.toLowerCase()) ||
+      s.country.toLowerCase().includes(scanQuery.toLowerCase())
+    );
+    if (found) {
+      selectCity(`${found.city}, ${found.country}`, found.lat, found.lon);
+      setActiveView('dashboard');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/environment/search?q=${encodeURIComponent(scanQuery.trim())}`);
+      if (res.ok) {
+        const results = await res.json();
+        if (results && results.length > 0) {
+          const first = results[0];
+          selectCity(`${first.name}, ${first.country}`, first.latitude, first.longitude);
+          setActiveView('dashboard');
+          return;
+        }
+      }
+    } catch {
+      // fallback
+    }
+
+    selectCity(scanQuery, 24.8607, 67.0011);
+    setActiveView('dashboard');
   };
 
   // 5 Continental Stations
   const featuredStations = [
-    { name: 'Tokyo', country: 'Kanto Plain, Japan', lat: 35.6895, lon: 139.6917, stationId: 'Station JP-094', region: 'Asia', network: 'MOE / OPENAQ', sparklineColor: 'text-primary' },
-    { name: 'London', country: 'Greater London, UK', lat: 51.5074, lon: -0.1278, stationId: 'Station UK-LND', region: 'Europe', network: 'AURN NETWORK', sparklineColor: 'text-secondary' },
-    { name: 'São Paulo', country: 'Paulista Corridor, BR', lat: -23.6273, lon: -46.6566, stationId: 'Station BR-CET', region: 'S. America', network: 'CETESB LIVE', sparklineColor: 'text-secondary' },
-    { name: 'Delhi NCR', country: 'National Capital, India', lat: 28.6139, lon: 77.209, stationId: 'Station IN-CPCB', region: 'S. Asia', network: 'CPCB ADVISORY', sparklineColor: 'text-error' },
-    { name: 'Reykjavik', country: 'Faxaflói Bay, Iceland', lat: 64.1466, lon: -21.9426, stationId: 'Station IS-GREN', region: 'Nordic', network: 'BASELINE CLEAN', sparklineColor: 'text-primary' },
+    { name: 'Karachi', country: 'Sindh, Pakistan', lat: 24.8607, lon: 67.0011, stationId: 'Station PK-KHI', region: 'S. Asia', network: 'OPEN-METEO CAMS', sparklineColor: 'text-primary' },
+    { name: 'Tokyo', country: 'Kanto Plain, Japan', lat: 35.6895, lon: 139.6917, stationId: 'Station JP-094', region: 'Asia', network: 'OPEN-METEO CAMS', sparklineColor: 'text-secondary' },
+    { name: 'London', country: 'Greater London, UK', lat: 51.5074, lon: -0.1278, stationId: 'Station UK-LND', region: 'Europe', network: 'OPEN-METEO CAMS', sparklineColor: 'text-primary' },
+    { name: 'Delhi NCR', country: 'National Capital, India', lat: 28.6139, lon: 77.209, stationId: 'Station IN-CPCB', region: 'S. Asia', network: 'OPEN-METEO CAMS', sparklineColor: 'text-error' },
+    { name: 'São Paulo', country: 'Paulista Corridor, BR', lat: -23.6273, lon: -46.6566, stationId: 'Station BR-CET', region: 'S. America', network: 'OPEN-METEO CAMS', sparklineColor: 'text-secondary' },
   ];
 
   return (

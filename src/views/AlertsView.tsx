@@ -53,10 +53,6 @@ export const AlertsView: React.FC = () => {
   const handleCreateRule = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreateError(null);
-    if (!currentUser) {
-      setCreateError('Authentication required: Sign in with your EcoTrack account to save custom alert thresholds.');
-      return;
-    }
 
     const parsedThreshold = parseFloat(newThreshold);
     if (isNaN(parsedThreshold) || parsedThreshold <= 0) {
@@ -65,8 +61,8 @@ export const AlertsView: React.FC = () => {
     }
 
     const matched = stations.find(s => `${s.city}, ${s.country}` === newLocation) || stations[0];
-    const lat = matched ? matched.lat : 35.6895;
-    const lon = matched ? matched.lon : 139.6917;
+    const lat = matched ? matched.lat : 24.8607;
+    const lon = matched ? matched.lon : 67.0011;
 
     const result = await createAlertRule({
       locationName: newLocation,
@@ -93,10 +89,6 @@ export const AlertsView: React.FC = () => {
     e.preventDefault();
     if (!editingRule) return;
     setEditError(null);
-    if (!currentUser) {
-      setEditError('Authentication required: Sign in to modify alert thresholds.');
-      return;
-    }
 
     const parsedThreshold = parseFloat(editThreshold);
     if (isNaN(parsedThreshold) || parsedThreshold <= 0) {

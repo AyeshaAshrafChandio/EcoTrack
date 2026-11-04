@@ -1,6 +1,6 @@
 {
   "name": "EcoTrack — Global AI Environmental Intelligence",
-  "description": "Production-grade environmental intelligence platform unifying real-time global air quality telemetry, atmospheric speciation, Meta AI reasoning, and predictive hazard alerts.",
+  "description": "Production-grade environmental intelligence platform unifying real-time global atmospheric forecast telemetry (Open-Meteo Copernicus CAMS & ECMWF), evidence-grounded Meta Llama 3.2 3B reasoning (Cloudflare Workers AI free tier / local Ollama), and predictive hazard threshold monitoring.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

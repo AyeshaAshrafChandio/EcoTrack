@@ -26,59 +26,87 @@ export const GlobalMapView: React.FC = () => {
 
   // Helper to extract value, unit, and color for any of the 7 pollutants
   const getPollutantMetric = (st: GlobalStation, pol: 'AQI' | 'PM2.5' | 'PM10' | 'NO2' | 'O3' | 'SO2' | 'CO') => {
-    let val = 0;
+    let val: number | string = 'N/A';
     let unit = 'µg/m³';
     let color = '#4edea3'; // good (emerald)
 
     switch (pol) {
       case 'AQI':
-        val = st.currentAqi ?? 42;
         unit = 'AQI';
-        if (val > 150) color = '#ffb4ab';
-        else if (val > 100) color = '#f59e0b';
-        else if (val > 50) color = '#4cd7f6';
+        if (st.currentAqi !== undefined) {
+          val = st.currentAqi;
+          if (val > 150) color = '#ffb4ab';
+          else if (val > 100) color = '#f59e0b';
+          else if (val > 50) color = '#4cd7f6';
+        } else {
+          color = '#86948a';
+        }
         break;
       case 'PM2.5':
-        val = st.pm2_5 ?? 14.2;
         unit = 'µg/m³';
-        if (val > 55.4) color = '#ffb4ab';
-        else if (val > 35.4) color = '#f59e0b';
-        else if (val > 12.0) color = '#4cd7f6';
+        if (st.pm2_5 !== undefined) {
+          val = st.pm2_5;
+          if (val > 55.4) color = '#ffb4ab';
+          else if (val > 35.4) color = '#f59e0b';
+          else if (val > 12.0) color = '#4cd7f6';
+        } else {
+          color = '#86948a';
+        }
         break;
       case 'PM10':
-        val = st.pm10 ?? 28.5;
         unit = 'µg/m³';
-        if (val > 254) color = '#ffb4ab';
-        else if (val > 154) color = '#f59e0b';
-        else if (val > 54) color = '#4cd7f6';
+        if (st.pm10 !== undefined) {
+          val = st.pm10;
+          if (val > 254) color = '#ffb4ab';
+          else if (val > 154) color = '#f59e0b';
+          else if (val > 54) color = '#4cd7f6';
+        } else {
+          color = '#86948a';
+        }
         break;
       case 'NO2':
-        val = st.no2 ?? 18.1;
         unit = 'µg/m³';
-        if (val > 100) color = '#ffb4ab';
-        else if (val > 50) color = '#f59e0b';
-        else if (val > 25) color = '#4cd7f6';
+        if (st.no2 !== undefined) {
+          val = st.no2;
+          if (val > 100) color = '#ffb4ab';
+          else if (val > 50) color = '#f59e0b';
+          else if (val > 25) color = '#4cd7f6';
+        } else {
+          color = '#86948a';
+        }
         break;
       case 'O3':
-        val = st.o3 ?? Math.round((st.currentAqi ?? 40) * 0.65);
         unit = 'µg/m³';
-        if (val > 140) color = '#ffb4ab';
-        else if (val > 100) color = '#f59e0b';
-        else if (val > 60) color = '#4cd7f6';
+        if (st.o3 !== undefined) {
+          val = st.o3;
+          if (val > 140) color = '#ffb4ab';
+          else if (val > 100) color = '#f59e0b';
+          else if (val > 60) color = '#4cd7f6';
+        } else {
+          color = '#86948a';
+        }
         break;
       case 'SO2':
-        val = st.so2 ?? Math.round((st.currentAqi ?? 40) * 0.2);
         unit = 'µg/m³';
-        if (val > 75) color = '#ffb4ab';
-        else if (val > 35) color = '#f59e0b';
-        else if (val > 15) color = '#4cd7f6';
+        if (st.so2 !== undefined) {
+          val = st.so2;
+          if (val > 75) color = '#ffb4ab';
+          else if (val > 35) color = '#f59e0b';
+          else if (val > 15) color = '#4cd7f6';
+        } else {
+          color = '#86948a';
+        }
         break;
       case 'CO':
-        val = st.co ?? 0.65;
         unit = 'mg/m³';
-        if (val > 9.0) color = '#ffb4ab';
-        else if (val > 4.0) color = '#f59e0b';
-        else if (val > 2.0) color = '#4cd7f6';
+        if (st.co !== undefined) {
+          val = st.co;
+          if (val > 9.0) color = '#ffb4ab';
+          else if (val > 4.0) color = '#f59e0b';
+          else if (val > 2.0) color = '#4cd7f6';
+        } else {
+          color = '#86948a';
+        }
         break;
     }
 

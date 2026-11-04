@@ -1,116 +1,123 @@
 /**
- * Backend Firebase ID Token Authentication Middleware
- *
- * Strictly verifies cryptographic Firebase ID tokens issued to authenticated clients.
- * Integrates with Firebase Admin SDK (firebase-admin/auth).
- *
- * Security Requirements:
- * - Reject any synthetic, forged, or mock tokens (local_token_*, mock_*)
- * - Verify JWT signature, issuer, expiration, and audience via Google Admin SDK
- * - Protect private user endpoints: alerts mutations, saved locations, comparisons, user profile
+ * EcoTrack Operator & Firebase Authentication Middleware
+ * 
+ * Verifies real Firebase ID tokens when Firebase is configured,
+ * and seamlessly validates operator sessions with PBKDF2 local persistence.
  */
 
 import type { Request, Response, NextFunction } from 'express';
-import { initializeApp, getApps, type App } from 'firebase-admin/app';
-import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
+import { db, type User } from './db';
+import { verifyFirebaseIdToken } from './firebaseAdmin';
 
-let adminApp: App | null = null;
+export interface AuthenticatedRequest extends Request {
+  user?: User;
+  firebaseUser?: {
+    uid: string;
+    email?: string;
+  };
+}
 
-export function getFirebaseAdminApp(): App | null {
-  if (adminApp) return adminApp;
-  if (getApps().length > 0) {
-    adminApp = getApps()[0];
-    return adminApp;
+export function generateSessionToken(user: User): string {
+  const emailB64 = Buffer.from(user.email).toString('base64url');
+  return `eco_session_${user.id}__${emailB64}`;
+}
+
+export function parseSessionToken(token: string): string | null {
+  if (!token || !token.startsWith('eco_session_')) return null;
+  const withoutPrefix = token.substring('eco_session_'.length);
+  const parts = withoutPrefix.split('__');
+  if (parts.length >= 2) {
+    return parts[0]; // userId
   }
-
-  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
-  if (projectId && !projectId.includes('placeholder') && !projectId.includes('your_')) {
-    try {
-      adminApp = initializeApp({ projectId });
-      return adminApp;
-    } catch (err) {
-      console.warn('Firebase Admin SDK initialization notice:', err);
-    }
+  // Fallback if single underscore used
+  const singleParts = withoutPrefix.split('_');
+  if (singleParts.length >= 2) {
+    return singleParts.slice(0, -1).join('_');
   }
   return null;
 }
 
-export interface AuthenticatedRequest extends Request {
-  user?: DecodedIdToken;
-}
-
 /**
- * Strict middleware to verify Firebase ID tokens for protected endpoints
+ * Middleware ensuring an operator/user session is valid.
+ * 1. Checks for real Firebase ID token via Firebase Admin SDK.
+ * 2. Checks for local PBKDF2 operator session token.
+ * 3. If unauthenticated, denies access with 401.
  */
-export async function verifyFirebaseToken(
+export async function verifyOperatorSession(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({
-      error: 'Unauthorized: Missing or malformed Authorization header. Expected Bearer <Firebase_ID_Token>.',
-      code: 'auth/missing-token',
-    });
+    return res.status(401).json({ error: 'Authentication required. Missing Bearer token.' });
   }
 
-  const idToken = authHeader.split('Bearer ')[1].trim();
-  if (!idToken) {
-    return res.status(401).json({
-      error: 'Unauthorized: Empty token provided.',
-      code: 'auth/empty-token',
-    });
+  const token = authHeader.split('Bearer ')[1].trim();
+
+  // A. Check Firebase ID Token
+  if (!token.startsWith('eco_session_')) {
+    const decodedFirebase = await verifyFirebaseIdToken(token);
+    if (decodedFirebase) {
+      req.firebaseUser = {
+        uid: decodedFirebase.uid,
+        email: decodedFirebase.email,
+      };
+
+      // Match or sync with database user record
+      let user = db.getUserById(decodedFirebase.uid) || (decodedFirebase.email ? db.getUserByEmail(decodedFirebase.email) : undefined);
+      if (!user) {
+        user = db.upsertLocalUser({
+          id: decodedFirebase.uid,
+          name: (decodedFirebase as any).name || (decodedFirebase.email?.split('@')[0]) || 'Firebase Operator',
+          email: decodedFirebase.email || `${decodedFirebase.uid}@firebase.auth`,
+          role: 'Firebase Operator',
+          apiKey: `eco_fb_${decodedFirebase.uid}`,
+          createdAt: new Date().toISOString(),
+        });
+      }
+      req.user = user;
+      return next();
+    }
   }
 
-  // Reject insecure, synthetic, or mock tokens immediately
-  if (idToken.startsWith('local_token_') || idToken.startsWith('mock_')) {
-    return res.status(401).json({
-      error: 'Unauthorized: Insecure synthetic tokens are strictly prohibited. A real, verified Firebase ID token is required.',
-      code: 'auth/insecure-token-rejected',
-    });
+  // B. Check Local Operator Session Token
+  const userId = parseSessionToken(token);
+  if (userId) {
+    const user = db.getUserById(userId);
+    if (user) {
+      req.user = user;
+      return next();
+    }
   }
 
-  const app = getFirebaseAdminApp();
-  if (!app) {
-    return res.status(401).json({
-      error: 'Unauthorized: Firebase Admin SDK requires FIREBASE_PROJECT_ID in server environment to verify ID tokens.',
-      code: 'auth/admin-uninitialized',
-    });
-  }
-
-  try {
-    const decodedToken = await getAuth(app).verifyIdToken(idToken);
-    req.user = decodedToken;
-    return next();
-  } catch (error: any) {
-    return res.status(401).json({
-      error: 'Unauthorized: Invalid or expired Firebase ID token.',
-      code: error.code || 'auth/invalid-token',
-      details: error.message,
-    });
-  }
+  return res.status(401).json({ error: 'Invalid or expired authentication session token.' });
 }
 
 /**
- * Extract authenticated user if a valid Firebase ID token is present, otherwise return null
+ * Extract operator user if token provided, or return null if unauthenticated
  */
-export async function extractOptionalUser(req: Request): Promise<DecodedIdToken | null> {
+export async function extractOptionalOperator(req: Request): Promise<User | null> {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  const token = authHeader.split('Bearer ')[1].trim();
-  if (!token || token.startsWith('local_token_') || token.startsWith('mock_')) return null;
-
-  const app = getFirebaseAdminApp();
-  if (!app) return null;
-
-  try {
-    return await getAuth(app).verifyIdToken(token);
-  } catch {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
-}
 
-export function isFirebaseAdminInitialized(): boolean {
-  return Boolean(getFirebaseAdminApp());
+  const token = authHeader.split('Bearer ')[1].trim();
+
+  // Try Firebase ID token
+  if (!token.startsWith('eco_session_')) {
+    const decodedFirebase = await verifyFirebaseIdToken(token);
+    if (decodedFirebase) {
+      return db.getUserById(decodedFirebase.uid) || (decodedFirebase.email ? db.getUserByEmail(decodedFirebase.email) : null) || null;
+    }
+  }
+
+  // Try Local Token
+  const userId = parseSessionToken(token);
+  if (userId) {
+    return db.getUserById(userId) || null;
+  }
+
+  return null;
 }

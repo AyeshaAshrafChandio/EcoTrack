@@ -5,13 +5,14 @@ import {
   fetchLiveEnvironment,
   getGlobalStationsWithTelemetry,
   searchLocations,
-  fetchOpenAQData,
 } from './services/environmental';
-import { metaAIService } from './services/metaAI';
+import { aiCopilotService } from './services/aiCopilot';
+import { groqService } from './services/groqService';
+import { openAQService } from './services/openaqService';
 import {
-  verifyFirebaseToken,
-  extractOptionalUser,
-  isFirebaseAdminInitialized,
+  verifyOperatorSession,
+  extractOptionalOperator,
+  generateSessionToken,
   type AuthenticatedRequest,
 } from './authMiddleware';
 
@@ -19,52 +20,55 @@ export const apiRouter = Router();
 
 apiRouter.use(express.json({ limit: '10mb' }));
 
-// Health and provider status
+// Helper to strip sensitive fields before returning user
+function toSafeUser(user: User) {
+  const { passwordHash: _, ...safe } = user;
+  return safe;
+}
+
+// 1. Health and Multi-Provider Status
 apiRouter.get('/status', async (_req, res) => {
   const stations = await getGlobalStationsWithTelemetry().catch(() => []);
+  const hasCloudflare = Boolean(process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN);
+  const groqStatus = await groqService.checkStatus().catch(() => ({
+    configured: false,
+    accessible: false,
+    statusMessage: 'Groq check failed',
+    availableModels: [],
+    recommendedModel: 'llama-3.3-70b-versatile',
+  }));
+  const openAQConfigured = openAQService.isKeyConfigured();
+  const firebaseConfigured = Boolean(process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID);
+
   res.json({
     status: 'ONLINE',
-    version: '3.4-AI',
+    version: '3.4-PROD-RESTORATION',
     providers: {
-      openMeteoAirQuality: 'OPERATIONAL',
-      openMeteoWeather: 'OPERATIONAL',
-      openMeteoGeocoding: 'OPERATIONAL',
-      copernicusAtmosphere: 'OPERATIONAL',
-      openaqV3: process.env.OPENAQ_API_KEY ? 'AUTHENTICATED' : 'PUBLIC_OPEN_ACCESS',
-      metaAI: (process.env.META_API_KEY || process.env.GROQ_API_KEY) ? 'AUTHENTICATED' : 'BLOCKED_NO_API_KEY',
-      firebaseAuth: isFirebaseAdminInitialized() ? 'ACTIVE' : 'READY_AWAITING_PROJECT_ID',
-      database: 'LOCAL_JSON_PERSISTENCE (PostgreSQL not connected)',
+      openMeteoAirQuality: 'OPERATIONAL (CAMS/ECMWF Global Forecasts)',
+      openMeteoWeather: 'OPERATIONAL (Physical Meteorology)',
+      openMeteoGeocoding: 'OPERATIONAL (Global Coordinate Search)',
+      openAQGroundSensors: openAQConfigured ? 'KEY_CONFIGURED (v3 REST API)' : 'AWAITING_OPENAQ_API_KEY (contributed reference ground monitors)',
+      cloudflareMetaLlama: hasCloudflare ? 'ONLINE (@cf/meta/llama-3.2-3b-instruct Free Plan)' : 'AWAITING_CLOUDFLARE_CREDENTIALS',
+      groqMetaLlama: groqStatus.configured
+        ? (groqStatus.accessible ? `ONLINE (${groqStatus.recommendedModel})` : `CONFIGURED_INACCESSIBLE: ${groqStatus.statusMessage}`)
+        : 'AWAITING_GROQ_API_KEY',
+      localOllamaFallback: 'AVAILABLE (llama3.2:3b on localhost:11434)',
+      firebaseAuth: firebaseConfigured ? 'CONFIGURED (Firebase Token Verification Ready)' : 'STANDBY_AWAITING_PROJECT_CONFIG',
+      persistenceEngine: 'ATOMIC_STORAGE_JSON (Local Data Directory /data/ecotrack.json)',
     },
-    verifiedStationNodes: stations.length,
-    calibrationStandard: 'US-EPA 40 CFR 58 / WHO 2021',
+    verifiedTelemetryNodes: stations.length,
+    atmosphericStandards: 'US-EPA 40 CFR 58 Breakpoints / WHO 2021 Air Quality Guidelines',
     timestamp: new Date().toISOString(),
   });
 });
 
-// OpenAQ v3 live query endpoint
-apiRouter.get('/environment/openaq', async (req, res) => {
-  const lat = req.query.lat ? parseFloat(req.query.lat as string) : undefined;
-  const lon = req.query.lon ? parseFloat(req.query.lon as string) : undefined;
-  const radius = req.query.radius ? parseFloat(req.query.radius as string) : 25;
-  const result = await fetchOpenAQData(lat, lon, radius);
-  res.json(result);
-});
-
-// Protected endpoint to verify Firebase ID tokens
-apiRouter.get('/auth/verify-token', verifyFirebaseToken, (req: AuthenticatedRequest, res) => {
-  res.json({
-    authenticated: true,
-    user: req.user,
-    message: 'Firebase ID token successfully verified by backend.',
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// Live environmental telemetry
+// 2. Live Environmental Telemetry (Open-Meteo Air Quality & Weather API)
 apiRouter.get('/environment/live', async (req, res) => {
   try {
-    const lat = req.query.lat ? parseFloat(req.query.lat as string) : 35.6895;
-    const lon = req.query.lon ? parseFloat(req.query.lon as string) : 139.6917;
+    const rawLat = (req.query.latitude || req.query.lat) as string | undefined;
+    const rawLon = (req.query.longitude || req.query.lon) as string | undefined;
+    const lat = rawLat ? parseFloat(rawLat) : 24.8607;
+    const lon = rawLon ? parseFloat(rawLon) : 67.0011;
     const city = req.query.city as string | undefined;
 
     if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
@@ -73,11 +77,11 @@ apiRouter.get('/environment/live', async (req, res) => {
 
     const telemetry = await fetchLiveEnvironment(lat, lon, city);
 
-    // Evaluate active alert rules against this live reading to auto-log any exceedances!
+    // Evaluate active alert rules against this live reading to auto-log exceedances
     try {
       const activeRules = db.getAlertRules().filter(r => r.active);
       for (const rule of activeRules) {
-        if (Math.abs(rule.lat - lat) < 0.5 && Math.abs(rule.lon - lon) < 0.5) {
+        if (Math.abs(rule.lat - lat) < 0.6 && Math.abs(rule.lon - lon) < 0.6) {
           let observed = 0;
           if (rule.pollutant === 'AQI') observed = telemetry.overallAqi;
           else if (telemetry.pollutants[rule.pollutant]) observed = telemetry.pollutants[rule.pollutant].value;
@@ -87,7 +91,6 @@ apiRouter.get('/environment/live', async (req, res) => {
             (rule.operator === '>=' && observed >= rule.threshold);
 
           if (isExceeded) {
-            // Check if recent event already recorded in last 30 minutes
             const existing = db.getExceedanceEvents().find(
               e => e.alertRuleId === rule.id && Date.now() - new Date(e.timestamp).getTime() < 30 * 60 * 1000
             );
@@ -95,45 +98,61 @@ apiRouter.get('/environment/live', async (req, res) => {
               db.recordExceedanceEvent({
                 alertRuleId: rule.id,
                 locationName: rule.locationName,
-                stationId: telemetry.location.stationId || 'GROUND-NODE',
+                stationId: telemetry.location.stationId || 'TELEMETRY-NODE',
                 pollutant: rule.pollutant,
                 observedValue: observed,
                 threshold: rule.threshold,
                 unit: rule.unit,
                 severity: rule.severity,
                 status: 'Active Exceedance',
-                details: `Automated sensor exceedance triggered. Observed ${observed} ${rule.unit} exceeds ceiling of ${rule.threshold} ${rule.unit}. Dominant vector: ${telemetry.dominantPollutant}.`,
+                details: `Automated threshold exceeded. Observed ${observed} ${rule.unit} exceeds ceiling of ${rule.threshold} ${rule.unit}. Dominant vector: ${telemetry.dominantPollutant}.`,
               });
             }
           }
         }
       }
     } catch (ruleErr) {
-      console.warn('Alert rule check warning:', ruleErr);
+      console.warn('Alert rule check notice:', ruleErr);
     }
 
     res.json(telemetry);
   } catch (err: any) {
     console.error('Error fetching live telemetry:', err);
-    res.status(500).json({ error: err.message || 'Failed to fetch environmental telemetry' });
+    res.status(500).json({ error: err.message || 'Failed to fetch environmental telemetry from Open-Meteo' });
   }
 });
 
-// Live global stations
+// 3. OpenAQ v3 Physical Ground Stations
+apiRouter.get('/environment/openaq', async (req, res) => {
+  try {
+    const rawLat = (req.query.latitude || req.query.lat) as string | undefined;
+    const rawLon = (req.query.longitude || req.query.lon) as string | undefined;
+    const lat = rawLat ? parseFloat(rawLat) : 24.8607;
+    const lon = rawLon ? parseFloat(rawLon) : 67.0011;
+    const radius = req.query.radius ? parseInt(req.query.radius as string, 10) : 25000;
+
+    const result = await openAQService.findNearestStations(lat, lon, radius);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to query OpenAQ ground monitors', details: err.message });
+  }
+});
+
+// 4. Global Stations / Telemetry Nodes
 apiRouter.get('/environment/stations', async (_req, res) => {
   try {
     const stations = await getGlobalStationsWithTelemetry();
     res.json({ stations, count: stations.length, timestamp: new Date().toISOString() });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to retrieve global stations' });
+    res.status(500).json({ error: 'Failed to retrieve global telemetry stations' });
   }
 });
 
-// Geocoding search
+// 5. Geocoding Search (Free Open-Meteo Geocoding)
 apiRouter.get('/environment/search', async (req, res) => {
   try {
     const q = req.query.q as string;
-    if (!q) {
+    if (!q || !q.trim()) {
       return res.json([]);
     }
     const results = await searchLocations(q);
@@ -143,11 +162,9 @@ apiRouter.get('/environment/search', async (req, res) => {
   }
 });
 
-// Location comparison
+// 6. Cross-Continental Location Comparison
 apiRouter.get('/environment/compare', async (req, res) => {
   try {
-    // locs query param format: lat,lon,name|lat,lon,name
-    // or loc1_lat, loc1_lon, loc2_lat, loc2_lon
     const locationsToCompare: Array<{ lat: number; lon: number; name: string }> = [];
 
     if (req.query.locs) {
@@ -158,16 +175,16 @@ apiRouter.get('/environment/compare', async (req, res) => {
           locationsToCompare.push({
             lat: parseFloat(latStr),
             lon: parseFloat(lonStr),
-            name: name || 'Station',
+            name: name || 'Telemetry Station',
           });
         }
       }
     } else {
-      // Default to Tokyo, London, Delhi if nothing specified
+      // Default to Karachi, Tokyo, London
       locationsToCompare.push(
+        { lat: 24.8607, lon: 67.0011, name: 'Karachi, Pakistan' },
         { lat: 35.6895, lon: 139.6917, name: 'Tokyo, Japan' },
-        { lat: 51.5074, lon: -0.1278, name: 'London, United Kingdom' },
-        { lat: 28.6139, lon: 77.209, name: 'Delhi NCR, India' }
+        { lat: 51.5074, lon: -0.1278, name: 'London, United Kingdom' }
       );
     }
 
@@ -175,7 +192,6 @@ apiRouter.get('/environment/compare', async (req, res) => {
       locationsToCompare.map(loc => fetchLiveEnvironment(loc.lat, loc.lon, loc.name))
     );
 
-    // Compute differential analysis
     const maxAqi = Math.max(...telemetryList.map(t => t.overallAqi));
     const minAqi = Math.min(...telemetryList.map(t => t.overallAqi));
     const variance = maxAqi - minAqi;
@@ -199,22 +215,21 @@ apiRouter.get('/environment/compare', async (req, res) => {
   }
 });
 
-// Meta AI Copilot Chat
+// 7. AI Environmental Copilot Chat (Meta Llama on Cloudflare / Groq / Ollama)
 apiRouter.post('/copilot/chat', async (req, res) => {
   try {
-    const { prompt, context, conversationHistory, attachedImage } = req.body;
-    if (!prompt) {
+    const { prompt, context, conversationHistory } = req.body;
+    if (!prompt || !prompt.trim()) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const result = await metaAIService.generateCopilotResponse({
+    const result = await aiCopilotService.generateCopilotResponse({
       prompt,
       context,
       conversationHistory,
-      attachedImage,
     });
 
-    // Record in database session
+    // Record in local database session
     db.addChatMessage('session_default', {
       role: 'user',
       content: prompt,
@@ -223,46 +238,31 @@ apiRouter.post('/copilot/chat', async (req, res) => {
       role: 'assistant',
       content: result.reply,
       context: {
-        location: context?.location,
-        aqi: context?.telemetry?.overallAqi,
-        pm25: context?.telemetry?.pollutants?.['PM2.5']?.value,
+        location: result.evidencePacket.locationName,
+        aqi: result.evidencePacket.overallAqi,
+        pm25: result.evidencePacket.pollutants.find(p => p.code === 'PM2.5')?.value,
         modelUsed: result.modelUsed,
       },
     });
 
     res.json(result);
   } catch (err: any) {
+    console.error('Copilot inference error:', err);
     res.status(500).json({ error: err.message || 'AI Copilot inference failed' });
   }
 });
 
-// Meta SAM 3.1 Vision AI Segmentation
-apiRouter.post('/vision/segment', async (req, res) => {
-  try {
-    const { imageBase64, imageUrl, promptCoords, environmentalContext } = req.body;
-    const result = await metaAIService.segmentAtmosphericImage({
-      imageBase64,
-      imageUrl,
-      promptCoords,
-      environmentalContext,
-    });
-    res.json(result);
-  } catch (err: any) {
-    res.status(500).json({ error: 'Vision AI segmentation pipeline failed' });
-  }
-});
-
-// Alert Rules: Public read of default system rules + user-specific rules if authenticated
+// 8. Alert Rules: Public read of rules + exceedance events
 apiRouter.get('/alerts', async (req, res) => {
-  const user = await extractOptionalUser(req);
+  const user = await extractOptionalOperator(req);
   res.json({
-    rules: db.getAlertRules(user?.uid),
+    rules: db.getAlertRules(user?.id),
     events: db.getExceedanceEvents(),
   });
 });
 
-// Mutating alert rules requires strict Firebase ID token verification
-apiRouter.post('/alerts', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+// Mutating alert rules requires verified authentication
+apiRouter.post('/alerts', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
   try {
     const user = req.user!;
     const { locationName, lat, lon, pollutant, operator, threshold, unit, severity, notificationChannel } = req.body;
@@ -271,14 +271,14 @@ apiRouter.post('/alerts', verifyFirebaseToken, async (req: AuthenticatedRequest,
     }
 
     const newRule = db.addAlertRule({
-      userId: user.uid,
+      userId: user.id,
       locationName,
       lat: parseFloat(lat),
       lon: parseFloat(lon),
       pollutant,
       operator: operator || '>',
       threshold: parseFloat(threshold),
-      unit: unit || 'µg/m³',
+      unit: unit || (pollutant === 'CO' ? 'mg/m³' : 'µg/m³'),
       severity: severity || 'Warning',
       notificationChannel: notificationChannel || 'Push & Email',
       active: true,
@@ -290,43 +290,31 @@ apiRouter.post('/alerts', verifyFirebaseToken, async (req: AuthenticatedRequest,
   }
 });
 
-apiRouter.put('/alerts/:id', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
-  try {
-    const user = req.user!;
-    const { pollutant, operator, threshold, unit, severity, notificationChannel, active, locationName, lat, lon } = req.body;
-    const updates: any = {};
-    if (pollutant !== undefined) updates.pollutant = pollutant;
-    if (operator !== undefined) updates.operator = operator;
-    if (threshold !== undefined) updates.threshold = parseFloat(threshold);
-    if (unit !== undefined) updates.unit = unit;
-    if (severity !== undefined) updates.severity = severity;
-    if (notificationChannel !== undefined) updates.notificationChannel = notificationChannel;
-    if (active !== undefined) updates.active = Boolean(active);
-    if (locationName !== undefined) updates.locationName = locationName;
-    if (lat !== undefined) updates.lat = parseFloat(lat);
-    if (lon !== undefined) updates.lon = parseFloat(lon);
-
-    const updated = db.updateAlertRule(req.params.id, user.uid, updates);
-    if (!updated) {
-      return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
-    }
-    res.json(updated);
-  } catch (err: any) {
-    res.status(500).json({ error: 'Failed to update alert rule' });
-  }
-});
-
-apiRouter.patch('/alerts/:id/toggle', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+apiRouter.patch('/alerts/:id/toggle', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
   const user = req.user!;
-  const updated = db.toggleAlertRule(req.params.id, user.uid);
-  if (!updated) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
+  const rule = db.getAlertRules(user.id).find(r => r.id === req.params.id);
+  if (!rule) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
+
+  const updated = db.updateAlertRule(req.params.id, { active: !rule.active });
   res.json(updated);
 });
 
-apiRouter.delete('/alerts/:id', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+apiRouter.put('/alerts/:id', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
   const user = req.user!;
-  const deleted = db.deleteAlertRule(req.params.id, user.uid);
-  if (!deleted) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
+  const rule = db.getAlertRules(user.id).find(r => r.id === req.params.id);
+  if (!rule) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
+
+  const updated = db.updateAlertRule(req.params.id, req.body);
+  res.json(updated);
+});
+
+apiRouter.delete('/alerts/:id', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
+  const user = req.user!;
+  const rule = db.getAlertRules(user.id).find(r => r.id === req.params.id);
+  if (!rule) return res.status(404).json({ error: 'Alert rule not found or unauthorized' });
+
+  const deleted = db.deleteAlertRule(req.params.id);
+  if (!deleted) return res.status(404).json({ error: 'Alert rule not found' });
   res.json({ success: true });
 });
 
@@ -335,12 +323,12 @@ apiRouter.get('/alerts/events', (_req, res) => {
   res.json(db.getExceedanceEvents());
 });
 
-// Saved Locations: strictly authenticated per user
-apiRouter.get('/saved-locations', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
-  res.json(db.getSavedLocations(req.user!.uid));
+// 9. Saved Locations: user specific
+apiRouter.get('/saved-locations', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
+  res.json(db.getSavedLocations(req.user!.id));
 });
 
-apiRouter.post('/saved-locations', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+apiRouter.post('/saved-locations', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
   try {
     const user = req.user!;
     const { name, lat, lon, country, stationId } = req.body;
@@ -348,7 +336,7 @@ apiRouter.post('/saved-locations', verifyFirebaseToken, async (req: Authenticate
       return res.status(400).json({ error: 'Missing location fields' });
     }
     const saved = db.addSavedLocation({
-      userId: user.uid,
+      userId: user.id,
       name,
       lat: parseFloat(lat),
       lon: parseFloat(lon),
@@ -361,49 +349,75 @@ apiRouter.post('/saved-locations', verifyFirebaseToken, async (req: Authenticate
   }
 });
 
-apiRouter.delete('/saved-locations/:id', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+apiRouter.delete('/saved-locations/:id', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
   const user = req.user!;
-  const deleted = db.deleteSavedLocation(req.params.id, user.uid);
-  if (!deleted) return res.status(404).json({ error: 'Location not found or unauthorized' });
+  const deleted = db.deleteSavedLocation(req.params.id, user.id);
+  if (!deleted) return res.status(404).json({ error: 'Location not found' });
   res.json({ success: true });
 });
 
-// Comparisons: strictly authenticated per user
-apiRouter.get('/comparisons', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
-  res.json(db.getComparisonSessions(req.user!.uid));
-});
-
-apiRouter.post('/comparisons', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+// 10. Local Operator Authentication
+apiRouter.post('/auth/register', (req, res) => {
   try {
-    const user = req.user!;
-    const { title, locations } = req.body;
-    const session = db.saveComparisonSession({
-      userId: user.uid,
-      title: title || 'Comparison Session',
-      locations: locations || [],
+    const { email, password, name } = req.body;
+    if (!email || !password || password.length < 6) {
+      return res.status(400).json({ error: 'Email and password (min 6 chars) are required.' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const existing = db.getUserByEmail(cleanEmail);
+    if (existing) {
+      return res.status(400).json({ error: 'An operator account with this email already exists.' });
+    }
+
+    const hashedPassword = hashPassword(password);
+    const user = db.createUser({
+      name: name?.trim() || 'Environmental Operator',
+      email: cleanEmail,
+      passwordHash: hashedPassword,
+      role: 'Environmental Systems Engineer',
+      apiKey: `eco_${Math.random().toString(36).substring(2, 12)}`,
     });
-    res.status(201).json(session);
+
+    const token = generateSessionToken(user);
+    res.status(201).json({
+      user: toSafeUser(user),
+      token,
+      message: 'Operator account provisioned successfully.',
+    });
   } catch (err: any) {
-    res.status(500).json({ error: 'Failed to save comparison session' });
+    res.status(500).json({ error: 'Failed to create operator account' });
   }
 });
 
-// Helper to strip sensitive fields before returning user
-function toSafeUser(user: User) {
-  const { passwordHash: _, ...safe } = user;
-  return safe;
-}
+apiRouter.post('/auth/login', (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and security passphrase are required.' });
+    }
 
-// Authentication endpoints: strictly synchronized with Firebase Authentication
-apiRouter.get('/auth/me', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
-  const user = db.upsertFirebaseUser({
-    uid: req.user!.uid,
-    email: req.user!.email,
-    name: (req.user as any).name || (req.user as any).displayName,
-  });
-  res.json({ user: toSafeUser(user) });
+    const cleanEmail = email.trim().toLowerCase();
+    const user = db.getUserByEmail(cleanEmail);
+    if (!user || !user.passwordHash || !verifyPassword(password, user.passwordHash)) {
+      return res.status(401).json({ error: 'Invalid operator credentials or passphrase.' });
+    }
+
+    const token = generateSessionToken(user);
+    res.json({
+      user: toSafeUser(user),
+      token,
+      message: 'Operator session authenticated.',
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Authentication failed' });
+  }
+});
+
+apiRouter.get('/auth/me', verifyOperatorSession, (req: AuthenticatedRequest, res) => {
+  res.json({ user: toSafeUser(req.user!) });
 });
 
 apiRouter.post('/auth/logout', (_req, res) => {
-  res.json({ success: true, message: 'Session terminated. Operator logged out.' });
+  res.json({ success: true, message: 'Operator logged out.' });
 });

@@ -9,6 +9,7 @@ export const AuthView: React.FC = () => {
     loginWithGoogle,
     resetPassword,
     currentUser,
+    firebaseUser,
     logout,
     firebaseConfigured,
   } = useApp();
@@ -42,8 +43,7 @@ export const AuthView: React.FC = () => {
         setActiveView('dashboard');
       }, 700);
     } catch (err: any) {
-      const formatted = formatFirebaseAuthError(err);
-      setStatusMsg({ text: formatted, type: 'error' });
+      setStatusMsg({ text: formatFirebaseAuthError(err), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -59,8 +59,7 @@ export const AuthView: React.FC = () => {
         setActiveView('dashboard');
       }, 700);
     } catch (err: any) {
-      const formatted = formatFirebaseAuthError(err);
-      setStatusMsg({ text: formatted, type: 'error' });
+      setStatusMsg({ text: formatFirebaseAuthError(err), type: 'error' });
     } finally {
       setGoogleLoading(false);
     }
@@ -88,7 +87,7 @@ export const AuthView: React.FC = () => {
     }
   };
 
-  // If already authenticated with Firebase, show authenticated state
+  // If already authenticated, show authenticated state
   if (currentUser) {
     return (
       <div className="w-full min-h-[calc(100vh-4rem)] bg-surface flex items-center justify-center p-3 sm:p-6 lg:p-8 py-8 sm:py-12">
@@ -98,19 +97,19 @@ export const AuthView: React.FC = () => {
           </div>
           <div>
             <span className="font-label-mono-sm text-[0.625rem] text-secondary uppercase font-bold tracking-wider">
-              Firebase Session Active
+              {firebaseUser ? 'Firebase Session Active' : 'Operator Session Active'}
             </span>
             <h2 className="font-headline-md text-xl font-bold text-on-surface mt-1">
-              {currentUser.displayName || 'Authenticated Operator'}
+              {currentUser.name || 'Authenticated Operator'}
             </h2>
             <p className="font-label-mono-sm text-xs text-on-surface-variant mt-0.5">
               {currentUser.email}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-surface-container font-label-mono-sm text-[0.6875rem] text-on-surface-variant text-left space-y-1">
-            <div>UID: <span className="text-on-surface font-semibold">{currentUser.uid}</span></div>
-            <div>Provider: <span className="text-primary font-semibold">{currentUser.providerData[0]?.providerId || 'firebase'}</span></div>
-            <div>Email Verified: <span className={currentUser.emailVerified ? 'text-primary' : 'text-secondary'}>{currentUser.emailVerified ? 'Yes' : 'Pending'}</span></div>
+            <div>UID: <span className="text-on-surface font-semibold">{currentUser.id}</span></div>
+            <div>Provider: <span className="text-primary font-semibold">{currentUser.provider || (firebaseUser ? 'firebase.auth' : 'local.pbkdf2')}</span></div>
+            <div>Role: <span className="text-secondary font-semibold">{currentUser.role || 'Environmental Analyst'}</span></div>
           </div>
           <div className="flex flex-col gap-2 pt-2">
             <button

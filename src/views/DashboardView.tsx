@@ -61,14 +61,14 @@ export const DashboardView: React.FC = () => {
               <span>•</span>
               <span className="truncate">{t.location.latitude.toFixed(3)}° N, {t.location.longitude.toFixed(3)}° E</span>
               <span className="hidden sm:inline">•</span>
-              <span className="hidden sm:inline text-secondary truncate">{t.location.sensorNetwork || 'WMO GAW Telemetry'}</span>
+              <span className="hidden sm:inline text-secondary truncate">{t.location.sensorNetwork || 'Open-Meteo CAMS Model Grid'}</span>
             </div>
             <h1 className="font-display-lg text-xl sm:text-2xl md:text-3xl text-on-surface font-extrabold flex items-center gap-2 truncate">
               <span className="truncate">{t.location.name}</span>
               <span className="material-symbols-outlined text-primary text-[20px] sm:text-[24px] shrink-0">verified</span>
             </h1>
             <p className="font-body-sm text-xs sm:text-body-sm text-on-surface-variant max-w-xl leading-relaxed">
-              Real-time atmospheric speciation with calibrated optical scattering and beta-attenuation mass concentration.
+              Global atmospheric forecast telemetry harmonized to US-EPA 40 CFR Part 58 breakpoints and WHO 2021 air quality guidelines via Open-Meteo (Copernicus CAMS &amp; ECMWF).
             </p>
           </div>
 

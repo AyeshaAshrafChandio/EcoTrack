@@ -95,7 +95,7 @@ export interface GlobalStation {
   so2?: number;
   co?: number;
   temperature?: number;
-  status: 'Active Ground Node' | 'Calibrating';
+  status: 'Active Telemetry Node' | 'Active Ground Node' | 'Calibrating';
   lastUpdated?: string;
 }
 
@@ -124,148 +124,136 @@ function setCache<T>(key: string, data: T) {
 // Global real station nodes
 export const GLOBAL_STATIONS: GlobalStation[] = [
   {
+    id: 'KHI-SINDH-01',
+    name: 'Karachi Coastal Industrial Basin',
+    city: 'Karachi',
+    country: 'Pakistan',
+    continent: 'Asia',
+    lat: 24.8607,
+    lon: 67.0011,
+    sensorModel: 'Open-Meteo CAMS Atmospheric Model',
+    sensorNetwork: 'Open-Meteo / Copernicus Atmosphere Monitoring Service',
+    status: 'Active Telemetry Node',
+  },
+  {
+    id: 'ISB-CAP-02',
+    name: 'Islamabad Margalla Basin',
+    city: 'Islamabad',
+    country: 'Pakistan',
+    continent: 'Asia',
+    lat: 33.6844,
+    lon: 73.0479,
+    sensorModel: 'Open-Meteo CAMS Atmospheric Model',
+    sensorNetwork: 'Open-Meteo / Copernicus Atmosphere Monitoring Service',
+    status: 'Active Telemetry Node',
+  },
+  {
     id: 'TK-SHINJUKU-SENSOR-4A',
-    name: 'Tokyo Shinjuku Civic Station',
+    name: 'Tokyo Shinjuku Metropolitan Node',
     city: 'Tokyo',
     country: 'Japan',
     continent: 'Asia',
     lat: 35.6895,
     lon: 139.6917,
-    sensorModel: 'BAM-1020 Beta Attenuation / Laser Scatter',
-    sensorNetwork: 'MOE Japan / WMO GAW',
-    status: 'Active Ground Node',
+    sensorModel: 'Open-Meteo CAMS Atmospheric Model',
+    sensorNetwork: 'Open-Meteo / Copernicus Atmosphere Monitoring Service',
+    status: 'Active Telemetry Node',
   },
   {
     id: 'LON-BLOOMSBURY-A2',
-    name: 'London Bloomsbury AURN',
+    name: 'London Bloomsbury Urban Node',
     city: 'London',
     country: 'United Kingdom',
     continent: 'Europe',
     lat: 51.5225,
     lon: -0.1258,
-    sensorModel: 'TEOM 1405-F Ambient Particulate Monitor',
-    sensorNetwork: 'UK AURN / EEA',
-    status: 'Active Ground Node',
+    sensorModel: 'Open-Meteo CAMS Atmospheric Model',
+    sensorNetwork: 'Open-Meteo / Copernicus Atmosphere Monitoring Service',
+    status: 'Active Telemetry Node',
   },
   {
     id: 'DEL-AV-092',
-    name: 'Delhi Anand Vihar DPCC',
+    name: 'Delhi Anand Vihar Basin Node',
     city: 'Delhi',
     country: 'India',
     continent: 'Asia',
     lat: 28.6469,
     lon: 77.316,
-    sensorModel: 'Thermo 5014i Continuous Ambient Particulate',
-    sensorNetwork: 'CPCB India / DPCC',
-    status: 'Active Ground Node',
+    sensorModel: 'Open-Meteo CAMS Atmospheric Model',
+    sensorNetwork: 'Open-Meteo / Copernicus Atmosphere Monitoring Service',
+    status: 'Active Telemetry Node',
   },
   {
     id: 'SP-CGH-104',
-    name: 'São Paulo Congonhas Basin',
+    name: 'São Paulo Congonhas Corridor',
     city: 'São Paulo',
     country: 'Brazil',
     continent: 'South America',
     lat: -23.6273,
     lon: -46.6566,
-    sensorModel: 'Met One BAM-1020',
-    sensorNetwork: 'CETESB Brasil',
-    status: 'Active Ground Node',
+    sensorModel: 'Open-Meteo CAMS Atmospheric Model',
+    sensorNetwork: 'Open-Meteo / Copernicus Atmosphere Monitoring Service',
+    status: 'Active Telemetry Node',
   },
   {
     id: 'LA-NLB-04',
-    name: 'Los Angeles North Long Beach',
+    name: 'Los Angeles Coastal Basin Node',
     city: 'Los Angeles',
     country: 'United States',
     continent: 'North America',
     lat: 33.8247,
     lon: -118.1892,
-    sensorModel: 'Met One BAM-1022 / Teledyne API T640',
-    sensorNetwork: 'US-EPA AirNow / SCAQMD',
-    status: 'Active Ground Node',
+    sensorModel: 'Open-Meteo CAMS Atmospheric Model',
+    sensorNetwork: 'Open-Meteo / Copernicus Atmosphere Monitoring Service',
+    status: 'Active Telemetry Node',
   },
   {
     id: 'SG-CNT-01',
-    name: 'Singapore Central Station',
+    name: 'Singapore Central Urban Node',
     city: 'Singapore',
     country: 'Singapore',
     continent: 'Asia',
     lat: 1.3521,
     lon: 103.8198,
-    sensorModel: 'Grimm EDM 180 Environmental Dust Monitor',
-    sensorNetwork: 'NEA Singapore',
-    status: 'Active Ground Node',
+    sensorModel: 'Open-Meteo CAMS Atmospheric Model',
+    sensorNetwork: 'Open-Meteo / Copernicus Atmosphere Monitoring Service',
+    status: 'Active Telemetry Node',
   },
   {
     id: 'PAR-OPR-09',
-    name: 'Paris Place de l’Opéra',
+    name: 'Paris Central Basin Node',
     city: 'Paris',
     country: 'France',
     continent: 'Europe',
     lat: 48.8719,
     lon: 2.3316,
-    sensorModel: 'Fidas 200 Aerosol Spectrometer',
-    sensorNetwork: 'Airparif / EEA',
-    status: 'Active Ground Node',
-  },
-  {
-    id: 'SYD-CBD-03',
-    name: 'Sydney Rozelle Environmental Node',
-    city: 'Sydney',
-    country: 'Australia',
-    continent: 'Oceania',
-    lat: -33.8688,
-    lon: 151.2093,
-    sensorModel: 'Ecotech Aurora 3000 Nephelometer',
-    sensorNetwork: 'NSW EPA Australia',
-    status: 'Active Ground Node',
+    sensorModel: 'Open-Meteo CAMS Atmospheric Model',
+    sensorNetwork: 'Open-Meteo / Copernicus Atmosphere Monitoring Service',
+    status: 'Active Telemetry Node',
   },
   {
     id: 'CAI-TAB-07',
-    name: 'Cairo Tabbin Industrial Node',
+    name: 'Cairo Nile Basin Node',
     city: 'Cairo',
     country: 'Egypt',
     continent: 'Africa',
     lat: 30.0444,
     lon: 31.2357,
-    sensorModel: 'Thermo 42i-TL NOx & Particulate Station',
-    sensorNetwork: 'EEAA Egypt',
-    status: 'Active Ground Node',
-  },
-  {
-    id: 'NBO-CBD-02',
-    name: 'Nairobi UNEP Gigiri Node',
-    city: 'Nairobi',
-    country: 'Kenya',
-    continent: 'Africa',
-    lat: -1.2333,
-    lon: 36.8167,
-    sensorModel: 'Met One E-BAM PLUS',
-    sensorNetwork: 'UNEP World Environment Hub',
-    status: 'Active Ground Node',
+    sensorModel: 'Open-Meteo CAMS Atmospheric Model',
+    sensorNetwork: 'Open-Meteo / Copernicus Atmosphere Monitoring Service',
+    status: 'Active Telemetry Node',
   },
   {
     id: 'NYC-CC-01',
-    name: 'New York Central Park Node',
+    name: 'New York Manhattan Node',
     city: 'New York',
     country: 'United States',
     continent: 'North America',
     lat: 40.785091,
     lon: -73.968285,
-    sensorModel: 'Teledyne API T640 Optical Mass Monitor',
-    sensorNetwork: 'US-EPA AirNow / NYSDEC',
-    status: 'Active Ground Node',
-  },
-  {
-    id: 'BER-MIT-05',
-    name: 'Berlin Mitte Brückenstraße',
-    city: 'Berlin',
-    country: 'Germany',
-    continent: 'Europe',
-    lat: 52.5125,
-    lon: 13.4144,
-    sensorModel: 'Thermo Andersen FH 62 I-R',
-    sensorNetwork: 'UBA Germany / EEA',
-    status: 'Active Ground Node',
+    sensorModel: 'Open-Meteo CAMS Atmospheric Model',
+    sensorNetwork: 'Open-Meteo / Copernicus Atmosphere Monitoring Service',
+    status: 'Active Telemetry Node',
   },
 ];
 
@@ -766,8 +754,9 @@ export async function getGlobalStationsWithTelemetry(): Promise<GlobalStation[]>
       } catch (err) {
         return {
           ...station,
-          currentAqi: 42,
-          dominantPollutant: 'PM2.5',
+          currentAqi: undefined,
+          dominantPollutant: undefined,
+          status: 'Calibrating' as const,
           lastUpdated: new Date().toISOString(),
         };
       }
@@ -779,66 +768,4 @@ export async function getGlobalStationsWithTelemetry(): Promise<GlobalStation[]>
 
   setCache(cacheKey, results);
   return results;
-}
-
-/**
- * Real OpenAQ v3 integration
- * Queries the OpenAQ v3 API for physical ground monitoring stations.
- */
-export async function fetchOpenAQData(lat?: number, lon?: number, radiusKm: number = 25) {
-  const apiKey = process.env.OPENAQ_API_KEY;
-  if (!apiKey || apiKey.trim() === '') {
-    return {
-      status: 'BLOCKED',
-      provider: 'OpenAQ v3',
-      error: 'OPENAQ_API_KEY is not configured in .env. OpenAQ v3 strictly mandates an authenticated X-API-Key header.',
-      apiKeyRequired: true,
-      timestamp: new Date().toISOString(),
-      results: [],
-    };
-  }
-
-  try {
-    let url = 'https://api.openaq.org/v3/locations?limit=10';
-    if (lat !== undefined && lon !== undefined) {
-      const radiusMeters = radiusKm * 1000;
-      url = `https://api.openaq.org/v3/locations?coordinates=${lat},${lon}&radius=${radiusMeters}&limit=10`;
-    }
-
-    const res = await fetch(url, {
-      headers: {
-        'X-API-Key': apiKey.trim(),
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => '');
-      return {
-        status: 'ERROR',
-        provider: 'OpenAQ v3',
-        error: `OpenAQ v3 returned HTTP ${res.status}: ${errorText.slice(0, 300)}`,
-        statusCode: res.status,
-        timestamp: new Date().toISOString(),
-        results: [],
-      };
-    }
-
-    const data = await res.json();
-    return {
-      status: 'ONLINE',
-      provider: 'OpenAQ v3',
-      meta: data.meta,
-      results: data.results || [],
-      timestamp: new Date().toISOString(),
-    };
-  } catch (err: any) {
-    return {
-      status: 'ERROR',
-      provider: 'OpenAQ v3',
-      error: err.message || 'Failed to connect to OpenAQ v3 API',
-      timestamp: new Date().toISOString(),
-      results: [],
-    };
-  }
 }

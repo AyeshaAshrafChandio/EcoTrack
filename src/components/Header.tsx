@@ -59,7 +59,7 @@ export const Header: React.FC = () => {
     { id: 'home', label: 'Home', icon: 'home', num: 1, desc: 'Global Environmental Intelligence Portal' },
     { id: 'dashboard', label: 'Environmental Dashboard', icon: 'space_dashboard', num: 2, desc: 'Real-time telemetry & atmospheric forecast' },
     { id: 'global-map', label: 'Global Pollution Map', icon: 'public', num: 3, desc: 'Planetary sensor grid & aerosol dispersion' },
-    { id: 'ai-copilot', label: 'AI Environmental Copilot', icon: 'psychology', num: 4, desc: 'Meta LLaMA 3.3 70B & Vision AI analysis' },
+    { id: 'ai-copilot', label: 'AI Environmental Copilot', icon: 'psychology', num: 4, desc: 'Meta Llama 3.2 3B evidence-grounded reasoning' },
     { id: 'compare', label: 'Compare Locations', icon: 'compare_arrows', num: 5, desc: 'Cross-continental dispersion matrix' },
     { id: 'alerts', label: 'Environmental Alerts', icon: 'crisis_alert', num: 6, desc: 'Exceedances ledger & threshold rules' },
     { id: 'auth', label: 'Login', icon: 'login', num: 7, desc: 'Portal authentication & operator sign-in' },
@@ -335,21 +335,13 @@ export const Header: React.FC = () => {
                 aria-label="User profile and authentication options"
                 className="flex items-center gap-space-xs p-0.5 rounded-full hover:ring-2 hover:ring-surface-variant transition-all focus:outline-none cursor-pointer"
               >
-                {currentUser?.photoURL ? (
-                  <img
-                    src={currentUser.photoURL}
-                    alt={currentUser.displayName || 'User Avatar'}
-                    className="w-8 h-8 rounded-full object-cover border border-primary/50"
-                  />
-                ) : (
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    currentUser ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'
-                  }`}>
-                    <span className="material-symbols-outlined text-[18px]">
-                      {currentUser ? 'person' : 'person_outline'}
-                    </span>
-                  </div>
-                )}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  currentUser ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'
+                }`}>
+                  <span className="material-symbols-outlined text-[18px]">
+                    {currentUser ? 'person' : 'person_outline'}
+                  </span>
+                </div>
               </button>
 
               {showUserMenu && (
@@ -358,14 +350,14 @@ export const Header: React.FC = () => {
                     <div className="px-3 py-2 bg-surface-container-lowest rounded-lg mb-space-xs">
                       <div className="font-label-ui text-xs text-on-surface font-semibold truncate flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-primary shrink-0"></span>
-                        <span className="truncate">{currentUser.displayName || 'Authenticated Operator'}</span>
+                        <span className="truncate">{currentUser.name || 'Environmental Operator'}</span>
                       </div>
                       <div className="font-label-mono-sm text-[0.6875rem] text-on-surface-variant truncate">
                         {currentUser.email}
                       </div>
                       <div className="mt-1 flex items-center gap-1">
                         <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-label-mono-sm text-[0.625rem]">
-                          Firebase Auth Verified
+                          Operator Session Active
                         </span>
                       </div>
                     </div>
@@ -375,7 +367,7 @@ export const Header: React.FC = () => {
                         Guest Operator
                       </div>
                       <div className="font-label-mono-sm text-[0.6875rem] text-on-surface-variant">
-                        {firebaseConfigured ? 'Sign in with Firebase account' : 'Awaiting Firebase credentials'}
+                        Open Telemetry Access Active
                       </div>
                     </div>
                   )}

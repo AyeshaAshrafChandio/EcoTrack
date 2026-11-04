@@ -88,7 +88,7 @@ export interface GlobalStation {
   so2?: number;
   co?: number;
   temperature?: number;
-  status: 'Active Ground Node' | 'Calibrating';
+  status: 'Active Telemetry Node' | 'Active Ground Node' | 'Calibrating';
   lastUpdated?: string;
 }
 

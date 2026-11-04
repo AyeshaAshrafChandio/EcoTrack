@@ -363,17 +363,17 @@ class Database {
     return newUser;
   }
 
-  public upsertFirebaseUser(firebaseUser: { uid: string; email?: string; name?: string }): User {
-    let existing = this.data.users.find(u => u.id === firebaseUser.uid || (firebaseUser.email && u.email === firebaseUser.email));
+  public upsertLocalUser(userData: { id?: string; email: string; name?: string }): User {
+    let existing = this.data.users.find(u => (userData.id && u.id === userData.id) || u.email.toLowerCase() === userData.email.toLowerCase());
     if (existing) {
-      if (firebaseUser.name) existing.name = firebaseUser.name;
+      if (userData.name) existing.name = userData.name;
       this.schedulePersist();
       return existing;
     }
     const newUser: User = {
-      id: firebaseUser.uid,
-      name: firebaseUser.name || 'Authenticated Operator',
-      email: firebaseUser.email || `${firebaseUser.uid}@firebase.user`,
+      id: userData.id || `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      name: userData.name || 'Authenticated Operator',
+      email: userData.email,
       role: 'Environmental Systems Engineer',
       apiKey: `eco_${Math.random().toString(36).substring(2, 12)}`,
       createdAt: new Date().toISOString(),
@@ -381,6 +381,14 @@ class Database {
     this.data.users.push(newUser);
     this.schedulePersist();
     return newUser;
+  }
+
+  public upsertFirebaseUser(firebaseUser: { uid: string; email?: string; name?: string }): User {
+    return this.upsertLocalUser({
+      id: firebaseUser.uid,
+      email: firebaseUser.email || `${firebaseUser.uid}@ecotrack.local`,
+      name: firebaseUser.name,
+    });
   }
 
   public updateUserPassword(email: string, newHash: string): boolean {

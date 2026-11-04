@@ -55,8 +55,7 @@ export const RegisterView: React.FC = () => {
         setActiveView('dashboard');
       }, 800);
     } catch (err: any) {
-      const formatted = formatFirebaseAuthError(err);
-      setStatusMsg({ text: formatted, type: 'error' });
+      setStatusMsg({ text: formatFirebaseAuthError(err), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -75,8 +74,7 @@ export const RegisterView: React.FC = () => {
         setActiveView('dashboard');
       }, 700);
     } catch (err: any) {
-      const formatted = formatFirebaseAuthError(err);
-      setStatusMsg({ text: formatted, type: 'error' });
+      setStatusMsg({ text: formatFirebaseAuthError(err), type: 'error' });
     } finally {
       setGoogleLoading(false);
     }
@@ -95,7 +93,7 @@ export const RegisterView: React.FC = () => {
               Node Already Registered
             </span>
             <h2 className="font-headline-md text-xl font-bold text-on-surface mt-1">
-              {currentUser.displayName || 'Authenticated Operator'}
+              {currentUser.name || 'Authenticated Operator'}
             </h2>
             <p className="font-label-mono-sm text-xs text-on-surface-variant mt-0.5">
               {currentUser.email}
