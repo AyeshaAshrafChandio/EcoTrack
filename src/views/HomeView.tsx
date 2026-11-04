@@ -74,14 +74,14 @@ export const HomeView: React.FC = () => {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
                 </span>
-                LIVE ORBITAL UPLINK: SYNCHRONIZED
+                LIVE CAMS TELEMETRY: SYNCHRONIZED
               </span>
               <span className="font-label-mono-sm text-[0.6875rem] sm:text-label-mono-sm text-on-surface-variant">
-                LATENCY: <strong className="text-on-surface">38ms</strong>
+                SOURCE: <strong className="text-on-surface">Copernicus CAMS &amp; ECMWF</strong>
               </span>
               <span className="hidden md:inline font-label-mono-sm text-label-mono-sm text-outline-variant">|</span>
               <span className="hidden md:inline font-label-mono-sm text-label-mono-sm text-on-surface-variant">
-                CALIBRATION: <strong className="text-secondary">WMO-GAW 2024.11</strong>
+                STANDARD: <strong className="text-secondary">US-EPA &amp; WHO 2021</strong>
               </span>
             </div>
             <div className="flex items-center gap-space-xs font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant self-start sm:self-auto">
@@ -433,7 +433,7 @@ export const HomeView: React.FC = () => {
               Four Technological Pillars of EcoTrack
             </h2>
             <p className="mx-auto mt-2 font-body-md text-xs sm:text-sm text-on-surface-variant max-w-2xl">
-              Engineered for strict epistemic integrity. How orbital remote sensing, atmospheric physics, and fine-tuned Meta AI models combine to yield actionable intelligence.
+              Engineered for strict epistemic integrity. How Copernicus atmospheric dispersion models, meteorological physics, and grounded Meta AI models combine to yield actionable intelligence.
             </p>
           </div>
 
@@ -557,7 +557,7 @@ export const HomeView: React.FC = () => {
           </div>
 
           <div className="font-label-mono-sm text-[0.625rem] text-on-surface-variant text-center sm:text-right">
-            <span>© 2025-2026 EcoTrack Intelligence. WMO GAW calibrated.</span>
+            <span>© 2025-2026 EcoTrack Intelligence. EPA &amp; WHO 2021 standards harmonized.</span>
           </div>
         </div>
       </footer>

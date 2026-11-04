@@ -72,6 +72,9 @@ export const DashboardView: React.FC = () => {
   };
 
   const aqiColors = getAqiColor(aqi);
+  const isStale = t.telemetryMetadata?.timestamp
+    ? Date.now() - new Date(t.telemetryMetadata.timestamp).getTime() > 2 * 3600 * 1000
+    : false;
 
   return (
     <div className="w-full bg-surface pb-space-xl sm:pb-space-2xl pt-space-xs sm:pt-space-md min-h-full">
@@ -82,12 +85,17 @@ export const DashboardView: React.FC = () => {
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-space-xs font-label-mono-sm text-[0.625rem] sm:text-[0.6875rem] text-on-surface-variant">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0"></span>
               <span className="uppercase tracking-wider text-primary font-semibold">
-                STATION ID: {t.location.stationId || 'GROUND-NODE-4A'}
+                MODEL GRID NODE: {t.location.stationId || 'CAMS-GLOBAL-GRID'}
               </span>
               <span>•</span>
               <span className="truncate">{t.location.latitude.toFixed(3)}° N, {t.location.longitude.toFixed(3)}° E</span>
               <span className="hidden sm:inline">•</span>
               <span className="hidden sm:inline text-secondary truncate">{t.location.sensorNetwork || 'Open-Meteo CAMS Model Grid'}</span>
+              {isStale && (
+                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-label-mono-sm text-[10px] ml-1">
+                  Telemetry Stale (&gt;2h)
+                </span>
+              )}
             </div>
             <h1 className="font-display-lg text-xl sm:text-2xl md:text-3xl text-on-surface font-extrabold flex items-center gap-2 truncate">
               <span className="truncate">{t.location.name}</span>
@@ -240,9 +248,15 @@ export const DashboardView: React.FC = () => {
                   </div>
                   <div className="text-on-surface-variant font-body-sm text-xs">
                     <span className="text-primary font-semibold">
-                      {t.pollutants[t.dominantPollutant]?.value ?? 0} {t.pollutants[t.dominantPollutant]?.unit}
+                      {t.pollutants[t.dominantPollutant]?.value !== undefined
+                        ? t.pollutants[t.dominantPollutant].value
+                        : 'Unavailable'}{' '}
+                      {t.pollutants[t.dominantPollutant]?.unit || ''}
                     </span>{' '}
-                    — {t.pollutants[t.dominantPollutant]?.whoPercentage ?? 0}% of WHO limit
+                    —{' '}
+                    {t.pollutants[t.dominantPollutant]?.whoPercentage !== undefined
+                      ? `${t.pollutants[t.dominantPollutant].whoPercentage}% of WHO limit`
+                      : 'WHO benchmark unavailable'}
                   </div>
                 </div>
 
@@ -263,13 +277,13 @@ export const DashboardView: React.FC = () => {
               </div>
             </div>
 
-            {/* Ground Station Sensor Telemetry Micro Bar */}
+            {/* Model Grid Resolution & Calibration Provenance Bar */}
             <div className="pt-2 flex items-center justify-between font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant bg-surface-container px-3 py-2 rounded-lg">
               <span className="flex items-center gap-1.5 truncate pr-2">
                 <span className="w-2 h-2 rounded-full bg-primary shrink-0"></span>
-                <span className="truncate">{t.location.stationId || 'TK-SHINJUKU-SENSOR-4A'}</span>
+                <span className="truncate">{t.location.stationId || 'CAMS-GRID-ASSIMILATION'}</span>
               </span>
-              <span className="text-secondary shrink-0">Laser Scatter • 99.8%</span>
+              <span className="text-secondary shrink-0">CAMS 0.1° Resolution</span>
             </div>
           </div>
 

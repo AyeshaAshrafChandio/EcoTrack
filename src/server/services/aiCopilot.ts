@@ -109,20 +109,20 @@ export interface ImageAnalysisResponse {
   observations: string[];
   visibleHazeLevel?: string;
   weatherContext?: {
-    relativeHumidity: number;
-    boundaryLayerHeight: number;
-    windSpeed: number;
+    relativeHumidity: number | null;
+    boundaryLayerHeight: number | null;
+    windSpeed: number | null;
   };
   visibleCharacteristics: {
-    hazeContext: 'Clear / Low Visibility Obscuration' | 'Moderate Atmospheric Haze' | 'Dense Particulate / Smoke-like Obscuration' | 'Indeterminate';
+    hazeContext: string;
     skyCondition: string;
     horizonClarity: string;
   };
   associatedTelemetry: {
     location: string;
-    modelForecastAqi: number;
+    modelForecastAqi: number | null;
     dominantPollutant: string;
-    boundaryLayerHeight: number;
+    boundaryLayerHeight: number | null;
   };
   timestamp: string;
 }
@@ -213,6 +213,11 @@ export class AICopilotService {
   public async generateCopilotResponse(req: CopilotChatRequest): Promise<CopilotChatResponse> {
     const evidence = await this.buildEvidencePacket(req.context);
 
+    const isUrduQuery = /[\u0600-\u06FF]/.test(req.prompt) || /\burdu\b/i.test(req.prompt);
+    const languageInstruction = isUrduQuery
+      ? '6. LANGUAGE DISCIPLINE: The user asked in Urdu. Respond 100% in fluent, professional Urdu (اردو). Translate technical metrics (PM2.5 = باریک ذرات, AQI = ہوا کے معیار کا اشاریہ, Inversion = تھرمل انورژن).'
+      : '6. LANGUAGE DISCIPLINE: The user asked in English. You MUST respond 100% in English. Do not output any Urdu script, Arabic script, or foreign language tokens.';
+
     // Build the system prompt strictly constraining the model to empirical evidence
     const systemPrompt = `You are the EcoTrack AI Environmental Intelligence Copilot, powered by Meta Llama 3.2 3B Instruct.
 You provide scientific, empirical environmental diagnostics grounded strictly in the provided physical telemetry packet.
@@ -237,7 +242,7 @@ OPERATIONAL RULES:
 3. If data for a specific pollutant (e.g. Lead, Benzene, Black Carbon) is absent or not in the evidence packet, explicitly state that it is unavailable rather than guessing or interpolating.
 4. When explaining air quality, explain the physical mechanisms: planetary boundary layer height trapping (thermal inversion cap), horizontal wind ventilation, and particulate hygroscopic swelling under high relative humidity. Treat boundary layer height as meteorological ventilation context, not as a pollution concentration measurement. Never provide medical diagnoses.
 5. Provide actionable, practical environmental precautions for vulnerable groups (children, elderly, asthmatics).
-6. LANGUAGE DISCIPLINE: Respond in the user's inquiry language. If the inquiry is in English, reply ONLY in English without unprompted foreign language snippets. If the inquiry is in Urdu or explicitly requests Urdu, respond in clear, fluent Urdu (اردو), translating key technical terms (PM2.5 = باریک ذرات, AQI = ہوا کے معیار کا اشاریہ, Inversion = فضائی الٹ پلٹ / تھرمل انورژن).`;
+${languageInstruction}`;
 
     const cfAccountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim();
     const cfApiToken = process.env.CLOUDFLARE_API_TOKEN?.trim();
@@ -550,15 +555,15 @@ OPERATIONAL RULES:
 
     const telemetryInfo = {
       location: telemetry?.location.name || locName,
-      modelForecastAqi: telemetry?.overallAqi ?? 42,
+      modelForecastAqi: telemetry?.overallAqi ?? null,
       dominantPollutant: telemetry?.dominantPollutant ?? 'PM2.5',
-      boundaryLayerHeight: telemetry?.weather.boundaryLayerHeight ?? 850,
+      boundaryLayerHeight: telemetry?.weather.boundaryLayerHeight ?? null,
     };
 
     const weatherContext = {
-      relativeHumidity: telemetry?.weather.humidity ?? 62,
-      boundaryLayerHeight: telemetry?.weather.boundaryLayerHeight ?? 850,
-      windSpeed: Number((telemetry?.weather.windSpeed ?? 2.8).toFixed(1)),
+      relativeHumidity: telemetry?.weather.humidity ?? null,
+      boundaryLayerHeight: telemetry?.weather.boundaryLayerHeight ?? null,
+      windSpeed: telemetry?.weather.windSpeed !== undefined ? Number(telemetry.weather.windSpeed.toFixed(1)) : null,
     };
 
     // Validate image data
@@ -767,22 +772,22 @@ IMPORTANT RULE: Never claim to measure or calculate AQI, PM2.5, or PM10 concentr
       }
     }
 
-    // 3. Grounded fallback with scientific evidence disclosure
-    const estHaze = telemetryInfo.modelForecastAqi > 150 ? 'Moderate' : 'Low';
+    // 3. Honest disclosure when vision models are unconfigured or unreachable
+    // Never estimate haze or AQI from pixels or fall back to inferring haze from AQI
     return {
       status: 'UNAVAILABLE',
       disclaimer,
       observations: [
         `Image successfully uploaded and verified (${Math.round(imgRaw.length / 1024)} KB payload) for station area ${telemetryInfo.location}.`,
-        `Atmospheric boundary layer height is modeled at ${telemetryInfo.boundaryLayerHeight}m with surface forecast AQI of ${telemetryInfo.modelForecastAqi} (${telemetryInfo.dominantPollutant}).`,
-        `Scientific Compliance Notice: RGB camera pixels cannot quantify aerosol mass concentrations (PM2.5/PM10 in µg/m³). Refer to calibrated Open-Meteo physical models and OpenAQ ground stations for regulatory metrics.`,
+        `Atmospheric telemetry for this area shows boundary layer height ${telemetryInfo.boundaryLayerHeight !== null ? telemetryInfo.boundaryLayerHeight + 'm' : 'Unavailable'} and CAMS modeled AQI ${telemetryInfo.modelForecastAqi !== null ? telemetryInfo.modelForecastAqi : 'Unavailable'} (${telemetryInfo.dominantPollutant}).`,
+        `Vision Inference Notice: Vision AI provider is unconfigured or unreachable. In strict compliance with zero fake data policies, visible haze metrics are marked Unavailable. RGB camera pixels cannot quantify aerosol mass concentrations (PM2.5/PM10 in µg/m³). Refer to calibrated Open-Meteo physical models and OpenAQ ground stations for regulatory metrics.`,
       ],
-      visibleHazeLevel: estHaze,
+      visibleHazeLevel: 'Unavailable',
       weatherContext,
       visibleCharacteristics: {
-        hazeContext: telemetryInfo.modelForecastAqi > 150 ? 'Moderate Atmospheric Haze' : 'Clear / Low Visibility Obscuration',
-        skyCondition: 'Visual evaluation requires active spectroscopic instruments',
-        horizonClarity: 'Ground-truth verified via Open-Meteo CAMS boundary layer model',
+        hazeContext: 'Unavailable — Vision AI unconfigured or unreachable',
+        skyCondition: 'Visual evaluation requires active vision inference or spectroscopic instruments',
+        horizonClarity: 'Unavailable without operational vision inference',
       },
       associatedTelemetry: telemetryInfo,
       timestamp: new Date().toISOString(),

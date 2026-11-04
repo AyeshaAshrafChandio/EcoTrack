@@ -23,9 +23,11 @@ export const AlertsView: React.FC = () => {
   // New Rule Form State
   const [newLocation, setNewLocation] = useState('Tokyo, Japan');
   const [newPollutant, setNewPollutant] = useState<'AQI' | 'PM2.5' | 'PM10' | 'NO2' | 'O3' | 'SO2' | 'CO'>('PM2.5');
+  const [newOperator, setNewOperator] = useState<'>' | '>=' | '<'>('>');
   const [newThreshold, setNewThreshold] = useState('35');
   const [newSeverity, setNewSeverity] = useState<'Critical' | 'Warning' | 'Advisory'>('Warning');
-  const [newChannel, setNewChannel] = useState<'Push & Email' | 'SMS Direct' | 'Webhook' | 'Console'>('Push & Email');
+  const [newChannel, setNewChannel] = useState<'Console' | 'Webhook'>('Console');
+  const [newWebhookUrl, setNewWebhookUrl] = useState('');
   const [createError, setCreateError] = useState<string | null>(null);
 
   // Edit Rule Form State
@@ -34,7 +36,8 @@ export const AlertsView: React.FC = () => {
   const [editOperator, setEditOperator] = useState<'>' | '>=' | '<'>('>');
   const [editThreshold, setEditThreshold] = useState('35');
   const [editSeverity, setEditSeverity] = useState<'Critical' | 'Warning' | 'Advisory'>('Warning');
-  const [editChannel, setEditChannel] = useState<'Push & Email' | 'SMS Direct' | 'Webhook' | 'Console'>('Push & Email');
+  const [editChannel, setEditChannel] = useState<'Console' | 'Webhook'>('Console');
+  const [editWebhookUrl, setEditWebhookUrl] = useState('');
   const [editError, setEditError] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -61,6 +64,11 @@ export const AlertsView: React.FC = () => {
       return;
     }
 
+    if (newChannel === 'Webhook' && (!newWebhookUrl || !newWebhookUrl.startsWith('http'))) {
+      setCreateError('Please provide a valid HTTP/HTTPS Webhook endpoint URL.');
+      return;
+    }
+
     const matched = stations.find(s => `${s.city}, ${s.country}` === newLocation) || stations[0];
     const lat = matched ? matched.lat : 24.8607;
     const lon = matched ? matched.lon : 67.0011;
@@ -70,11 +78,12 @@ export const AlertsView: React.FC = () => {
       lat,
       lon,
       pollutant: newPollutant,
-      operator: '>',
+      operator: newOperator,
       threshold: parsedThreshold,
       unit: newPollutant === 'AQI' ? 'AQI' : newPollutant === 'CO' ? 'mg/m³' : 'µg/m³',
       severity: newSeverity,
       notificationChannel: newChannel,
+      webhookUrl: newChannel === 'Webhook' ? newWebhookUrl.trim() : undefined,
     });
 
     if (!result.success) {
@@ -83,7 +92,8 @@ export const AlertsView: React.FC = () => {
     }
 
     setShowCreateModal(false);
-    showToast(`Alert rule created for ${newLocation} (${newPollutant} > ${parsedThreshold})`);
+    setNewWebhookUrl('');
+    showToast(`Alert rule created for ${newLocation} (${newPollutant} ${newOperator} ${parsedThreshold})`);
   };
 
   const handleUpdateRule = async (e: React.FormEvent) => {
@@ -97,6 +107,11 @@ export const AlertsView: React.FC = () => {
       return;
     }
 
+    if (editChannel === 'Webhook' && (!editWebhookUrl || !editWebhookUrl.startsWith('http'))) {
+      setEditError('Please provide a valid HTTP/HTTPS Webhook endpoint URL.');
+      return;
+    }
+
     const result = await updateAlertRule(editingRule.id, {
       pollutant: editPollutant,
       operator: editOperator,
@@ -104,6 +119,7 @@ export const AlertsView: React.FC = () => {
       unit: editPollutant === 'AQI' ? 'AQI' : editPollutant === 'CO' ? 'mg/m³' : 'µg/m³',
       severity: editSeverity,
       notificationChannel: editChannel,
+      webhookUrl: editChannel === 'Webhook' ? editWebhookUrl.trim() : undefined,
     });
 
     if (!result.success) {
@@ -396,7 +412,8 @@ export const AlertsView: React.FC = () => {
                       setEditOperator(rule.operator);
                       setEditThreshold(String(rule.threshold));
                       setEditSeverity(rule.severity);
-                      setEditChannel(rule.notificationChannel);
+                      setEditChannel((rule.notificationChannel === 'Webhook' ? 'Webhook' : 'Console') as any);
+                      setEditWebhookUrl(rule.webhookUrl || '');
                       setEditError(null);
                     }}
                     aria-label="Edit rule"
@@ -503,6 +520,21 @@ export const AlertsView: React.FC = () => {
 
                 <div>
                   <label className="block font-label-mono-sm text-[0.6875rem] text-on-surface-variant uppercase mb-1">
+                    Operator
+                  </label>
+                  <select
+                    value={newOperator}
+                    onChange={e => setNewOperator(e.target.value as any)}
+                    className="w-full p-2.5 rounded-lg bg-surface-container font-body-sm text-sm text-on-surface border border-surface-variant focus:outline-none"
+                  >
+                    <option value=">">&gt; (Exceeds)</option>
+                    <option value=">=">&gt;= (Greater or Equal)</option>
+                    <option value="<">&lt; (Below)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-label-mono-sm text-[0.6875rem] text-on-surface-variant uppercase mb-1">
                     Ceiling
                   </label>
                   <input
@@ -532,19 +564,36 @@ export const AlertsView: React.FC = () => {
 
                 <div>
                   <label className="block font-label-mono-sm text-[0.6875rem] text-on-surface-variant uppercase mb-1">
-                    Channel
+                    Delivered Channel
                   </label>
                   <select
                     value={newChannel}
                     onChange={e => setNewChannel(e.target.value as any)}
                     className="w-full p-2.5 rounded-lg bg-surface-container font-body-sm text-sm text-on-surface border border-surface-variant focus:outline-none"
                   >
-                    <option value="Push & Email">Push & Email</option>
-                    <option value="SMS Direct">SMS Direct</option>
-                    <option value="Webhook">Webhook</option>
+                    <option value="Console">In-App Ledger &amp; Console Log</option>
+                    <option value="Webhook">Webhook HTTP POST Dispatch</option>
                   </select>
                 </div>
               </div>
+
+              {newChannel === 'Webhook' && (
+                <div>
+                  <label className="block font-label-mono-sm text-[0.6875rem] text-on-surface-variant uppercase mb-1">
+                    Webhook Target URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://your-service.com/api/environmental-alert"
+                    value={newWebhookUrl}
+                    onChange={e => setNewWebhookUrl(e.target.value)}
+                    className="w-full p-2.5 rounded-lg bg-surface-container font-body-sm text-sm text-on-surface border border-surface-variant focus:outline-none placeholder:text-on-surface-variant/40"
+                  />
+                  <p className="font-body-sm text-[0.6875rem] text-on-surface-variant mt-1">
+                    Real-time JSON payload dispatched via automated HTTP POST when threshold evaluates true.
+                  </p>
+                </div>
+              )}
 
               <div className="pt-2 flex items-center justify-end gap-2">
                 <button
@@ -662,19 +711,36 @@ export const AlertsView: React.FC = () => {
 
                 <div>
                   <label className="block font-label-mono-sm text-[0.6875rem] text-on-surface-variant uppercase mb-1">
-                    Channel
+                    Delivered Channel
                   </label>
                   <select
                     value={editChannel}
                     onChange={e => setEditChannel(e.target.value as any)}
                     className="w-full p-2.5 rounded-lg bg-surface-container font-body-sm text-sm text-on-surface border border-surface-variant focus:outline-none"
                   >
-                    <option value="Push & Email">Push & Email</option>
-                    <option value="SMS Direct">SMS Direct</option>
-                    <option value="Webhook">Webhook</option>
+                    <option value="Console">In-App Ledger &amp; Console Log</option>
+                    <option value="Webhook">Webhook HTTP POST Dispatch</option>
                   </select>
                 </div>
               </div>
+
+              {editChannel === 'Webhook' && (
+                <div>
+                  <label className="block font-label-mono-sm text-[0.6875rem] text-on-surface-variant uppercase mb-1">
+                    Webhook Target URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://your-service.com/api/environmental-alert"
+                    value={editWebhookUrl}
+                    onChange={e => setEditWebhookUrl(e.target.value)}
+                    className="w-full p-2.5 rounded-lg bg-surface-container font-body-sm text-sm text-on-surface border border-surface-variant focus:outline-none placeholder:text-on-surface-variant/40"
+                  />
+                  <p className="font-body-sm text-[0.6875rem] text-on-surface-variant mt-1">
+                    Real-time JSON payload dispatched via automated HTTP POST when threshold evaluates true.
+                  </p>
+                </div>
+              )}
 
               <div className="pt-2 flex items-center justify-end gap-2">
                 <button

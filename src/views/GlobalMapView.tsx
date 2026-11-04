@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import type { GlobalStation } from '../types';
 import L from 'leaflet';
@@ -289,7 +289,27 @@ export const GlobalMapView: React.FC = () => {
     }
   }, [selectedLocation.lat, selectedLocation.lon]);
 
-  const currentAqi = selectedStation?.currentAqi ?? currentTelemetry?.overallAqi ?? 38;
+  // Compute actual CAMS forecast point at the temporal offset
+  const forecastAtOffset = useMemo(() => {
+    if (!currentTelemetry?.hourlyForecast?.length || temporalOffset === 0) return null;
+    const targetMs = Date.now() + temporalOffset * 3600 * 1000;
+    let closest = currentTelemetry.hourlyForecast[0];
+    let minDiff = Math.abs(new Date(closest.time).getTime() - targetMs);
+    for (const h of currentTelemetry.hourlyForecast) {
+      const diff = Math.abs(new Date(h.time).getTime() - targetMs);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = h;
+      }
+    }
+    return closest;
+  }, [currentTelemetry?.hourlyForecast, temporalOffset]);
+
+  const rawAqi = selectedStation?.currentAqi !== undefined
+    ? selectedStation.currentAqi
+    : (currentTelemetry?.overallAqi ?? null);
+
+  const displayAqi = forecastAtOffset ? forecastAtOffset.aqi : rawAqi;
 
   // Inspector Content shared between desktop sidebar and mobile drawer
   const renderInspectorContent = (isMobileDrawer = false) => {
@@ -440,16 +460,21 @@ export const GlobalMapView: React.FC = () => {
         {/* AQI Metric Card */}
         <div className="p-3 rounded-xl bg-surface-container flex items-center justify-between">
           <div>
-            <div className="font-label-mono-sm text-[0.625rem] text-on-surface-variant uppercase">
-              Forecast AQI (EPA)
+            <div className="font-label-mono-sm text-[0.625rem] text-on-surface-variant uppercase flex items-center gap-1">
+              <span>Forecast AQI (EPA)</span>
+              {temporalOffset !== 0 && (
+                <span className="text-primary font-bold">
+                  ({temporalOffset > 0 ? `+${temporalOffset}h` : `${temporalOffset}h`})
+                </span>
+              )}
             </div>
-            <div className={`font-data-metric-lg text-2xl sm:text-3xl font-extrabold ${currentAqi <= 50 ? 'text-primary' : currentAqi <= 100 ? 'text-secondary' : 'text-error'}`}>
-              {currentAqi}
+            <div className={`font-data-metric-lg text-2xl sm:text-3xl font-extrabold ${displayAqi !== null ? (displayAqi <= 50 ? 'text-primary' : displayAqi <= 100 ? 'text-secondary' : 'text-error') : 'text-on-surface-variant'}`}>
+              {displayAqi !== null ? displayAqi : 'Unavailable'}
             </div>
           </div>
           <div className="text-right">
-            <span className={`px-2 py-0.5 rounded-full font-label-ui text-xs font-semibold ${currentAqi <= 50 ? 'bg-primary/15 text-primary' : currentAqi <= 100 ? 'bg-secondary/15 text-secondary' : 'bg-error/20 text-error'}`}>
-              {currentAqi <= 50 ? 'GOOD' : currentAqi <= 100 ? 'MODERATE' : 'UNHEALTHY'}
+            <span className={`px-2 py-0.5 rounded-full font-label-ui text-xs font-semibold ${displayAqi !== null ? (displayAqi <= 50 ? 'bg-primary/15 text-primary' : displayAqi <= 100 ? 'bg-secondary/15 text-secondary' : 'bg-error/20 text-error') : 'bg-surface-container text-on-surface-variant'}`}>
+              {displayAqi !== null ? (displayAqi <= 50 ? 'GOOD' : displayAqi <= 100 ? 'MODERATE' : 'UNHEALTHY') : 'PENDING'}
             </span>
             <div className="font-label-mono-sm text-[0.6875rem] text-on-surface-variant mt-1">
               Primary: <strong className="text-on-surface">{selectedStation.dominantPollutant || 'PM2.5'}</strong>
@@ -475,19 +500,43 @@ export const GlobalMapView: React.FC = () => {
           <div className="grid grid-cols-2 gap-1.5 font-label-mono-sm text-xs">
             <div className="p-2 rounded bg-surface-container flex justify-between">
               <span className="text-on-surface-variant">PM2.5:</span>
-              <span className="text-on-surface font-semibold">{selectedStation.pm2_5 ?? 14.2} µg</span>
+              <span className="text-on-surface font-semibold">
+                {forecastAtOffset?.pm2_5 !== undefined
+                  ? `${forecastAtOffset.pm2_5} µg`
+                  : selectedStation.pm2_5 !== undefined
+                  ? `${selectedStation.pm2_5} µg`
+                  : 'Unavailable'}
+              </span>
             </div>
             <div className="p-2 rounded bg-surface-container flex justify-between">
               <span className="text-on-surface-variant">PM10:</span>
-              <span className="text-on-surface font-semibold">{selectedStation.pm10 ?? 28.5} µg</span>
+              <span className="text-on-surface font-semibold">
+                {forecastAtOffset?.pm10 !== undefined
+                  ? `${forecastAtOffset.pm10} µg`
+                  : selectedStation.pm10 !== undefined
+                  ? `${selectedStation.pm10} µg`
+                  : 'Unavailable'}
+              </span>
             </div>
             <div className="p-2 rounded bg-surface-container flex justify-between">
               <span className="text-on-surface-variant">NO2:</span>
-              <span className="text-on-surface font-semibold">{selectedStation.no2 ?? 18.1} µg</span>
+              <span className="text-on-surface font-semibold">
+                {forecastAtOffset?.no2 !== undefined
+                  ? `${forecastAtOffset.no2} µg`
+                  : selectedStation.no2 !== undefined
+                  ? `${selectedStation.no2} µg`
+                  : 'Unavailable'}
+              </span>
             </div>
             <div className="p-2 rounded bg-surface-container flex justify-between">
               <span className="text-on-surface-variant">Temp:</span>
-              <span className="text-on-surface font-semibold">{selectedStation.temperature ?? 19.4}°C</span>
+              <span className="text-on-surface font-semibold">
+                {forecastAtOffset?.temperature !== undefined
+                  ? `${forecastAtOffset.temperature}°C`
+                  : selectedStation.temperature !== undefined
+                  ? `${selectedStation.temperature}°C`
+                  : 'Unavailable'}
+              </span>
             </div>
           </div>
         </div>

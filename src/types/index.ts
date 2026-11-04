@@ -64,7 +64,7 @@ export interface EnvironmentalTelemetry {
     calibrationStandard: string;
     orbitalUplink: string;
     latencyMs: number;
-    confidenceScore: number;
+    confidenceScore?: number;
     timestamp: string;
   };
 }
@@ -104,6 +104,7 @@ export interface AlertRule {
   unit: string;
   severity: 'Critical' | 'Warning' | 'Advisory';
   notificationChannel: 'Push & Email' | 'SMS Direct' | 'Webhook' | 'Console';
+  webhookUrl?: string;
   active: boolean;
   createdAt: string;
 }

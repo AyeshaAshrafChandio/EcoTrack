@@ -138,14 +138,15 @@ export const CompareView: React.FC = () => {
 
           <div className="flex flex-col gap-0.5 p-2 sm:p-2.5">
             <span className="font-label-mono-sm text-[0.625rem] sm:text-label-mono-sm text-on-surface-variant uppercase tracking-wider">
-              Meta-AI Calibration Run
+              Atmospheric Ceiling Variance
             </span>
             <div className="flex items-baseline gap-1.5">
-              <span className="font-data-metric-lg text-xl sm:text-2xl font-bold text-primary">99.4%</span>
-              <span className="font-label-mono-sm text-xs text-primary">fidelity</span>
+              <span className="font-data-metric-lg text-xl sm:text-2xl font-bold text-primary">
+                {telemetryList.length > 0 ? `${Math.min(...telemetryList.map(t => t.weather.boundaryLayerHeight))}m - ${Math.max(...telemetryList.map(t => t.weather.boundaryLayerHeight))}m` : 'N/A'}
+              </span>
             </div>
             <span className="font-body-sm text-[0.6875rem] text-on-surface-variant">
-              WMO GAW physical sensors ground-truth verified
+              Copernicus CAMS &amp; ECMWF planetary boundary range
             </span>
           </div>
         </div>
@@ -372,6 +373,15 @@ export const CompareView: React.FC = () => {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          {/* Cross-Continental Scientific Coverage Disclosure */}
+          <div className="p-3.5 rounded-xl bg-surface-container/60 border border-surface-container flex items-start gap-2.5 text-on-surface-variant font-body-sm text-xs">
+            <span className="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">info</span>
+            <div>
+              <span className="text-on-surface font-semibold">Cross-Continental Telemetry Coverage Disclosure: </span>
+              Atmospheric readings represent continuous numerical forecast model assimilation from the Copernicus Atmosphere Monitoring Service (CAMS 0.1° global grid) and ECMWF Integrated Forecasting System. Regional topographical complexities, local valley inversions, and ground-level industrial microclimates may exhibit microscale variances between grid-cell averages and physical in-situ sensors.
+            </div>
           </div>
         </div>
       )}

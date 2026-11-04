@@ -145,7 +145,7 @@ export const AuthView: React.FC = () => {
               Planetary Ground Truth Ingestion
             </h2>
             <p className="font-body-sm text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-              Continuous multi-spectral telemetry synchronized across Copernicus Sentinel-5P, WMO GAW calibrated ground monitors, and Meta AI environmental models.
+              Continuous global atmospheric telemetry harmonized across Copernicus Atmosphere Monitoring Service (CAMS), ECMWF numerical weather models, and Meta Llama 3.2 AI reasoning.
             </p>
           </div>
 

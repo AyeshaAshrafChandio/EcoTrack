@@ -35,6 +35,15 @@
       "apiKey": "eco_d3ug0z47i5",
       "id": "usr_1793826520951_mls1s",
       "createdAt": "2026-11-04T21:08:40.951Z"
+    },
+    {
+      "name": "Lead Scientist Dr. Ayesha",
+      "email": "operator@ecotrack.org",
+      "passwordHash": "e67693cc4f91d84e80a9d35dc164ab7c:4632c4dc2f9815bff01fc0a7e22c3530806ade9b6489c92a2ac4a9ae3be94e1ffb8754e2c2148b4970b5089a239daab940f3d456fe017e2a391de6bb1f953dc2",
+      "role": "Environmental Systems Engineer",
+      "apiKey": "eco_srrsmmgzf2",
+      "id": "usr_1793829789401_r1u6q",
+      "createdAt": "2026-11-04T22:03:09.401Z"
     }
   ],
   "savedLocations": [
@@ -140,50 +149,7 @@
       "createdAt": "2026-11-04T19:30:22.068Z"
     }
   ],
-  "exceedanceEvents": [
-    {
-      "id": "inc_4091",
-      "alertRuleId": "rule_delhi_pm25",
-      "locationName": "Delhi NCR — Anand Vihar Station",
-      "stationId": "DEL-AV-092",
-      "pollutant": "PM2.5",
-      "observedValue": 312.4,
-      "threshold": 250,
-      "unit": "µg/m³",
-      "severity": "Critical",
-      "status": "Active Exceedance",
-      "timestamp": "2026-11-04T18:41:41.218Z",
-      "details": "Severe boundary layer thermal inversion cap at 340m trapping local vehicular and biomass particulates. Regional ventilation index collapsed to 0.08 m²/s."
-    },
-    {
-      "id": "inc_3982",
-      "alertRuleId": "rule_saopaulo_pm10",
-      "locationName": "São Paulo — Congonhas Corridor",
-      "stationId": "SP-CGH-104",
-      "pollutant": "PM10",
-      "observedValue": 142.1,
-      "threshold": 120,
-      "unit": "µg/m³",
-      "severity": "Warning",
-      "status": "Investigating",
-      "timestamp": "2026-11-04T18:07:41.218Z",
-      "details": "Pre-frontal stagnation cell with calm winds (0.4 m/s) elevating coarse aerosol particulates in airport perimeter corridor."
-    },
-    {
-      "id": "inc_3810",
-      "alertRuleId": "rule_london_no2",
-      "locationName": "London — Euston Road Street Canyon",
-      "stationId": "LON-EUS-018",
-      "pollutant": "NO2",
-      "observedValue": 94.6,
-      "threshold": 85,
-      "unit": "µg/m³",
-      "severity": "Advisory",
-      "status": "Active Exceedance",
-      "timestamp": "2026-11-04T17:30:41.218Z",
-      "details": "Morning commuter bus & heavy diesel transport surge trapped in narrow urban street canyon during low solar photolysis window."
-    }
-  ],
+  "exceedanceEvents": [],
   "comparisonSessions": [
     {
       "id": "comp_tri_city",
@@ -216,7 +182,7 @@
     {
       "id": "session_default",
       "title": "Atmospheric Dispersion & Inversion Analysis",
-      "updatedAt": "2026-11-04T21:08:31.341Z",
+      "updatedAt": "2026-11-04T22:04:42.845Z",
       "messages": [
         {
           "id": "msg_init",
@@ -385,13 +351,144 @@
           },
           "id": "msg_1793826511341_o8et",
           "timestamp": "2026-11-04T21:08:31.341Z"
+        },
+        {
+          "role": "user",
+          "content": "Explain the planetary boundary layer height in Karachi and how it impacts air quality today.",
+          "id": "msg_1793829835784_eth7",
+          "timestamp": "2026-11-04T22:03:55.784Z"
+        },
+        {
+          "role": "assistant",
+          "content": "اردو میں: Karachi میں پلیٹریری باؤنڈری لےول کی اوسط اور اس کا تعلق ہوا کیQualیٹی پر ہے۔\n\nKarachi میں ہیجھے ہوا کی Qualiٹی کے لیے ایک اہم فیکٹر پلیٹریری باؤنڈری لےول (PBL) ہے۔ جس کا مطلب ہے کہ زمین کے اوپر ایک لےول ہے جس میں ہوا کی ترسیب ہوتی ہے۔ Karachi میں اسے 120 میٹر کے لیول پر پہنا جاتا ہے، جو بہت زیادہ ہے۔ اس کا مطلب ہے کہ ہوا کی ترسیب اور پرتوں کی لےول میں ایک بڑا فرق ہے جو ہوا کی Qualiٹی کو متاثر کرتا ہے۔\n\nیہاں تک کہ ہوا کی Qualiٹی میں بھی زیادہ ترسیب کے ساتھ ساتھ، جس کی وجہ سے ہوا کی Qualiٹی میں تھرمل انورژن کا خطرہ بھی بڑھتا ہے۔ اس کی وجہ سے ہوا میں بھی اہم Pollutants جیسے PM2.5، PM10، NO2، O3 اور SO2 کی ترسیب زیادہ ہوتی ہے۔ اس کے نتیجے میں ہوا کی Qualiٹی میں مزید خراب ہوتی ہے۔\n\nاس کے علاوہ، ہوا کی Qualiٹی میں تھرمل انورژن کا خطرہ بھی بڑھتا ہے، جس کے نتیجے میں ہوا میں اہم Pollutants کی ترسیب زیادہ ہوتی ہے۔ اس کے نتیجے میں ہوا کی Qualiٹی میں مزید خراب ہوتی ہے۔\n\nاس لیے، Karachi میں ہوا کی Qualiٹی کو بہتر بنانے کے لیے، ہوا کی Qualiٹی میں تھرمل انورژن کا خطرہ کم کرنے کے لیے، اور ہوا میں اہم Pollutants کی ترسیب کو کم کرنے کے لیے، کچھ اہم اقدامات کی ضرورت ہے۔\n\nاردو میں ایک اہم اقدامات یہ ہے کہ ہوا کی Qualiٹی میں تھرمل انورژن کا خطرہ کم کرنے کے لیے، ہوا کی Qualiٹی میں اہم Pollutants کی ترسیب کو کم کرنے کے لیے، اور ہوا کی Qualiٹی کو بہتر بنانے کے لیے، ہوا کی Qualiٹی میں تھرمل انورژن کا خطرہ کم کرنے کے لیے، اہم اقدامات کی ضرورت ہے۔",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793829835784_gmpa",
+          "timestamp": "2026-11-04T22:03:55.784Z"
+        },
+        {
+          "role": "user",
+          "content": "کراچی میں ہوا کے معیار اور پی ایم 2.5 کے اثرات اردو میں بتائیں۔",
+          "id": "msg_1793829840769_d0wk",
+          "timestamp": "2026-11-04T22:04:00.769Z"
+        },
+        {
+          "role": "assistant",
+          "content": "سaudaں!\n\nکراچی میں ہوا کے معیار اور پی ایم 2.5 کے اثرات:\n\nکراچی میں موجودہ ہوا کے معیار کو 91 کے درجہ میں درج کیا گیا ہے، جو متحدہ ریاستوں کی صحت کے ادارے (ایس ای پی اے) کے مطابق Moderate (متوسط) ہوا کے معیار کے درجہ سے ملتا ہے۔\n\nپی ایم 2.5، جو باریک ذرات ہوتے ہیں جو 2.5 میٹر یا اس سے کم کے درجہ کی لمبائی کے ہوتے ہیں، ہمارے شہر میں 28.3 میٹر کے درجہ میں موجود ہیں۔ یہ پی ایم 2.5 کی 24 گھنٹہ کی سہولت کے معیار کے 15 میٹر کے درجہ سے 189 فیصد زیادہ ہے۔\n\nیہ پی ایم 2.5 اور ہوا کے معیار کے اثرات:\n\n* بچوں اور بڑوں میں ہوائی و مہی کی بیماریوں کے خطرے میں اضافہ ہو سکتا ہے۔\n* اہم جسمانی مسائل جیسے آسم اور ہیڈکے مسائل میں اضافہ ہو سکتا ہے۔\n* اس کے علاوہ، پی ایم 2.5 اور ہوا کے معیار کے باعث ہوا میں موجود دھول اور گندگے ذرات ہو سکتے ہیں، جو ہوا میں موجود دھوئیں اور آلودگی کو مزید بڑھا سکتے ہیں۔\n\nاس لیے، ہم یہاں کچھ عملہ precautions لائے ہیں جو ہوا کے معیار اور پی ایم 2.5 کے اثرات کو کم کرنے میں مدد کرسکتے ہیں:\n\n* ہوا میں موجود دھول اور گندگے ذرات سے بچنے کے لیے، ہم اپنی ہوا کے معیار کے درجہ کو دیکھتے رہیں اور اسے کم کرنے کے لیے کھلے جگہوں پر جائیں۔\n* ہوا میں موجود دھوئیں اور آلودگی کو کم کرنے کے لیے، ہم ہوا کے معیار کے درجہ کو کم کرنے کے لیے کھلے جگہوں پر جائیں اور ہوا میں موجود دھول اور گندگے ذرات سے بچنے کے لیے کھلے جگہوں پر جائیں۔\n* ہوا میں موجود دھوئیں اور آلودگی کو کم کرنے کے لیے، ہم ہوا میں موجود دھول اور گندگے ذرات سے بچنے کے لیے کھلے جگہوں پر جائیں اور ہوا میں موجود دھوئیں اور آلودگی کو کم کرنے کے لیے کھلے جگہ",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793829840769_6dhg",
+          "timestamp": "2026-11-04T22:04:00.769Z"
+        },
+        {
+          "role": "user",
+          "content": "What is the concentration of Lead and Benzene in Karachi right now according to the telemetry?",
+          "id": "msg_1793829841816_btiy",
+          "timestamp": "2026-11-04T22:04:01.816Z"
+        },
+        {
+          "role": "assistant",
+          "content": "عذرا، میری واضح بات یہ ہے کہ تھوڑا سا معلومات موجود نہیں ہے۔ EVIDENTIARY DATA PACKET میں Lead اور Benzene کے معیار کے بارے میں کوئی معلومات نہیں ہیں۔\n\nاس لیے، میں ان دونوں معیاروں کے بارے میں کوئی گمان نہیں کر سکتا ہوں یا ان کے لیے کوئی معلومات کو بھی نہیں بناسکتا ہوں۔\n\nاگر آپ کو یہ معلومات ضروری ہیں، تو آپ کو EVIDENTIARY DATA PACKET سے ہر معیار کے بارے میں تفصیلی معلومات حاصل کرنی ہوگی۔",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793829841816_6nmp",
+          "timestamp": "2026-11-04T22:04:01.816Z"
+        },
+        {
+          "role": "user",
+          "content": "Explain the planetary boundary layer height in Karachi and how it impacts air quality today.",
+          "id": "msg_1793829877646_6msp",
+          "timestamp": "2026-11-04T22:04:37.646Z"
+        },
+        {
+          "role": "assistant",
+          "content": "Based on the provided evidence packet, the planetary boundary layer height (PBLH) in Karachi is 120 meters. This value indicates a relatively stable atmospheric condition, characterized by a thermal inversion cap. The PBLH is the vertical extent of the layer where the atmosphere is in contact with the Earth's surface.\n\nIn the context of air quality, the PBLH plays a crucial role in trapping surface particulates. The thermal inversion cap acts as a lid, preventing pollutants from being dispersed horizontally. In this scenario, the calm wind speed of 8.0 m/s severely suppresses horizontal dispersion, further exacerbating the trapping effect.\n\nThe trapping of surface particulates, such as PM2.5, under the thermal inversion cap leads to a severe risk of inversion trapping. This phenomenon is particularly concerning for vulnerable groups, such as children, the elderly, and asthmatics, as it can increase their exposure to poor air quality.\n\nThe elevated PBLH also has a significant impact on the dispersion of pollutants. The reduced horizontal ventilation under the inversion cap leads to a higher concentration of pollutants near the surface, resulting in a more severe air quality situation.\n\nTo mitigate the effects of the thermal inversion cap and improve air quality, the following precautions can be taken:\n\n* Avoid strenuous outdoor activities, especially for vulnerable groups\n* Stay indoors with air conditioning or ventilation systems to reduce exposure to pollutants\n* Use air purifiers with HEPA filters to minimize indoor pollutant levels\n* Avoid driving or operating vehicles during peak pollution hours (usually early morning and late evening)\n* Encourage individuals to wear masks rated N95 or N100 when outdoors to reduce inhalation of particulate matter\n\nIt is essential to note that the Open-Meteo values originate from the Copernicus Atmosphere Monitoring Service (CAMS) and ECMWF numerical atmospheric forecast models, which provide continuous spatial grid estimations rather than in-situ physical ground-station certainty. Therefore, while the PBLH value provides valuable insights into the atmospheric conditions, it is essential to consider the limitations of the data and the underlying assumptions made in the model predictions.",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793829877646_z73e",
+          "timestamp": "2026-11-04T22:04:37.646Z"
+        },
+        {
+          "role": "user",
+          "content": "کراچی میں ہوا کے معیار اور پی ایم 2.5 کے اثرات اردو میں بتائیں۔",
+          "id": "msg_1793829882209_emeq",
+          "timestamp": "2026-11-04T22:04:42.209Z"
+        },
+        {
+          "role": "assistant",
+          "content": "کراچی میں ہوا کے معیار اور پی ایم 2.5 کے اثرات:\n\nکراچی میں ہوا کے معیار 91 ہے، جو moderate میں رہتا ہے۔ یہ معیار ہوا کی قلیلیں (PM2.5) کی مقدار کی بنیاد پر ہوتا ہے۔ ہمہ وقت کے لیے، پی ایم 2.5 کی مقدار 28.3 میگا گرام پر پہنچ گئی ہے، جو ہوا کے معیار کی 189 فیصد ہے۔\n\nتھرمل انورژن کی وجہ سے، پی ایم 2.5 کے ذرات 120 میٹر کے اوپر تھرمل انورژن کی کپ ہیں، جو ان ذرات کو ہوا سے ہٹانے سے رکھتی ہے۔ اس کے نتیجے میں، ہوا میں پی ایم 2.5 کی مقدار واضح طور پر زیادہ ہے، جو صحت کے لیے خطرناک ہے۔\n\nہوا کے معیار اور پی ایم 2.5 کے اثرات کے لیے، یہاں کچھ اہم باتوں کو ध्यان میں رکھنا ہے:\n\n* پی ایم 2.5 کی مقدار ہوا کی صحت کو متاثر کرتی ہے اور اس میں ماسک کے استعمال سے بھی اہم کردار ادا کرتا ہے۔\n* ہوا میں پی ایم 2.5 کی مقدار کے لیے، ہوا میں ہونے والے تھرمل انورژن کے نتیجے میں، ہوا میں اہم ذرات ہیں جو اس کی صحت کو نقصان پہنچاتے ہیں۔\n* ہوا میں پی ایم 2.5 کی مقدار کو کم کرنے کے لیے، ہوا میں تھرمل انورژن کو کم کرنے کے لیے، ہوا میں اہم ذرات کو ہوا سے ہٹانے کے لیے، اور ہوا میں اہم ذرات کو ہوا سے ہٹانے کے لیے، اور ہوا میں اہم ذرات کو ہوا سے ہٹانے کے لیے، اور ہوا میں اہم ذرات کو ہوا سے ہٹانے کے لیے، اور ہوا میں اہم ذرات کو ہوا سے ہٹانے کے لیے، اور ہوا میں اہم ذرات کو ہوا سے ہٹانے کے لیے، اور ہوا میں اہم ذرات کو ہوا سے ہٹانے کے لیے، اور ہوا میں اہم ذرات کو ہوا سے ہٹانے کے لیے، اور ہوا میں اہم ذرات کو ہوا سے ہٹانے کے لیے، اور ہوا میں اہم ذرات کو ہوا سے ہٹانے کے لیے، اور ہوا میں اہم ذرات کو ہوا سے ہٹانے ک",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793829882209_90sc",
+          "timestamp": "2026-11-04T22:04:42.209Z"
+        },
+        {
+          "role": "user",
+          "content": "What is the concentration of Lead and Benzene in Karachi right now according to the telemetry packet?",
+          "id": "msg_1793829882845_7bp9",
+          "timestamp": "2026-11-04T22:04:42.845Z"
+        },
+        {
+          "role": "assistant",
+          "content": "I must inform you that the concentration of Lead and Benzene is not available in the provided evidence packet. The packet only includes data on PM2.5, PM10, NO2, O3, SO2, CO, and DUST, but it does not contain any information on Lead or Benzene.\n\nAccording to the Operational Rules, I should explicitly state that these pollutants are unavailable, rather than guessing or interpolating. Therefore, I will not provide any information on their concentrations.",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 28.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793829882845_hc80",
+          "timestamp": "2026-11-04T22:04:42.845Z"
         }
       ]
     }
   ],
   "meta": {
     "version": "3.4.0",
-    "lastUpdated": "2026-11-04T21:08:41.052Z",
+    "lastUpdated": "2026-11-04T22:04:42.946Z",
     "initializedAt": "2026-11-04T18:55:41.218Z"
-  }
+  },
+  "sessions": [
+    {
+      "id": "80add1de328ccc89befbe9b1a706a95a59a582c87a1e1c7642b39131d325f115",
+      "userId": "usr_1793829789401_r1u6q",
+      "createdAt": "2026-11-04T22:03:09.401Z",
+      "expiresAt": "2026-11-07T22:03:09.401Z",
+      "revoked": true
+    },
+    {
+      "id": "3c90d15c8489d2af703a8f4ae0dae272c41269c5f217b0fe01f2f60f16d160a5",
+      "userId": "usr_1793829789401_r1u6q",
+      "createdAt": "2026-11-04T22:03:09.422Z",
+      "expiresAt": "2026-11-07T22:03:09.422Z",
+      "revoked": true
+    },
+    {
+      "id": "5d78edee19b568f64fd0768a21d00f3092ab1eab09bb3d46c4e62636594aa766",
+      "userId": "usr_1793829789401_r1u6q",
+      "createdAt": "2026-11-04T22:03:09.468Z",
+      "expiresAt": "2026-11-07T22:03:09.468Z",
+      "revoked": true
+    }
+  ]
 }

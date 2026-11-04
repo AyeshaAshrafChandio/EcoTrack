@@ -40,7 +40,7 @@ export interface OpenAQLocation {
 
 export interface OpenAQMeasurement {
   parameter: string;
-  value: number;
+  value: number | null;
   unit: string;
   lastUpdated: string;
 }
@@ -186,14 +186,14 @@ export class OpenAQService {
             console.warn(`Could not fetch /latest for OpenAQ station ${loc.id}:`, latErr);
           }
 
-          // If /latest had no values yet, record sensor metadata with unavailable values
+          // If /latest had no values yet, record sensor metadata with null value (never fake 0)
           if (Object.keys(measurements).length === 0 && Array.isArray(loc.sensors)) {
             for (const s of loc.sensors) {
               if (s.parameter && s.parameter.name) {
                 const paramCode = s.parameter.name.toUpperCase().replace(/[^A-Z0-9]/g, '');
                 measurements[paramCode] = {
                   parameter: s.parameter.displayName || s.parameter.name,
-                  value: 0,
+                  value: null,
                   unit: s.parameter.units,
                   lastUpdated: loc.datetimeLast?.utc || new Date().toISOString(),
                 };

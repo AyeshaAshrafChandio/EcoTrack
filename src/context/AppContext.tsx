@@ -151,15 +151,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Authentication State
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [currentUser, setCurrentUser] = useState<OperatorUser | null>(() => {
-    try {
-      const saved = localStorage.getItem('eco_operator_user');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // fallback
-    }
-    return null;
-  });
+  const [currentUser, setCurrentUser] = useState<OperatorUser | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
 
   // Non-intrusive prompt helper (falls back to direct auth redirection)
@@ -291,24 +283,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           if (res.ok) {
             const data = await res.json();
             setCurrentUser(data.user);
-            localStorage.setItem('eco_operator_user', JSON.stringify(data.user));
             return;
           }
         } catch (e) {
           console.warn('Network issue verifying session:', e);
-          const savedUser = localStorage.getItem('eco_operator_user');
-          if (savedUser) {
-            try {
-              setCurrentUser(JSON.parse(savedUser));
-              return;
-            } catch {}
-          }
         }
-        // If token was rejected by backend
+        // If token was rejected or could not be verified by backend, wipe credentials
         localStorage.removeItem('eco_operator_token');
         localStorage.removeItem('eco_operator_user');
         setCurrentUser(null);
       } else {
+        localStorage.removeItem('eco_operator_user');
         setCurrentUser(null);
       }
     }
@@ -726,7 +711,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       await sendPasswordResetEmail(auth, email);
       return;
     }
-    throw new Error('Firebase Auth is not yet bound to an active project. Use email passphrase login or register a new account.');
+    const res = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to dispatch password reset request.');
+    }
   };
 
   const logout = async (): Promise<void> => {

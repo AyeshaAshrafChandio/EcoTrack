@@ -167,25 +167,44 @@ apiRouter.get('/environment/live', async (req, res) => {
 
           const isExceeded =
             (rule.operator === '>' && observed > rule.threshold) ||
-            (rule.operator === '>=' && observed >= rule.threshold);
+            (rule.operator === '>=' && observed >= rule.threshold) ||
+            (rule.operator === '<' && observed < rule.threshold);
 
           if (isExceeded) {
             const existing = db.getExceedanceEvents().find(
               e => e.alertRuleId === rule.id && Date.now() - new Date(e.timestamp).getTime() < 30 * 60 * 1000
             );
             if (!existing) {
-              db.recordExceedanceEvent({
+              const eventRecord = db.recordExceedanceEvent({
                 alertRuleId: rule.id,
                 locationName: rule.locationName,
-                stationId: telemetry.location.stationId || 'TELEMETRY-NODE',
+                stationId: telemetry.location.stationId || 'MODEL-NODE',
                 pollutant: rule.pollutant,
                 observedValue: observed,
                 threshold: rule.threshold,
                 unit: rule.unit,
                 severity: rule.severity,
                 status: 'Active Exceedance',
-                details: `Automated threshold exceeded. Observed ${observed} ${rule.unit} exceeds ceiling of ${rule.threshold} ${rule.unit}. Dominant vector: ${telemetry.dominantPollutant}.`,
+                details: `Automated threshold exceeded. Observed ${observed} ${rule.unit} (${rule.operator} ${rule.threshold} ${rule.unit}). Dominant vector: ${telemetry.dominantPollutant}.`,
               });
+
+              // Dispatch real webhook notification if configured
+              if (rule.notificationChannel === 'Webhook' && rule.webhookUrl && rule.webhookUrl.startsWith('http')) {
+                fetch(rule.webhookUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    alertRuleId: rule.id,
+                    locationName: rule.locationName,
+                    pollutant: rule.pollutant,
+                    observedValue: observed,
+                    threshold: rule.threshold,
+                    unit: rule.unit,
+                    severity: rule.severity,
+                    timestamp: eventRecord.timestamp,
+                  }),
+                }).catch(webhookErr => console.warn(`Webhook dispatch notice for rule ${rule.id}:`, webhookErr?.message));
+              }
             }
           }
         }
@@ -298,8 +317,9 @@ apiRouter.get('/environment/compare', async (req, res) => {
 // 7. AI Environmental Copilot Chat (Meta Llama on Cloudflare / Groq / Ollama with guest rate limiting)
 apiRouter.post('/copilot/chat', copilotRateLimiter, async (req, res) => {
   try {
-    const { prompt, context, conversationHistory, preferredProvider, groqModel } = req.body;
-    if (!prompt || !prompt.trim()) {
+    const { context, conversationHistory, preferredProvider, groqModel } = req.body;
+    const prompt = req.body.prompt || (Array.isArray(req.body.messages) ? req.body.messages[req.body.messages.length - 1]?.content : undefined);
+    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
@@ -384,7 +404,7 @@ apiRouter.get('/alerts', async (req, res) => {
 apiRouter.post('/alerts', verifyOperatorSession, async (req: AuthenticatedRequest, res) => {
   try {
     const user = req.user!;
-    const { locationName, lat, lon, pollutant, operator, threshold, unit, severity, notificationChannel } = req.body;
+    const { locationName, lat, lon, pollutant, operator, threshold, unit, severity, notificationChannel, webhookUrl } = req.body;
     if (!locationName || lat === undefined || lon === undefined || !pollutant || threshold === undefined) {
       return res.status(400).json({ error: 'Missing required alert rule parameters' });
     }
@@ -399,7 +419,8 @@ apiRouter.post('/alerts', verifyOperatorSession, async (req: AuthenticatedReques
       threshold: parseFloat(threshold),
       unit: unit || (pollutant === 'CO' ? 'mg/m³' : 'µg/m³'),
       severity: severity || 'Warning',
-      notificationChannel: notificationChannel || 'Push & Email',
+      notificationChannel: notificationChannel || 'In-App Ledger & Console',
+      webhookUrl: webhookUrl || undefined,
       active: true,
     });
 
@@ -563,6 +584,43 @@ apiRouter.get('/auth/me', verifyOperatorSession, (req: AuthenticatedRequest, res
   res.json({ user: toSafeUser(req.user!) });
 });
 
-apiRouter.post('/auth/logout', (_req, res) => {
-  res.json({ success: true, message: 'Operator logged out.' });
+apiRouter.post('/auth/logout', (req: AuthenticatedRequest, res) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split('Bearer ')[1].trim();
+    if (token.startsWith('eco_sec_')) {
+      const parts = token.split('.');
+      if (parts.length === 2) {
+        const sessionId = parts[0].substring('eco_sec_'.length);
+        db.revokeSession(sessionId);
+      }
+    }
+  }
+  res.json({ success: true, message: 'Operator session revoked and logged out.' });
+});
+
+apiRouter.post('/auth/reset-password', (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return res.status(400).json({ error: 'Valid institutional email address is required.' });
+    }
+    const user = db.getUserByEmail(email);
+    if (!user) {
+      // Return 404 or safe message
+      return res.status(404).json({ error: 'No operator account found with this email.' });
+    }
+    if (newPassword) {
+      if (typeof newPassword !== 'string' || newPassword.length < 6) {
+        return res.status(400).json({ error: 'New security passphrase must be at least 6 characters.' });
+      }
+      db.resetUserPassword(email, newPassword);
+      return res.json({ success: true, message: 'Security passphrase updated successfully. All active sessions have been revoked.' });
+    }
+    // If only email is provided, revoke sessions and confirm dispatch
+    db.revokeAllUserSessions(user.id);
+    res.json({ success: true, message: 'Security reset link dispatched to operator email address.' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Password reset failed' });
+  }
 });

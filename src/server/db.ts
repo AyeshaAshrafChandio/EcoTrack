@@ -48,8 +48,17 @@ export interface AlertRule {
   unit: string;
   severity: 'Critical' | 'Warning' | 'Advisory';
   notificationChannel: 'Push & Email' | 'SMS Direct' | 'Webhook' | 'Console';
+  webhookUrl?: string;
   active: boolean;
   createdAt: string;
+}
+
+export interface Session {
+  id: string; // cryptographically secure 32-byte hex ID
+  userId: string;
+  createdAt: string;
+  expiresAt: string;
+  revoked: boolean;
 }
 
 export interface ExceedanceEvent {
@@ -102,6 +111,7 @@ export interface ChatSession {
 
 export interface DatabaseSchema {
   users: User[];
+  sessions: Session[];
   savedLocations: SavedLocation[];
   alertRules: AlertRule[];
   exceedanceEvents: ExceedanceEvent[];
@@ -121,6 +131,7 @@ function getDefaultData(): DatabaseSchema {
   const now = new Date().toISOString();
   return {
     users: [],
+    sessions: [],
     savedLocations: [
       {
         id: 'loc_tokyo',
@@ -129,7 +140,7 @@ function getDefaultData(): DatabaseSchema {
         lat: 35.6895,
         lon: 139.6917,
         country: 'Japan',
-        stationId: 'TK-SHINJUKU-SENSOR-4A',
+        stationId: 'MODEL-GRID-TOKYO',
         createdAt: now,
       },
       {
@@ -139,7 +150,7 @@ function getDefaultData(): DatabaseSchema {
         lat: 51.5074,
         lon: -0.1278,
         country: 'United Kingdom',
-        stationId: 'LON-BLOOMSBURY-A2',
+        stationId: 'MODEL-GRID-LONDON',
         createdAt: now,
       },
       {
@@ -149,7 +160,7 @@ function getDefaultData(): DatabaseSchema {
         lat: 28.6139,
         lon: 77.209,
         country: 'India',
-        stationId: 'DEL-ANAND-VIHAR-09',
+        stationId: 'MODEL-GRID-DELHI',
         createdAt: now,
       },
     ],
@@ -180,7 +191,7 @@ function getDefaultData(): DatabaseSchema {
         threshold: 120,
         unit: 'µg/m³',
         severity: 'Warning',
-        notificationChannel: 'SMS Direct',
+        notificationChannel: 'Console',
         active: true,
         createdAt: now,
       },
@@ -200,50 +211,7 @@ function getDefaultData(): DatabaseSchema {
         createdAt: now,
       },
     ],
-    exceedanceEvents: [
-      {
-        id: 'inc_4091',
-        alertRuleId: 'rule_delhi_pm25',
-        locationName: 'Delhi NCR — Anand Vihar Station',
-        stationId: 'DEL-AV-092',
-        pollutant: 'PM2.5',
-        observedValue: 312.4,
-        threshold: 250.0,
-        unit: 'µg/m³',
-        severity: 'Critical',
-        status: 'Active Exceedance',
-        timestamp: new Date(Date.now() - 14 * 60 * 1000).toISOString(),
-        details: 'Severe boundary layer thermal inversion cap at 340m trapping local vehicular and biomass particulates. Regional ventilation index collapsed to 0.08 m²/s.',
-      },
-      {
-        id: 'inc_3982',
-        alertRuleId: 'rule_saopaulo_pm10',
-        locationName: 'São Paulo — Congonhas Corridor',
-        stationId: 'SP-CGH-104',
-        pollutant: 'PM10',
-        observedValue: 142.1,
-        threshold: 120.0,
-        unit: 'µg/m³',
-        severity: 'Warning',
-        status: 'Investigating',
-        timestamp: new Date(Date.now() - 48 * 60 * 1000).toISOString(),
-        details: 'Pre-frontal stagnation cell with calm winds (0.4 m/s) elevating coarse aerosol particulates in airport perimeter corridor.',
-      },
-      {
-        id: 'inc_3810',
-        alertRuleId: 'rule_london_no2',
-        locationName: 'London — Euston Road Street Canyon',
-        stationId: 'LON-EUS-018',
-        pollutant: 'NO2',
-        observedValue: 94.6,
-        threshold: 85.0,
-        unit: 'µg/m³',
-        severity: 'Advisory',
-        status: 'Active Exceedance',
-        timestamp: new Date(Date.now() - 85 * 60 * 1000).toISOString(),
-        details: 'Morning commuter bus & heavy diesel transport surge trapped in narrow urban street canyon during low solar photolysis window.',
-      },
-    ],
+    exceedanceEvents: [],
     comparisonSessions: [
       {
         id: 'comp_tri_city',
@@ -266,7 +234,7 @@ function getDefaultData(): DatabaseSchema {
           {
             id: 'msg_init',
             role: 'assistant',
-            content: 'Welcome to EcoTrack AI Environmental Copilot. Telemetry feeds from Open-Meteo, WMO GAW calibrated physical ground sensors, and Copernicus orbital observations are synchronized. How can I assist your atmospheric diagnostic today?',
+            content: 'Welcome to EcoTrack AI Environmental Copilot. Telemetry feeds from Open-Meteo (Copernicus CAMS & ECMWF) are synchronized. How can I assist your atmospheric diagnostic today?',
             timestamp: now,
           },
         ],
@@ -305,6 +273,15 @@ class Database {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
         const parsed = JSON.parse(raw);
         if (parsed.users && parsed.alertRules) {
+          if (!parsed.sessions) parsed.sessions = [];
+          // Purge legacy seeded demo incidents to maintain strict zero-fake-data policy
+          if (parsed.exceedanceEvents) {
+            parsed.exceedanceEvents = parsed.exceedanceEvents.filter(
+              (e: any) => !['inc_4091', 'inc_3982', 'inc_3810'].includes(e.id)
+            );
+          } else {
+            parsed.exceedanceEvents = [];
+          }
           return parsed;
         }
       }
@@ -396,10 +373,75 @@ class Database {
     const user = this.getUserByEmail(email);
     if (user) {
       user.passwordHash = newHash;
+      this.revokeAllUserSessions(user.id);
       this.schedulePersist();
       return true;
     }
     return false;
+  }
+
+  public resetUserPassword(email: string, newPlainPassword: string): boolean {
+    const cleanEmail = email.trim().toLowerCase();
+    const user = this.getUserByEmail(cleanEmail);
+    if (!user) return false;
+    user.passwordHash = hashPassword(newPlainPassword);
+    this.revokeAllUserSessions(user.id);
+    this.schedulePersist();
+    return true;
+  }
+
+  // --- Cryptographically Secure Session Management ---
+  public createSession(userId: string, ttlHours = 72): Session {
+    const id = crypto.randomBytes(32).toString('hex');
+    const now = new Date();
+    const expires = new Date(now.getTime() + ttlHours * 3600 * 1000);
+    const session: Session = {
+      id,
+      userId,
+      createdAt: now.toISOString(),
+      expiresAt: expires.toISOString(),
+      revoked: false,
+    };
+    if (!this.data.sessions) this.data.sessions = [];
+    this.data.sessions.push(session);
+    this.schedulePersist();
+    return session;
+  }
+
+  public getSession(id: string): Session | undefined {
+    if (!this.data.sessions) return undefined;
+    const session = this.data.sessions.find(s => s.id === id);
+    if (!session) return undefined;
+    if (session.revoked) return undefined;
+    if (new Date(session.expiresAt).getTime() < Date.now()) {
+      session.revoked = true;
+      this.schedulePersist();
+      return undefined;
+    }
+    return session;
+  }
+
+  public revokeSession(id: string): boolean {
+    if (!this.data.sessions) return false;
+    const session = this.data.sessions.find(s => s.id === id);
+    if (session) {
+      session.revoked = true;
+      this.schedulePersist();
+      return true;
+    }
+    return false;
+  }
+
+  public revokeAllUserSessions(userId: string): void {
+    if (!this.data.sessions) return;
+    let changed = false;
+    for (const s of this.data.sessions) {
+      if (s.userId === userId && !s.revoked) {
+        s.revoked = true;
+        changed = true;
+      }
+    }
+    if (changed) this.schedulePersist();
   }
 
   // --- Saved Locations ---

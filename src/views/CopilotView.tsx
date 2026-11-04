@@ -57,10 +57,10 @@ export const CopilotView: React.FC = () => {
 - **Language Support:** English & Urdu (اردو)
 
 **Current Real Telemetry for ${currentTelemetry?.location.name || selectedLocation.name}:**
-- **Air Quality Index:** **${currentTelemetry?.overallAqi ?? 42}** (${currentTelemetry?.aqiCategory ?? 'Moderate'})
-- **Dominant Pollutant Vector:** **${currentTelemetry?.dominantPollutant ?? 'PM2.5'}** (${currentTelemetry?.pollutants['PM2.5']?.value ?? 14.2} µg/m³)
-- **Planetary Boundary Layer Height:** **${currentTelemetry?.weather.boundaryLayerHeight ?? 850} m** (Inversion Ceiling)
-- **Surface Wind:** **${currentTelemetry?.weather.windSpeed.toFixed(1) ?? 2.8} m/s** (${currentTelemetry?.weather.windDirectionCompass ?? 'SSE'})
+- **Air Quality Index:** **${currentTelemetry?.overallAqi !== undefined ? currentTelemetry.overallAqi : 'Unavailable'}** (${currentTelemetry?.aqiCategory ?? 'Standard'})
+- **Dominant Pollutant Vector:** **${currentTelemetry?.dominantPollutant ?? 'PM2.5'}** (${currentTelemetry?.pollutants[currentTelemetry?.dominantPollutant || 'PM2.5']?.value !== undefined ? `${currentTelemetry.pollutants[currentTelemetry.dominantPollutant || 'PM2.5'].value} µg/m³` : 'Unavailable'})
+- **Planetary Boundary Layer Height:** **${currentTelemetry?.weather?.boundaryLayerHeight !== undefined ? `${currentTelemetry.weather.boundaryLayerHeight} m` : 'Unavailable'}** (Inversion Ceiling)
+- **Surface Wind:** **${currentTelemetry?.weather?.windSpeed !== undefined ? `${currentTelemetry.weather.windSpeed.toFixed(1)} m/s` : 'Unavailable'}** (${currentTelemetry?.weather?.windDirectionCompass ?? 'N/A'})
 
 Ask me any scientific question regarding aerosol dispersion, atmospheric inversion trapping, health guidelines, or request an explanation in **Urdu (اردو)**.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -113,7 +113,7 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Selected image exceeds the 5MB file size limit.');
+      setImageAnalysisError('Selected image exceeds the 5MB file size limit.');
       return;
     }
 
@@ -327,7 +327,7 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
                   Live Grounding Telemetry
                 </span>
                 <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant">
-                  {currentTelemetry?.telemetryMetadata.latencyMs ?? 32}ms
+                  {currentTelemetry?.telemetryMetadata?.latencyMs !== undefined ? `${currentTelemetry.telemetryMetadata.latencyMs}ms` : 'Active'}
                 </span>
               </div>
 
@@ -345,7 +345,7 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
                 <div className="p-2.5 rounded-xl bg-surface-container">
                   <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant uppercase">EPA AQI</span>
                   <div className="font-data-metric-lg text-xl sm:text-2xl font-bold text-primary">
-                    {currentTelemetry?.overallAqi ?? 'N/A'}
+                    {currentTelemetry?.overallAqi !== undefined ? currentTelemetry.overallAqi : 'Unavailable'}
                   </div>
                   <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant truncate block">
                     {currentTelemetry?.aqiCategory ?? 'Standard'}
@@ -358,27 +358,31 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
                     {currentTelemetry?.dominantPollutant ?? 'PM2.5'}
                   </div>
                   <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant">
-                    {currentTelemetry?.pollutants[currentTelemetry.dominantPollutant]?.value ?? 0} {currentTelemetry?.pollutants[currentTelemetry.dominantPollutant]?.unit ?? 'µg/m³'}
+                    {currentTelemetry && currentTelemetry.pollutants[currentTelemetry.dominantPollutant]?.value !== undefined
+                      ? `${currentTelemetry.pollutants[currentTelemetry.dominantPollutant].value} ${currentTelemetry.pollutants[currentTelemetry.dominantPollutant].unit}`
+                      : 'Unavailable'}
                   </span>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-surface-container">
                   <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant uppercase">Boundary Layer</span>
                   <div className="font-data-metric-lg text-lg sm:text-xl font-bold text-on-surface">
-                    {currentTelemetry?.weather.boundaryLayerHeight ?? 850}m
+                    {currentTelemetry?.weather?.boundaryLayerHeight !== undefined ? `${currentTelemetry.weather.boundaryLayerHeight}m` : 'Unavailable'}
                   </div>
                   <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant">
-                    {currentTelemetry && currentTelemetry.weather.boundaryLayerHeight < 500 ? 'High Inversion' : 'Normal Deck'}
+                    {currentTelemetry?.weather?.boundaryLayerHeight !== undefined
+                      ? (currentTelemetry.weather.boundaryLayerHeight < 500 ? 'High Inversion' : 'Normal Deck')
+                      : 'Unavailable'}
                   </span>
                 </div>
 
                 <div className="p-2.5 rounded-xl bg-surface-container">
                   <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant uppercase">Wind Ventilation</span>
                   <div className="font-data-metric-lg text-lg sm:text-xl font-bold text-on-surface">
-                    {currentTelemetry?.weather.windSpeed.toFixed(1) ?? 2.8} m/s
+                    {currentTelemetry?.weather?.windSpeed !== undefined ? `${currentTelemetry.weather.windSpeed.toFixed(1)} m/s` : 'Unavailable'}
                   </div>
                   <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant">
-                    From {currentTelemetry?.weather.windDirectionCompass ?? 'N'}
+                    {currentTelemetry?.weather?.windDirectionCompass ? `From ${currentTelemetry.weather.windDirectionCompass}` : 'Calm'}
                   </span>
                 </div>
               </div>
@@ -702,7 +706,7 @@ Ask me any scientific question regarding aerosol dispersion, atmospheric inversi
                   <div className="p-3 rounded-xl bg-surface-container space-y-1">
                     <span className="font-label-mono-sm text-[0.625rem] text-on-surface-variant uppercase">Inversion Ceiling</span>
                     <div className="font-body-md text-sm font-bold text-secondary">
-                      {currentTelemetry?.weather.boundaryLayerHeight ?? 850} meters
+                      {currentTelemetry?.weather?.boundaryLayerHeight !== undefined ? `${currentTelemetry.weather.boundaryLayerHeight} meters` : 'Unavailable'}
                     </div>
                   </div>
                 </div>
