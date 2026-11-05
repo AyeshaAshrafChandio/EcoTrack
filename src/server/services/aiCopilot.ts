@@ -403,19 +403,24 @@ ${languageInstruction}`;
     if (geminiKey && geminiKey.length > 5 && req.preferredProvider !== 'cloudflare' && req.preferredProvider !== 'groq' && req.preferredProvider !== 'ollama') {
       try {
         const { GoogleGenAI } = await import('@google/genai');
-        const ai = new GoogleGenAI({ apiKey: geminiKey });
+        const ai = new GoogleGenAI({
+          apiKey: geminiKey,
+          httpOptions: {
+            headers: {
+              'User-Agent': 'aistudio-build',
+            },
+          },
+        });
         const geminiRes = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: [
-            { role: 'user', parts: [{ text: `${systemPrompt}\n\nUser Question:\n${req.prompt}` }] }
-          ],
+          model: 'gemini-3.8-flash',
+          contents: `${systemPrompt}\n\nUser Question:\n${req.prompt}`,
         });
 
         const replyText = geminiRes.text;
         if (replyText) {
           return {
             reply: replyText,
-            modelUsed: 'gemini-2.5-flash',
+            modelUsed: 'gemini-3.8-flash',
             modelCreator: 'Google',
             hostingProvider: 'Google AI Studio Server-Side Gateway',
             license: 'Google Generative AI Terms of Service',
@@ -515,8 +520,18 @@ ${languageInstruction}`;
       `\n\n---\n\n` +
       setupGuide;
 
+    const urduDiagnosticSummary = `### ماحولیاتی زمینی تشخیص: ${evidence.locationName}\n\n` +
+      `**موجودہ ماحولیاتی صورتحال:**\n` +
+      `- **امریکی ای پی اے ایئر کوالٹی انڈیکس (AQI):** **${evidence.overallAqi}** (${evidence.aqiCategory})\n` +
+      `- **نمایاں آلودگی کا ذریعہ:** **${evidence.dominantPollutant}**\n` +
+      `- **پلانیٹری باؤنڈری لیئر اونچائی (تھرمل انورژن کیپ):** **${evidence.meteorology.boundaryLayerHeightMeters} میٹر** (${evidence.atmosphericInversionAssessment.risk} رکاوٹ کا خطرہ)\n` +
+      `- **ہوا کا بہاؤ اور وینٹیلیشن:** ${evidence.atmosphericInversionAssessment.ventilationFactor}\n` +
+      `- **سطحی موسمیات:** ${evidence.meteorology.temperatureC}°C درجہ حرارت، ${evidence.meteorology.humidityPercent}% نمی، ہوا ${evidence.meteorology.windSpeedMs.toFixed(1)} میٹر/سیکنڈ (${evidence.meteorology.windDirectionCompass})\n\n` +
+      `**ڈبلیو ایچ او (WHO) 2021 بینچ مارک تفصیلات:**\n` +
+      evidence.pollutants.map(p => `- **${p.code}** (${p.name}): **${p.value} ${p.unit}** (WHO 24 گھنٹے کی حد: ${p.whoBenchmark24h} ${p.unit} -> **${p.whoPercentage}%**)`).join('\n');
+
     return {
-      reply: diagnosticSummary,
+      reply: isUrduQuery ? urduDiagnosticSummary : diagnosticSummary,
       modelUsed: 'Meta Llama 3.2 3B Instruct (@cf/meta/llama-3.2-3b-instruct)',
       modelCreator: 'Meta',
       hostingProvider: 'AWAITING_FREE_CREDENTIALS',
@@ -602,12 +617,19 @@ ${languageInstruction}`;
       };
     }
 
-    // 1. Check Gemini 2.5 Flash Vision if GEMINI_API_KEY is available
+    // 1. Check Gemini 3.8 Flash Vision if GEMINI_API_KEY is available
     const geminiKey = process.env.GEMINI_API_KEY?.trim();
     if (geminiKey && geminiKey.length > 5) {
       try {
         const { GoogleGenAI } = await import('@google/genai');
-        const ai = new GoogleGenAI({ apiKey: geminiKey });
+        const ai = new GoogleGenAI({
+          apiKey: geminiKey,
+          httpOptions: {
+            headers: {
+              'User-Agent': 'aistudio-build',
+            },
+          },
+        });
 
         let mimeType = 'image/jpeg';
         let base64Data = imgRaw;
@@ -629,20 +651,15 @@ Provide 3 distinct qualitative observations:
 Format output as 3 clear bullet points (one per line, starting with a dash). At the very end on a new line, write "HAZE_LEVEL: [Low/Moderate/High]".`;
 
         const geminiRes = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: 'gemini-3.8-flash',
           contents: [
             {
-              role: 'user',
-              parts: [
-                {
-                  inlineData: {
-                    data: base64Data,
-                    mimeType: mimeType,
-                  },
-                },
-                { text: visionPrompt },
-              ],
+              inlineData: {
+                data: base64Data,
+                mimeType: mimeType,
+              },
             },
+            { text: visionPrompt },
           ],
         });
 
@@ -670,7 +687,7 @@ Format output as 3 clear bullet points (one per line, starting with a dash). At 
           return {
             status: 'ONLINE',
             disclaimer,
-            modelUsed: 'gemini-2.5-flash (Visual Inspection)',
+            modelUsed: 'gemini-3.8-flash (Visual Inspection)',
             hostingProvider: 'Google AI Studio Server-Side Gateway',
             observations: obsList.length > 0 ? obsList : [
               'Atmospheric clarity observed across central camera field of view.',

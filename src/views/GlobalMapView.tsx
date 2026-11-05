@@ -41,12 +41,21 @@ export const GlobalMapView: React.FC = () => {
   useEffect(() => {
     let isCancelled = false;
     const fetchOpenaq = async () => {
+      const qLat = typeof selectedLocation?.lat === 'number' && !isNaN(selectedLocation.lat) ? selectedLocation.lat : 24.8607;
+      const qLon = typeof selectedLocation?.lon === 'number' && !isNaN(selectedLocation.lon) ? selectedLocation.lon : 67.0011;
       try {
-        const res = await fetch(`/api/environment/openaq?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&radius=25000`);
+        const res = await fetch(`/api/environment/openaq?lat=${qLat}&lon=${qLon}&radius=25000`);
         if (!res.ok) return;
         const data = await res.json();
         if (!isCancelled && Array.isArray(data.stations)) {
-          setOpenaqStations(data.stations);
+          const normalized = data.stations
+            .map((st: any) => {
+              const lat = typeof st.lat === 'number' && !isNaN(st.lat) ? st.lat : typeof st.latitude === 'number' && !isNaN(st.latitude) ? st.latitude : undefined;
+              const lon = typeof st.lon === 'number' && !isNaN(st.lon) ? st.lon : typeof st.longitude === 'number' && !isNaN(st.longitude) ? st.longitude : undefined;
+              return { ...st, lat, lon };
+            })
+            .filter((st: any) => typeof st.lat === 'number' && !isNaN(st.lat) && typeof st.lon === 'number' && !isNaN(st.lon));
+          setOpenaqStations(normalized);
         }
       } catch {
         // Safe fallback
@@ -56,7 +65,7 @@ export const GlobalMapView: React.FC = () => {
     return () => {
       isCancelled = true;
     };
-  }, [selectedLocation.lat, selectedLocation.lon]);
+  }, [selectedLocation?.lat, selectedLocation?.lon]);
 
   // Auto-play temporal slider effect
   useEffect(() => {
@@ -169,8 +178,10 @@ export const GlobalMapView: React.FC = () => {
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
+      const initLat = typeof selectedLocation?.lat === 'number' && !isNaN(selectedLocation.lat) ? selectedLocation.lat : 30;
+      const initLon = typeof selectedLocation?.lon === 'number' && !isNaN(selectedLocation.lon) ? selectedLocation.lon : 10;
       const map = L.map(mapContainerRef.current, {
-        center: [selectedLocation.lat || 30, selectedLocation.lon || 10],
+        center: [initLat, initLon],
         zoom: 3,
         minZoom: 2,
         maxZoom: 18,
@@ -207,11 +218,15 @@ export const GlobalMapView: React.FC = () => {
     markersRef.current = [];
 
     // 1. Render Atmospheric Model Forecast Nodes (Open-Meteo CAMS)
-    if (showModelLayer) {
+    if (showModelLayer && Array.isArray(stations)) {
       stations.forEach(st => {
+        const lat = typeof st.lat === 'number' && !isNaN(st.lat) ? st.lat : typeof (st as any).latitude === 'number' && !isNaN((st as any).latitude) ? (st as any).latitude : null;
+        const lon = typeof st.lon === 'number' && !isNaN(st.lon) ? st.lon : typeof (st as any).longitude === 'number' && !isNaN((st as any).longitude) ? (st as any).longitude : null;
+        if (lat === null || lon === null) return;
+
         const { val, unit, color } = getPollutantMetric(st, activePollutant);
 
-        const circle = L.circleMarker([st.lat, st.lon], {
+        const circle = L.circleMarker([lat, lon], {
           radius: 9,
           fillColor: color,
           color: '#0f131d',
@@ -233,9 +248,9 @@ export const GlobalMapView: React.FC = () => {
         circle.on('click', () => {
           setSelectedOpenaqStation(null);
           setSelectedStation(st);
-          selectCity(`${st.city}, ${st.country}`, st.lat, st.lon);
+          selectCity(`${st.city}, ${st.country}`, lat, lon);
           setShowMobileInspector(true);
-          map.setView([st.lat, st.lon], 6, { animate: true });
+          map.setView([lat, lon], 6, { animate: true });
         });
 
         markersRef.current.push(circle);
@@ -243,10 +258,14 @@ export const GlobalMapView: React.FC = () => {
     }
 
     // 2. Render Physical Ground Sensors (OpenAQ v3)
-    if (showOpenaqLayer) {
+    if (showOpenaqLayer && Array.isArray(openaqStations)) {
       openaqStations.forEach(st => {
+        const lat = typeof st.lat === 'number' && !isNaN(st.lat) ? st.lat : typeof (st as any).latitude === 'number' && !isNaN((st as any).latitude) ? (st as any).latitude : null;
+        const lon = typeof st.lon === 'number' && !isNaN(st.lon) ? st.lon : typeof (st as any).longitude === 'number' && !isNaN((st as any).longitude) ? (st as any).longitude : null;
+        if (lat === null || lon === null) return;
+
         // Cyan square/diamond marker with distinct pulse border
-        const marker = L.circleMarker([st.lat, st.lon], {
+        const marker = L.circleMarker([lat, lon], {
           radius: 10,
           fillColor: '#0284c7', // sky-600
           color: '#38bdf8', // sky-400 cyan
@@ -274,7 +293,7 @@ export const GlobalMapView: React.FC = () => {
           setSelectedStation(null);
           setSelectedOpenaqStation(st);
           setShowMobileInspector(true);
-          map.setView([st.lat, st.lon], 8, { animate: true });
+          map.setView([lat, lon], 8, { animate: true });
         });
 
         markersRef.current.push(marker);
@@ -284,10 +303,16 @@ export const GlobalMapView: React.FC = () => {
 
   // Center on selected location if changed
   useEffect(() => {
-    if (mapInstanceRef.current && selectedLocation.lat && selectedLocation.lon) {
+    if (
+      mapInstanceRef.current &&
+      typeof selectedLocation?.lat === 'number' &&
+      !isNaN(selectedLocation.lat) &&
+      typeof selectedLocation?.lon === 'number' &&
+      !isNaN(selectedLocation.lon)
+    ) {
       mapInstanceRef.current.setView([selectedLocation.lat, selectedLocation.lon], 5, { animate: true });
     }
-  }, [selectedLocation.lat, selectedLocation.lon]);
+  }, [selectedLocation?.lat, selectedLocation?.lon]);
 
   // Compute actual CAMS forecast point at the temporal offset
   const forecastAtOffset = useMemo(() => {

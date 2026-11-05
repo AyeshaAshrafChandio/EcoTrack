@@ -71,6 +71,42 @@
       "apiKey": "eco_fz17r4p9cb",
       "id": "usr_1793832549309_jzwj7",
       "createdAt": "2026-11-04T22:49:09.309Z"
+    },
+    {
+      "name": "Automated Test Operator",
+      "email": "test_operator_1793839689557@ecotrack.ai",
+      "passwordHash": "11f71fe6e5057af65b38709fd4c5863f:be8f6440646dc855e4e69ce5d98cf1099faa255100f2edad53858abc5fdfd673716e32b7883578b32abfaf968eae0176a0d875b9daad1510003eb8579c1edb69",
+      "role": "Environmental Systems Engineer",
+      "apiKey": "eco_1sanhumm2w",
+      "id": "usr_1793839689569_2pqot",
+      "createdAt": "2026-11-05T00:48:09.569Z"
+    },
+    {
+      "name": "Automated Test Operator",
+      "email": "test_operator_1793839842178@ecotrack.ai",
+      "passwordHash": "386c4006ee06ef8a121cfe9f1b112e67:ea6ff659a7d7371a885d94a47dd1959b691d2d1ce0aeecd50e24b31cb78186ed44a4e34f56ef7564bf999d90d7e7112e86ae0932ae0adaf75975d19ac44773ed",
+      "role": "Environmental Systems Engineer",
+      "apiKey": "eco_7zoyheizyy",
+      "id": "usr_1793839842188_5o7mp",
+      "createdAt": "2026-11-05T00:50:42.188Z"
+    },
+    {
+      "name": "Automated Test Operator",
+      "email": "test_operator_1793839885496@ecotrack.ai",
+      "passwordHash": "efa3d54ca533dbf6c4f8d3a47e09da42:48e49d868ef0b262b7a9c39b879d00f18cea7a34f5560f55f4ca3ce12117e8b3937511608b4a4ed8c0410a550b6ea382baa3ad1065bc48a4d42272286ffd6557",
+      "role": "Environmental Systems Engineer",
+      "apiKey": "eco_825tnld4gh",
+      "id": "usr_1793839885507_pjebh",
+      "createdAt": "2026-11-05T00:51:25.507Z"
+    },
+    {
+      "name": "Automated Test Operator",
+      "email": "test_operator_1793840578403@ecotrack.ai",
+      "passwordHash": "3a8f7fefeef4f2444ee321cd7e5a46ac:e30f8e6f7f4c18b92ad1b72af65cb221b329ee52885b59391205cba6864d6124423d65f6bf98472d8d2aa162e8c2174c2048f0a5bf5a31c2a5d87c03fbdf5e5e",
+      "role": "Environmental Systems Engineer",
+      "apiKey": "eco_ef3dpbwslv",
+      "id": "usr_1793840578415_g4rli",
+      "createdAt": "2026-11-05T01:02:58.415Z"
     }
   ],
   "savedLocations": [
@@ -139,6 +175,42 @@
       "country": "United States",
       "id": "loc_1793832549315_5gps",
       "createdAt": "2026-11-04T22:49:09.315Z"
+    },
+    {
+      "userId": "usr_1793839689569_2pqot",
+      "name": "Test Research Node Beta",
+      "lat": 34.0522,
+      "lon": -118.2437,
+      "country": "United States",
+      "id": "loc_1793839689578_51u4",
+      "createdAt": "2026-11-05T00:48:09.578Z"
+    },
+    {
+      "userId": "usr_1793839842188_5o7mp",
+      "name": "Test Research Node Beta",
+      "lat": 34.0522,
+      "lon": -118.2437,
+      "country": "United States",
+      "id": "loc_1793839842201_dbga",
+      "createdAt": "2026-11-05T00:50:42.201Z"
+    },
+    {
+      "userId": "usr_1793839885507_pjebh",
+      "name": "Test Research Node Beta",
+      "lat": 34.0522,
+      "lon": -118.2437,
+      "country": "United States",
+      "id": "loc_1793839885521_2lsl",
+      "createdAt": "2026-11-05T00:51:25.521Z"
+    },
+    {
+      "userId": "usr_1793840578415_g4rli",
+      "name": "Test Research Node Beta",
+      "lat": 34.0522,
+      "lon": -118.2437,
+      "country": "United States",
+      "id": "loc_1793840578427_t8rp",
+      "createdAt": "2026-11-05T01:02:58.427Z"
     }
   ],
   "alertRules": [
@@ -251,7 +323,7 @@
     {
       "id": "session_default",
       "title": "Atmospheric Dispersion & Inversion Analysis",
-      "updatedAt": "2026-11-04T22:49:08.889Z",
+      "updatedAt": "2026-11-05T01:02:37.805Z",
       "messages": [
         {
           "id": "msg_init",
@@ -654,13 +726,157 @@
           },
           "id": "msg_1793832548889_ft5v",
           "timestamp": "2026-11-04T22:49:08.889Z"
+        },
+        {
+          "role": "user",
+          "content": "State current AQI and dominant pollutant in Karachi.",
+          "id": "msg_1793839689180_u8b7",
+          "timestamp": "2026-11-05T00:48:09.180Z"
+        },
+        {
+          "role": "assistant",
+          "content": "### Atmospheric Grounding Diagnostic: Karachi, Pakistan\n\n**Current Atmospheric Status:**\n- **Overall Air Quality Index (US EPA):** **91** (Moderate)\n- **Dominant Pollutant Vector:** **PM2.5**\n- **Planetary Boundary Layer Ceiling:** **110 m** (Severe Trapping Risk)\n- **Ventilation Assessment:** Severe atmospheric thermal inversion cap at 110m trapping surface particulates; calm wind (8.5 m/s) severely suppresses horizontal dispersion.\n- **Surface Meteorology:** 22.8°C, 69% RH, Wind 8.5 m/s (NNW)\n\n**WHO 2021 Benchmark Speciation:**\n- **PM2.5** (Fine Particulate Matter (≤ 2.5 µm)): **27.8 µg/m³** (WHO 24h benchmark: 15 µg/m³ -> **185%** of ceiling)\n- **PM10** (Coarse Particulate Matter (≤ 10 µm)): **34.1 µg/m³** (WHO 24h benchmark: 45 µg/m³ -> **76%** of ceiling)\n- **NO2** (Nitrogen Dioxide): **16.3 µg/m³** (WHO 24h benchmark: 25 µg/m³ -> **65%** of ceiling)\n- **O3** (Tropospheric Ground Ozone): **47 µg/m³** (WHO 24h benchmark: 100 µg/m³ -> **47%** of ceiling)\n- **SO2** (Sulphur Dioxide): **7.9 µg/m³** (WHO 24h benchmark: 40 µg/m³ -> **20%** of ceiling)\n- **CO** (Carbon Monoxide): **0.33 mg/m³** (WHO 24h benchmark: 4 mg/m³ -> **8%** of ceiling)\n- **DUST** (Atmospheric Desert & Mineral Dust): **8 µg/m³** (WHO 24h benchmark: 50 µg/m³ -> **16%** of ceiling)\n\n---\n\n### Meta Llama 3.2 3B Instruct — Free Credentials Guide\n\n**Model:** Meta Llama 3.2 3B Instruct (`@cf/meta/llama-3.2-3b-instruct`)\n**Provider:** Cloudflare Workers AI (100% Free Plan — 10,000 Neurons / day free, no credit card required)\n\nTo activate online inference for EcoTrack:\n1. Log in or create a free account at **[dash.cloudflare.com](https://dash.cloudflare.com/)**.\n2. Navigate to **Workers & Pages** > **Overview** and copy your **Account ID**.\n3. Go to **My Profile** > **API Tokens** > **Create Token**, use the **Workers AI** template, and copy your API Token.\n4. Add the following to your `.env` file:\n   ```bash\n   CLOUDFLARE_ACCOUNT_ID=\"<your_account_id>\"\n   CLOUDFLARE_API_TOKEN=\"<your_api_token>\"\n   ```\n5. Restart the server.\n\n*(For offline demo/development, you can also run `ollama run llama3.2:3b` locally with zero API keys).*",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 27.8,
+            "modelUsed": "Meta Llama 3.2 3B Instruct (@cf/meta/llama-3.2-3b-instruct)"
+          },
+          "id": "msg_1793839689180_5o01",
+          "timestamp": "2026-11-05T00:48:09.180Z"
+        },
+        {
+          "role": "user",
+          "content": "کراچی میں ہوا کے معیار کا مختصر جائزہ پیش کریں۔",
+          "id": "msg_1793839689351_7joz",
+          "timestamp": "2026-11-05T00:48:09.351Z"
+        },
+        {
+          "role": "assistant",
+          "content": "### Atmospheric Grounding Diagnostic: Karachi, Pakistan\n\n**Current Atmospheric Status:**\n- **Overall Air Quality Index (US EPA):** **91** (Moderate)\n- **Dominant Pollutant Vector:** **PM2.5**\n- **Planetary Boundary Layer Ceiling:** **110 m** (Severe Trapping Risk)\n- **Ventilation Assessment:** Severe atmospheric thermal inversion cap at 110m trapping surface particulates; calm wind (8.5 m/s) severely suppresses horizontal dispersion.\n- **Surface Meteorology:** 22.8°C, 69% RH, Wind 8.5 m/s (NNW)\n\n**WHO 2021 Benchmark Speciation:**\n- **PM2.5** (Fine Particulate Matter (≤ 2.5 µm)): **27.8 µg/m³** (WHO 24h benchmark: 15 µg/m³ -> **185%** of ceiling)\n- **PM10** (Coarse Particulate Matter (≤ 10 µm)): **34.1 µg/m³** (WHO 24h benchmark: 45 µg/m³ -> **76%** of ceiling)\n- **NO2** (Nitrogen Dioxide): **16.3 µg/m³** (WHO 24h benchmark: 25 µg/m³ -> **65%** of ceiling)\n- **O3** (Tropospheric Ground Ozone): **47 µg/m³** (WHO 24h benchmark: 100 µg/m³ -> **47%** of ceiling)\n- **SO2** (Sulphur Dioxide): **7.9 µg/m³** (WHO 24h benchmark: 40 µg/m³ -> **20%** of ceiling)\n- **CO** (Carbon Monoxide): **0.33 mg/m³** (WHO 24h benchmark: 4 mg/m³ -> **8%** of ceiling)\n- **DUST** (Atmospheric Desert & Mineral Dust): **8 µg/m³** (WHO 24h benchmark: 50 µg/m³ -> **16%** of ceiling)\n\n---\n\n### Meta Llama 3.2 3B Instruct — Free Credentials Guide\n\n**Model:** Meta Llama 3.2 3B Instruct (`@cf/meta/llama-3.2-3b-instruct`)\n**Provider:** Cloudflare Workers AI (100% Free Plan — 10,000 Neurons / day free, no credit card required)\n\nTo activate online inference for EcoTrack:\n1. Log in or create a free account at **[dash.cloudflare.com](https://dash.cloudflare.com/)**.\n2. Navigate to **Workers & Pages** > **Overview** and copy your **Account ID**.\n3. Go to **My Profile** > **API Tokens** > **Create Token**, use the **Workers AI** template, and copy your API Token.\n4. Add the following to your `.env` file:\n   ```bash\n   CLOUDFLARE_ACCOUNT_ID=\"<your_account_id>\"\n   CLOUDFLARE_API_TOKEN=\"<your_api_token>\"\n   ```\n5. Restart the server.\n\n*(For offline demo/development, you can also run `ollama run llama3.2:3b` locally with zero API keys).*",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 27.8,
+            "modelUsed": "Meta Llama 3.2 3B Instruct (@cf/meta/llama-3.2-3b-instruct)"
+          },
+          "id": "msg_1793839689351_ntdp",
+          "timestamp": "2026-11-05T00:48:09.351Z"
+        },
+        {
+          "role": "user",
+          "content": "State current AQI and dominant pollutant in Karachi.",
+          "id": "msg_1793839841803_yff8",
+          "timestamp": "2026-11-05T00:50:41.803Z"
+        },
+        {
+          "role": "assistant",
+          "content": "### Atmospheric Grounding Diagnostic: Karachi, Pakistan\n\n**Current Atmospheric Status:**\n- **Overall Air Quality Index (US EPA):** **91** (Moderate)\n- **Dominant Pollutant Vector:** **PM2.5**\n- **Planetary Boundary Layer Ceiling:** **110 m** (Severe Trapping Risk)\n- **Ventilation Assessment:** Severe atmospheric thermal inversion cap at 110m trapping surface particulates; calm wind (8.5 m/s) severely suppresses horizontal dispersion.\n- **Surface Meteorology:** 22.8°C, 69% RH, Wind 8.5 m/s (NNW)\n\n**WHO 2021 Benchmark Speciation:**\n- **PM2.5** (Fine Particulate Matter (≤ 2.5 µm)): **27.8 µg/m³** (WHO 24h benchmark: 15 µg/m³ -> **185%** of ceiling)\n- **PM10** (Coarse Particulate Matter (≤ 10 µm)): **34.1 µg/m³** (WHO 24h benchmark: 45 µg/m³ -> **76%** of ceiling)\n- **NO2** (Nitrogen Dioxide): **16.3 µg/m³** (WHO 24h benchmark: 25 µg/m³ -> **65%** of ceiling)\n- **O3** (Tropospheric Ground Ozone): **47 µg/m³** (WHO 24h benchmark: 100 µg/m³ -> **47%** of ceiling)\n- **SO2** (Sulphur Dioxide): **7.9 µg/m³** (WHO 24h benchmark: 40 µg/m³ -> **20%** of ceiling)\n- **CO** (Carbon Monoxide): **0.33 mg/m³** (WHO 24h benchmark: 4 mg/m³ -> **8%** of ceiling)\n- **DUST** (Atmospheric Desert & Mineral Dust): **8 µg/m³** (WHO 24h benchmark: 50 µg/m³ -> **16%** of ceiling)\n\n---\n\n### Meta Llama 3.2 3B Instruct — Free Credentials Guide\n\n**Model:** Meta Llama 3.2 3B Instruct (`@cf/meta/llama-3.2-3b-instruct`)\n**Provider:** Cloudflare Workers AI (100% Free Plan — 10,000 Neurons / day free, no credit card required)\n\nTo activate online inference for EcoTrack:\n1. Log in or create a free account at **[dash.cloudflare.com](https://dash.cloudflare.com/)**.\n2. Navigate to **Workers & Pages** > **Overview** and copy your **Account ID**.\n3. Go to **My Profile** > **API Tokens** > **Create Token**, use the **Workers AI** template, and copy your API Token.\n4. Add the following to your `.env` file:\n   ```bash\n   CLOUDFLARE_ACCOUNT_ID=\"<your_account_id>\"\n   CLOUDFLARE_API_TOKEN=\"<your_api_token>\"\n   ```\n5. Restart the server.\n\n*(For offline demo/development, you can also run `ollama run llama3.2:3b` locally with zero API keys).*",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 27.8,
+            "modelUsed": "Meta Llama 3.2 3B Instruct (@cf/meta/llama-3.2-3b-instruct)"
+          },
+          "id": "msg_1793839841804_up3z",
+          "timestamp": "2026-11-05T00:50:41.804Z"
+        },
+        {
+          "role": "user",
+          "content": "کراچی میں ہوا کے معیار کا مختصر جائزہ پیش کریں۔",
+          "id": "msg_1793839841988_xhf0",
+          "timestamp": "2026-11-05T00:50:41.988Z"
+        },
+        {
+          "role": "assistant",
+          "content": "### Atmospheric Grounding Diagnostic: Karachi, Pakistan\n\n**Current Atmospheric Status:**\n- **Overall Air Quality Index (US EPA):** **91** (Moderate)\n- **Dominant Pollutant Vector:** **PM2.5**\n- **Planetary Boundary Layer Ceiling:** **110 m** (Severe Trapping Risk)\n- **Ventilation Assessment:** Severe atmospheric thermal inversion cap at 110m trapping surface particulates; calm wind (8.5 m/s) severely suppresses horizontal dispersion.\n- **Surface Meteorology:** 22.8°C, 69% RH, Wind 8.5 m/s (NNW)\n\n**WHO 2021 Benchmark Speciation:**\n- **PM2.5** (Fine Particulate Matter (≤ 2.5 µm)): **27.8 µg/m³** (WHO 24h benchmark: 15 µg/m³ -> **185%** of ceiling)\n- **PM10** (Coarse Particulate Matter (≤ 10 µm)): **34.1 µg/m³** (WHO 24h benchmark: 45 µg/m³ -> **76%** of ceiling)\n- **NO2** (Nitrogen Dioxide): **16.3 µg/m³** (WHO 24h benchmark: 25 µg/m³ -> **65%** of ceiling)\n- **O3** (Tropospheric Ground Ozone): **47 µg/m³** (WHO 24h benchmark: 100 µg/m³ -> **47%** of ceiling)\n- **SO2** (Sulphur Dioxide): **7.9 µg/m³** (WHO 24h benchmark: 40 µg/m³ -> **20%** of ceiling)\n- **CO** (Carbon Monoxide): **0.33 mg/m³** (WHO 24h benchmark: 4 mg/m³ -> **8%** of ceiling)\n- **DUST** (Atmospheric Desert & Mineral Dust): **8 µg/m³** (WHO 24h benchmark: 50 µg/m³ -> **16%** of ceiling)\n\n---\n\n### Meta Llama 3.2 3B Instruct — Free Credentials Guide\n\n**Model:** Meta Llama 3.2 3B Instruct (`@cf/meta/llama-3.2-3b-instruct`)\n**Provider:** Cloudflare Workers AI (100% Free Plan — 10,000 Neurons / day free, no credit card required)\n\nTo activate online inference for EcoTrack:\n1. Log in or create a free account at **[dash.cloudflare.com](https://dash.cloudflare.com/)**.\n2. Navigate to **Workers & Pages** > **Overview** and copy your **Account ID**.\n3. Go to **My Profile** > **API Tokens** > **Create Token**, use the **Workers AI** template, and copy your API Token.\n4. Add the following to your `.env` file:\n   ```bash\n   CLOUDFLARE_ACCOUNT_ID=\"<your_account_id>\"\n   CLOUDFLARE_API_TOKEN=\"<your_api_token>\"\n   ```\n5. Restart the server.\n\n*(For offline demo/development, you can also run `ollama run llama3.2:3b` locally with zero API keys).*",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 27.8,
+            "modelUsed": "Meta Llama 3.2 3B Instruct (@cf/meta/llama-3.2-3b-instruct)"
+          },
+          "id": "msg_1793839841988_2sbh",
+          "timestamp": "2026-11-05T00:50:41.988Z"
+        },
+        {
+          "role": "user",
+          "content": "State current AQI and dominant pollutant in Karachi.",
+          "id": "msg_1793839882461_udmj",
+          "timestamp": "2026-11-05T00:51:22.461Z"
+        },
+        {
+          "role": "assistant",
+          "content": "### Atmospheric Grounding Diagnostic: Karachi, Pakistan\n\n**Current Atmospheric Status:**\n- **Overall Air Quality Index (US EPA):** **91** (Moderate)\n- **Dominant Pollutant Vector:** **PM2.5**\n- **Planetary Boundary Layer Ceiling:** **110 m** (Severe Trapping Risk)\n- **Ventilation Assessment:** Severe atmospheric thermal inversion cap at 110m trapping surface particulates; calm wind (8.5 m/s) severely suppresses horizontal dispersion.\n- **Surface Meteorology:** 22.8°C, 69% RH, Wind 8.5 m/s (NNW)\n\n**WHO 2021 Benchmark Speciation:**\n- **PM2.5** (Fine Particulate Matter (≤ 2.5 µm)): **27.8 µg/m³** (WHO 24h benchmark: 15 µg/m³ -> **185%** of ceiling)\n- **PM10** (Coarse Particulate Matter (≤ 10 µm)): **34.1 µg/m³** (WHO 24h benchmark: 45 µg/m³ -> **76%** of ceiling)\n- **NO2** (Nitrogen Dioxide): **16.3 µg/m³** (WHO 24h benchmark: 25 µg/m³ -> **65%** of ceiling)\n- **O3** (Tropospheric Ground Ozone): **47 µg/m³** (WHO 24h benchmark: 100 µg/m³ -> **47%** of ceiling)\n- **SO2** (Sulphur Dioxide): **7.9 µg/m³** (WHO 24h benchmark: 40 µg/m³ -> **20%** of ceiling)\n- **CO** (Carbon Monoxide): **0.33 mg/m³** (WHO 24h benchmark: 4 mg/m³ -> **8%** of ceiling)\n- **DUST** (Atmospheric Desert & Mineral Dust): **8 µg/m³** (WHO 24h benchmark: 50 µg/m³ -> **16%** of ceiling)\n\n---\n\n### Meta Llama 3.2 3B Instruct — Free Credentials Guide\n\n**Model:** Meta Llama 3.2 3B Instruct (`@cf/meta/llama-3.2-3b-instruct`)\n**Provider:** Cloudflare Workers AI (100% Free Plan — 10,000 Neurons / day free, no credit card required)\n\nTo activate online inference for EcoTrack:\n1. Log in or create a free account at **[dash.cloudflare.com](https://dash.cloudflare.com/)**.\n2. Navigate to **Workers & Pages** > **Overview** and copy your **Account ID**.\n3. Go to **My Profile** > **API Tokens** > **Create Token**, use the **Workers AI** template, and copy your API Token.\n4. Add the following to your `.env` file:\n   ```bash\n   CLOUDFLARE_ACCOUNT_ID=\"<your_account_id>\"\n   CLOUDFLARE_API_TOKEN=\"<your_api_token>\"\n   ```\n5. Restart the server.\n\n*(For offline demo/development, you can also run `ollama run llama3.2:3b` locally with zero API keys).*",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 27.8,
+            "modelUsed": "Meta Llama 3.2 3B Instruct (@cf/meta/llama-3.2-3b-instruct)"
+          },
+          "id": "msg_1793839882461_eb91",
+          "timestamp": "2026-11-05T00:51:22.461Z"
+        },
+        {
+          "role": "user",
+          "content": "کراچی میں ہوا کے معیار کا مختصر جائزہ پیش کریں۔",
+          "id": "msg_1793839884115_xsgg",
+          "timestamp": "2026-11-05T00:51:24.115Z"
+        },
+        {
+          "role": "assistant",
+          "content": "### ماحولیاتی زمینی تشخیص: Karachi, Pakistan\n\n**موجودہ ماحولیاتی صورتحال:**\n- **امریکی ای پی اے ایئر کوالٹی انڈیکس (AQI):** **91** (Moderate)\n- **نمایاں آلودگی کا ذریعہ:** **PM2.5**\n- **پلانیٹری باؤنڈری لیئر اونچائی (تھرمل انورژن کیپ):** **110 میٹر** (Severe رکاوٹ کا خطرہ)\n- **ہوا کا بہاؤ اور وینٹیلیشن:** Severe atmospheric thermal inversion cap at 110m trapping surface particulates; calm wind (8.5 m/s) severely suppresses horizontal dispersion.\n- **سطحی موسمیات:** 22.8°C درجہ حرارت، 69% نمی، ہوا 8.5 میٹر/سیکنڈ (NNW)\n\n**ڈبلیو ایچ او (WHO) 2021 بینچ مارک تفصیلات:**\n- **PM2.5** (Fine Particulate Matter (≤ 2.5 µm)): **27.8 µg/m³** (WHO 24 گھنٹے کی حد: 15 µg/m³ -> **185%**)\n- **PM10** (Coarse Particulate Matter (≤ 10 µm)): **34.1 µg/m³** (WHO 24 گھنٹے کی حد: 45 µg/m³ -> **76%**)\n- **NO2** (Nitrogen Dioxide): **16.3 µg/m³** (WHO 24 گھنٹے کی حد: 25 µg/m³ -> **65%**)\n- **O3** (Tropospheric Ground Ozone): **47 µg/m³** (WHO 24 گھنٹے کی حد: 100 µg/m³ -> **47%**)\n- **SO2** (Sulphur Dioxide): **7.9 µg/m³** (WHO 24 گھنٹے کی حد: 40 µg/m³ -> **20%**)\n- **CO** (Carbon Monoxide): **0.33 mg/m³** (WHO 24 گھنٹے کی حد: 4 mg/m³ -> **8%**)\n- **DUST** (Atmospheric Desert & Mineral Dust): **8 µg/m³** (WHO 24 گھنٹے کی حد: 50 µg/m³ -> **16%**)",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 27.8,
+            "modelUsed": "Meta Llama 3.2 3B Instruct (@cf/meta/llama-3.2-3b-instruct)"
+          },
+          "id": "msg_1793839884115_dflf",
+          "timestamp": "2026-11-05T00:51:24.115Z"
+        },
+        {
+          "role": "user",
+          "content": "State current AQI and dominant pollutant in Karachi.",
+          "id": "msg_1793840552797_fav2",
+          "timestamp": "2026-11-05T01:02:32.797Z"
+        },
+        {
+          "role": "assistant",
+          "content": "Based on the provided evidentiary data packet, the current Air Quality Index (AQI) in Karachi is 91, which falls under the \"Moderate\" category.\n\nThe dominant pollutant vector in Karachi is PM2.5 (Fine Particulate Matter with a diameter of ≤ 2.5 µm).",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 29.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793840552797_x8vj",
+          "timestamp": "2026-11-05T01:02:32.797Z"
+        },
+        {
+          "role": "user",
+          "content": "کراچی میں ہوا کے معیار کا مختصر جائزہ پیش کریں۔",
+          "id": "msg_1793840557805_8pvl",
+          "timestamp": "2026-11-05T01:02:37.805Z"
+        },
+        {
+          "role": "assistant",
+          "content": "کراچی میں ہوا کے معیار کا مختصر جائزہ:\n\nکراچی میں ہوا کے معیار کو moderate میں درج کیا گیا ہے، جو ہوا کے معیار کے معیاری نظام کے مطابق moderate سے متعلق ہے۔ اس معیار میں dominant pollutant vector PM2.5 (باریک ذرات) ہے، جو 29.3 µg/m³ کے درجہ پر ہے، جس سے ہوا میں آہستہ آہستہ بڑھتی ہوئی معیاری سطح (WHO 24h Benchmark: 15 µg/m³) سے 195% کے درجہ پر ہے۔\n\nبہت سے دیگر pollutant vectors جیسے PM10 (کھاڑی ذرات)، NO2 (نائٹروجن ڈائی آکسائیڈ)، O3 (تروپوسفیری گرونز اوزون)، SO2 (سولفور ڈائی آکسائیڈ)، CO (کربن Monoxide)، اور DUST (اتmospheric Desert & Mineral Dust) کے معیار بھی درجہ پر ہیں، لیکن ان میں سے زیادہ معیاری سطح PM2.5 کے معیار پر ہے۔\n\nبھیڑ کے باعث ہوا میں آہستہ آہستہ بڑھتی ہوئی معیاری سطح، معیاری سطح سے زیادہ ہونے کی وجہ سے، ہوا کے معیار کو moderate سے higher میں درج کیا گیا ہے۔\n\nانٹرنیشنل ایئر کوالیٹی ایسٹیبلشمنٹ انڈیکس (IAQI) کے مطابق، یہ معیار moderate سے higher میں درج ہے، جس سے ہوا میں آہستہ آہستہ بڑھتی ہوئی معیاری سطح کے خطرے کو ظاہر کیا گیا ہے۔\n\nاس لیے، ہوا کے معیار کا جائزہ دیکھتے ہوئے، ہوا میں آہستہ آہستہ بڑھتی ہوئی معیاری سطح کے خطرے کے حوالے سے اچھی طرح سے سावधانی رہنا چاہیے، خصوصاً اہل و عاقرانہ افراد کو، جیسے بچے اور بڑے اور جسمانی حالات میں خراب ہونے والے افراد۔\n\nاس لیے، ہوا کے معیار کے حوالے سے اچھی طرح سے سावधانی رہنے کے ساتھ ساتھ، یہ بھی ضروری ہے کہ ہوا میں آہستہ آہستہ بڑھتی ہوئی معیاری سطح کے خطرے سے نجات کے لیے، اہل و عاقرانہ افراد کو اپنی ایک ایسی یोजनہ بنائی جائے جو انہیں یہاں تک پہنچا سکے کہ ہوا میں آہستہ آہستہ بڑھتی ہوئی معیاری سطح کے خطرے سے بچا جا سکے۔",
+          "context": {
+            "location": "Karachi, Pakistan",
+            "aqi": 91,
+            "pm25": 29.3,
+            "modelUsed": "@cf/meta/llama-3.2-3b-instruct (Meta Llama 3.2 3B Instruct)"
+          },
+          "id": "msg_1793840557805_zkv0",
+          "timestamp": "2026-11-05T01:02:37.805Z"
         }
       ]
     }
   ],
   "meta": {
     "version": "3.4.0",
-    "lastUpdated": "2026-11-04T22:49:09.416Z",
+    "lastUpdated": "2026-11-05T01:02:58.528Z",
     "initializedAt": "2026-11-04T18:55:41.218Z"
   },
   "sessions": [
@@ -711,6 +927,34 @@
       "userId": "usr_1793832549309_jzwj7",
       "createdAt": "2026-11-04T22:49:09.309Z",
       "expiresAt": "2026-11-07T22:49:09.309Z",
+      "revoked": false
+    },
+    {
+      "id": "c56f8d8a34491f72b15a96c2e39efa905d69f7df37b7484e335cd2f3a049c408",
+      "userId": "usr_1793839689569_2pqot",
+      "createdAt": "2026-11-05T00:48:09.569Z",
+      "expiresAt": "2026-11-08T00:48:09.569Z",
+      "revoked": false
+    },
+    {
+      "id": "5421fc8fa45107589756b3771a7d2e1f211a8e2ebcf5505f5669cab9d90fafd0",
+      "userId": "usr_1793839842188_5o7mp",
+      "createdAt": "2026-11-05T00:50:42.188Z",
+      "expiresAt": "2026-11-08T00:50:42.188Z",
+      "revoked": false
+    },
+    {
+      "id": "efd19754a25cdd91809852b28ce3878876c476fb4073305358c671bcd4186c7f",
+      "userId": "usr_1793839885507_pjebh",
+      "createdAt": "2026-11-05T00:51:25.507Z",
+      "expiresAt": "2026-11-08T00:51:25.507Z",
+      "revoked": false
+    },
+    {
+      "id": "067476a24908f5801d723ea52b228f4139e85a2d99831fb5b8e44fe5422f6a5c",
+      "userId": "usr_1793840578415_g4rli",
+      "createdAt": "2026-11-05T01:02:58.416Z",
+      "expiresAt": "2026-11-08T01:02:58.416Z",
       "revoked": false
     }
   ]

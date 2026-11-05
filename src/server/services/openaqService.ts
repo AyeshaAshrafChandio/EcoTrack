@@ -52,6 +52,8 @@ export interface OpenAQStationResult {
   country: string;
   latitude: number;
   longitude: number;
+  lat: number;
+  lon: number;
   measurements: Record<string, OpenAQMeasurement>;
   isGroundStation: true;
   attribution: string;
@@ -208,6 +210,8 @@ export class OpenAQService {
             country: loc.country?.name || loc.country?.code || '',
             latitude: loc.coordinates.latitude,
             longitude: loc.coordinates.longitude,
+            lat: loc.coordinates.latitude,
+            lon: loc.coordinates.longitude,
             measurements,
             isGroundStation: true as const,
             attribution: 'OpenAQ Community & Reference Ground Monitors (EPA/WMO calibrated physical sensors)',

@@ -231,7 +231,14 @@ apiRouter.get(['/environment/openaq', '/environment/openaq/stations'], async (re
     const radius = rawRadius ? Math.min(25000, Math.max(100, parseInt(rawRadius as string, 10))) : 25000;
 
     const result = await openAQService.findNearestStations(lat, lon, radius);
-    res.json(result);
+    const normalizedStations = (result.stations || []).map((s: any) => ({
+      ...s,
+      lat: typeof s.lat === 'number' ? s.lat : typeof s.latitude === 'number' ? s.latitude : undefined,
+      lon: typeof s.lon === 'number' ? s.lon : typeof s.longitude === 'number' ? s.longitude : undefined,
+      latitude: typeof s.latitude === 'number' ? s.latitude : typeof s.lat === 'number' ? s.lat : undefined,
+      longitude: typeof s.longitude === 'number' ? s.longitude : typeof s.lon === 'number' ? s.lon : undefined,
+    }));
+    res.json({ ...result, stations: normalizedStations });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to query OpenAQ ground monitors', details: err.message });
   }

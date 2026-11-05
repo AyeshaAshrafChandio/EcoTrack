@@ -395,7 +395,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [searchQuery]);
 
   const selectCity = (name: string, lat: number, lon: number) => {
-    setSelectedLocation({ name, lat, lon });
+    const validLat = typeof lat === 'number' && !isNaN(lat) ? lat : 24.8607;
+    const validLon = typeof lon === 'number' && !isNaN(lon) ? lon : 67.0011;
+    setSelectedLocation({ name, lat: validLat, lon: validLon });
     setSearchQuery('');
     setSearchResults([]);
   };
